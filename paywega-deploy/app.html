@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Paywega - No Change? No Problem!</title>
+    <link rel="stylesheet" href="app.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="app-icon.png">
+    <meta name="theme-color" content="#0056b3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('SW Registered'))
+                .catch(err => console.error('SW Error:', err));
+        }
+    </script>
+</head>
+
+<body>
+    <div id="paywega-app-root" class="screen"></div>
+
+    <!-- ==================== WELCOME SCREEN ==================== -->
+    <template id="tmpl-welcome">
+        <div class="app-screen welcome-screen">
+            <div class="welcome-content">
+                <div class="app-logo">
+                    <span class="logo-icon">💳</span>
+                    <span>Paywega</span>
+                </div>
+                <p class="tagline">No Change? No Problem!</p>
+                <p class="subtitle">Peer-to-peer payments for Zimbabwe's combis</p>
+            </div>
+            <div class="welcome-actions">
+                <button class="btn-primary btn-register">Create Account</button>
+                <button class="btn-secondary btn-login">Login</button>
+            </div>
+            <div class="welcome-footer">
+                <small><i class="fas fa-lock"></i> Secure • <i class="fas fa-wifi-slash"></i> Works Offline</small>
+                <div class="version">v1.4 - Driver Fare Control</div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ==================== PHONE ENTRY ==================== -->
+    <template id="tmpl-phone-entry">
+        <div class="app-screen form-screen">
+            <div class="screen-header">
+                <i class="fas fa-arrow-left btn-back"></i>
+                <span class="screen-title">Create Account</span>
+            </div>
+            <div class="form-container">
+                <div class="form-icon"><i class="fas fa-mobile-alt"></i></div>
+                <h2>Enter Your Phone Number</h2>
+                <p>We'll send you a verification code</p>
+                <form id="phone-form">
+                    <div class="phone-input-group">
+                        <span class="country-code">+263</span>
+                        <input type="tel" id="phone-input" placeholder="77 123 4567" required>
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">Continue</button>
+                </form>
+            </div>
+        </div>
+    </template>
+
+    <!-- ==================== OTP VERIFICATION ==================== -->
+    <template id="tmpl-otp-verify">
+        <div class="app-screen form-screen">
+            <div class="screen-header">
+                <i class="fas fa-arrow-left btn-back"></i>
+                <span>Verify Phone</span>
+            </div>
+            <div class="form-container">
+                <div class="form-icon"><i class="fas fa-sms"></i></div>
+                <h2>Enter Verification Code</h2>
+                <p>Sent to <span class="otp-phone"></span></p>
+                <div class="demo-otp"></div>
+                <form id="otp-form">
+                    <div class="otp-inputs">
+                        <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+                        <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+                        <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+                        <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+                        <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+                        <input type="text" inputmode="numeric" maxlength="1" class="otp-input">
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">Verify</button>
+                </form>
+                <p class="resend-text">Didn't receive code? <span class="btn-resend">Resend</span></p>
+            </div>
+        </div>
+    </template>
+
+    <!-- ==================== ROLE SELECTION ==================== -->
+    <template id="tmpl-role-select">
+        <div class="app-screen role-screen">
+            <div class="role-content">
+                <h2>How will you use Paywega?</h2>
+                <p>Choose your primary role</p>
+                <div class="role-cards">
+                    <div class="role-card btn-role-commuter">
+                        <div class="role-icon"><i class="fas fa-user"></i></div>
+                        <h3>Commuter</h3>
+                        <p>Pay for transport, send money</p>
+                    </div>
+                    <div class="role-card btn-role-driver">
+                        <div class="role-icon"><i class="fas fa-bus"></i></div>
+                        <h3>Driver / Hwindi</h3>
+                        <p>Receive fares, manage combi</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ==================== DRIVER DETAILS ==================== -->
+    <template id="tmpl-driver-details">
+        <div class="app-screen form-screen">
+            <div class="screen-header">
+                <i class="fas fa-arrow-left btn-back"></i>
+                <span>Combi Details</span>
+            </div>
+            <div class="form-container">
+                <form id="driver-details-form">
+                    <div class="form-group highlight" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0);">
+                        <label><i class="fas fa-key"></i> Paywega Registration Code</label>
+                        <input type="text" id="driver-reg-code" placeholder="PWG-DRV-2024-001" required
+                            style="text-transform: uppercase;">
+                        <small style="color: #166534;">Obtain this code from Paywega offices after document
+                            verification</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Name</label>
+                        <input type="text" id="driver-name" placeholder="Tino Mufudzi" required>
+                    </div>
+                    <div class="form-group highlight">
+                        <label><i class="fas fa-star"></i> Combi Nickname</label>
+                        <input type="text" id="combi-nickname" placeholder='"Bossbaby", "Street King"' required>
+                        <small>How commuters know your combi!</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Vehicle Registration</label>
+                        <input type="text" id="vehicle-reg" placeholder="ADZ-1234" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Main Route</label>
+                        <input type="text" id="vehicle-route" placeholder="City - Avondale" required>
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">Verify & Continue</button>
+                </form>
+                <p class="registration-help"
+                    style="margin-top: 15px; font-size: 0.85rem; color: #64748b; text-align: center;">
+                    <i class="fas fa-info-circle"></i> Don't have a code? Visit our offices with your vehicle documents.
+                </p>
+            </div>
+        </div>
+    </template>
+
+    <!-- ==================== CREATE LOGIN PIN ==================== -->
+    <template id="tmpl-create-pin">
+        <div class="app-screen form-screen pin-screen">
+            <div class="form-container">
+                <div class="form-icon"><i class="fas fa-lock"></i></div>
+                <h2>Create Login PIN</h2>
+                <p>This PIN will be used to open the app</p>
+                <form id="create-pin-form">
+                    <div class="pin-inputs">
+                        <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                        <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                        <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                        <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">Continue</button>
+                </form>
+                <p class="pin-tip"><i class="fas fa-info-circle"></i> Avoid easy PINs like 1234 or 0000</p>
+            </div>
+        </div>
+    </template>
+
+    <!-- ==================== CONFIRM PIN ==================== -->
+    <template id="tmpl-confirm-pin">
+        <div class="app-screen form-screen pin-screen">
+            <div class="form-container">
+                <div class="form-icon"><i class="fas fa-check-circle"></i></div>
+                <h2>Confirm Login PIN</h2>
+                <p>Enter your PIN again to confirm</p>
+                <form id="confirm-pin-form">
+                    <div class="pin-inputs">
+                        <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                        <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                        <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                        <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">Confirm</button>
+                </form>
+            </div>
+        </div>
+    </template>
+
+    <!-- ==================== CREATE TRANSACTION PIN ==================== -->
+    <template id="tmpl-create-txn-pin">
+        <div class="app-screen form-screen pin-screen">
+            <div class="form-container">
+                <div class="form-icon txn-icon"><i class="fas fa-shield-alt"></i></div>
+                <h2>Create Transaction PIN</h2>
+                <p>This separate PIN confirms payments</p>
+                <p class="highlight-text">Must be different from Login PIN</p>
+                <form id="txn-pin-form">
+                    <div class="pin-inputs">
+                        <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                        <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                        <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                        <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">Complete Setup</button>
+                </form>
+            </div>
+        </div>
+    </template>
+
+    <!-- ==================== PIN LOGIN ==================== -->
+    <template id="tmpl-pin-login">
+        <div class="app-screen form-screen pin-screen">
+            <div class="screen-header">
+                <i class="fas fa-arrow-left btn-back"></i>
+                <span>Login</span>
+            </div>
+            <div class="form-container">
+                <div class="form-icon"><i class="fas fa-user-circle"></i></div>
+                <h2>Welcome Back!</h2>
+                <p class="login-phone"></p>
+                <p>Enter your Login PIN</p>
+                <div class="pin-inputs">
+                    <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                    <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                    <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                    <input type="password" inputmode="numeric" maxlength="1" class="pin-input">
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ==================== COMMUTER DASHBOARD ==================== -->
+    <template id="tmpl-commuter">
+        <div class="app-screen dashboard">
+            <div class="app-top-bar">
+                <span><i class="fas fa-wallet"></i> <span class="user-name">Wallet</span></span>
+                <i class="fas fa-sign-out-alt btn-logout"></i>
+            </div>
+            <div class="balance-card">
+                <span class="label">Token Balance</span>
+                <h1 class="amount"><span id="commuter-balance">0.00</span></h1>
+                <button class="btn-sm btn-ecocash"><i class="fas fa-plus"></i> Buy Tokens</button>
+            </div>
+
+            <div class="main-action-container">
+                <div class="main-action btn-scan">
+                    <i class="fas fa-qrcode"></i>
+                    <span>Scan to Pay</span>
+                </div>
+            </div>
+
+            <div class="secondary-actions">
+                <div class="action-btn btn-send-money">
+                    <i class="fas fa-paper-plane"></i>
+                    <small>Send</small>
+                </div>
+                <div class="action-btn btn-my-qr">
+                    <i class="fas fa-qrcode"></i>
+                    <small>My QR</small>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <h4><i class="fas fa-history"></i> History</h4>
+                <ul id="commuter-history"></ul>
+            </div>
+        </div>
+    </template>
+
+    <!-- ==================== DRIVER DASHBOARD ==================== -->
+    <template id="tmpl-driver">
+        <div class="app-screen dashboard driver-dashboard">
+            <div class="app-top-bar">
+                <span><i class="fas fa-bus"></i> Driver Mode</span>
+                <i class="fas fa-sign-out-alt btn-logout"></i>
+            </div>
+
+            <div class="vehicle-card">
+                <div class="vehicle-icon"><i class="fas fa-bus-alt"></i></div>
+                <div class="vehicle-info">
+                    <h3 class="vehicle-nickname">"Bossbaby"</h3>
+                    <span class="vehicle-reg">ADZ-1234</span>
+                    <small class="vehicle-route">City - Avondale</small>
+                </div>
+            </div>
+
+            <div class="balance-card driver-balance">
+                <span class="label">Today's Earnings</span>
+                <h1 class="amount"><span id="driver-balance">0.00</span></h1>
+                <div class="driver-btns">
+                    <button class="btn-sm btn-show-qr"><i class="fas fa-qrcode"></i> Show QR</button>
+                    <button class="btn-sm btn-withdraw"><i class="fas fa-money-bill-wave"></i> Withdraw</button>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <h4><i class="fas fa-list"></i> Fares Received</h4>
+                <ul id="driver-history"></ul>
+            </div>
+        </div>
+    </template>
+
+    <!-- ==================== OWNER DASHBOARD ==================== -->
+    <template id="tmpl-owner">
+        <div class="app-screen dashboard owner-dashboard">
+            <div class="app-top-bar">
+                <span><i class="fas fa-building"></i> Fleet Owner</span>
+                <i class="fas fa-sign-out-alt btn-logout"></i>
+            </div>
+            <div class="balance-card owner-balance">
+                <span class="label">Total Fleet Revenue</span>
+                <h1 class="amount">$<span id="owner-total">0.00</span></h1>
+            </div>
+            <div class="section-header">
+                <h4><i class="fas fa-bus"></i> My Fleet</h4>
+            </div>
+            <div class="fleet-list"></div>
+        </div>
+    </template>
+
+    <!-- ==================== QR SCANNER ==================== -->
+    <template id="tmpl-scanner">
+        <div class="scanner-overlay">
+            <div class="scanner-header">
+                <i class="fas fa-times btn-close-scanner"></i>
+                <span>Scan Combi QR</span>
+            </div>
+            <div class="camera-view">
+                <div id="reader"></div>
+            </div>
+            <div class="scanner-footer">
+                <i class="fas fa-bus"></i> Point at the Paywega sticker
+            </div>
+        </div>
+    </template>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

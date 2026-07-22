@@ -1,0 +1,6 @@
+{
+  "appId": "com.mwanawev.paywega",
+  "appName": "Paywega",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}

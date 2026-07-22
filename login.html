@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Email Portal | Mwanawev</title>
+    <meta name="description" content="Access your Mwanawev company email.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .email-portal {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+            padding: 20px;
+        }
+
+        .portal-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 50px 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+        }
+
+        .portal-container .logo {
+            width: 80px;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 4px 15px rgba(0, 200, 150, 0.3));
+        }
+
+        .portal-container h1 {
+            color: #fff;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .portal-container .subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 35px;
+        }
+
+        .email-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #00c896, #00a87a);
+            border-radius: 12px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(0, 200, 150, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .email-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 200, 150, 0.4);
+        }
+
+        .email-btn i {
+            font-size: 1.3rem;
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .instructions h3 {
+            color: #00c896;
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+
+        .instructions ol {
+            color: rgba(255, 255, 255, 0.7);
+            padding-left: 20px;
+            margin: 0;
+            line-height: 1.8;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            margin-top: 25px;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #00c896;
+        }
+
+        @media (max-width: 480px) {
+            .portal-container {
+                padding: 35px 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-portal">
+        <div class="portal-container">
+            <a href="index.html">
+                <img src="logo.png" alt="Mwanawev" class="logo">
+            </a>
+            <h1>Team Email Portal</h1>
+            <p class="subtitle">Access your @mwanawevtech.com email</p>
+
+            <a href="https://webmail.dreamhost.com" target="_blank" class="email-btn">
+                <i class="fas fa-envelope"></i>
+                Open Webmail
+            </a>
+
+            <div class="instructions">
+                <h3><i class="fas fa-info-circle"></i> How to Login</h3>
+                <ol>
+                    <li>Click the button above</li>
+                    <li>Enter your full email (e.g. yourname@mwanawevtech.com)</li>
+                    <li>Enter the password given by admin</li>
+                </ol>
+            </div>
+
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Back to Home
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

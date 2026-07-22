@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Paywega</string>
+    <string name="title_activity_main">Paywega</string>
+    <string name="package_name">com.mwanawev.paywega</string>
+    <string name="custom_url_scheme">com.mwanawev.paywega</string>
+</resources>

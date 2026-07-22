@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Paywega Test QR</title>
+    <style>
+        body {
+            background: #0f172a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+            font-family: sans-serif;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+        }
+        h1 { margin-bottom: 5px; color: #0056b3; }
+        p { color: #64748b; margin-bottom: 20px; font-weight: bold; }
+        img { width: 500px; height: 500px; }
+    </style>
+</head>
+<body>
+    <div class="container" style="text-align: center;">
+        <h1>PAYWEGA TEST</h1>
+        <p>Vehicle: Bossbaby (VH-DEMO-001) | Fare: 0.50 tokens</p>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=paywega://pay/vehicle/VH-DEMO-001?fare=0.50" alt="QR Code">
+    </div>
+</body>
+</html>

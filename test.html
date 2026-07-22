@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>App Test</title>
+</head>
+
+<body>
+    <h1>Testing JavaScript...</h1>
+    <div id="test-output"></div>
+
+    <script>
+        document.getElementById('test-output').innerHTML = 'JavaScript is working! ✅';
+
+        // Test if app.js has syntax errors
+        console.log('Test page loaded');
+
+        // Try to check if PaywegaApp class can be accessed
+        setTimeout(() => {
+            if (window.paywegaApp) {
+                document.getElementById('test-output').innerHTML += '<br>App initialized! ✅';
+            } else {
+                document.getElementById('test-output').innerHTML += '<br>App NOT initialized ❌';
+            }
+        }, 2000);
+    </script>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

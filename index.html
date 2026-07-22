@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mwanawev | Revolutionizing Transport</title>
+    <meta name="description"
+        content="Mwanawev: Transforming Zimbabwe's public transport sector with Paywega for seamless peer-to-peer payments.">
+    <link rel="icon" href="app-icon.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div id="loader">
+        <img src="logo.png" alt="Mwanawev Loading..." class="loader-logo">
+    </div>
+
+    <header id="navbar">
+        <div class="container nav-container">
+            <img src="logo.png" alt="Mwanawev" class="logo">
+            <nav>
+                <ul>
+                    <li><a href="#hero">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="team.html">Team</a></li>
+                    <li><a href="login.html"><i class="fas fa-lock"></i> Team Login</a></li>
+                    <li><a href="#paywega" class="btn-nav">Paywega</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <section id="hero">
+        <video autoplay muted loop playsinline class="hero-video" poster="hero_transport.png">
+            <source src="hero_video.mp4" type="video/mp4">
+        </video>
+        <audio id="bg-audio" loop>
+            <source src="transport_ambience.mp3" type="audio/mpeg">
+        </audio>
+
+        <button id="audio-toggle" class="btn-audio" aria-label="Toggle Sound">
+            <i class="fas fa-volume-mute"></i>
+        </button>
+
+        <div class="hero-overlay"></div>
+        <div class="container hero-content">
+            <h2 class="animate-up">The Future of <br>
+                <span class="typing-container">
+                    <span class="typing-text">Zimbabwean Transport</span>
+                </span>
+            </h2>
+            <p class="animate-up delay-1">Solving the "change" crisis with seamless digital solutions.</p>
+            <div class="hero-btns animate-up delay-2">
+                <a href="#paywega" class="btn btn-primary">Discover Paywega</a>
+                <a href="#about" class="btn btn-secondary">Learn More</a>
+                <button id="play-narrative" class="btn btn-secondary">
+                    <i class="fas fa-bullhorn"></i> Our Mission
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="about">
+        <div class="container">
+
+            <div class="about-grid">
+                <div class="card tilt-card">
+                    <i class="fas fa-bus"></i>
+                    <h4>Public Transport</h4>
+                    <p>Improving efficiency and reliability for every commuter hitting the road.</p>
+                </div>
+                <div class="card tilt-card">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h4>Digital Solutions</h4>
+                    <p>Leveraging technology to solve everyday problems like cash shortages.</p>
+                </div>
+                <div class="card tilt-card">
+                    <i class="fas fa-users"></i>
+                    <h4>Community First</h4>
+                    <p>Built by Zimbabweans, for Zimbabweans. We listen to your feedback.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="paywega">
+        <!-- Live Ticker -->
+        <div class="ticker-wrap">
+            <div class="ticker">
+                <div class="ticker-item"><i class="fas fa-check-circle"></i> Payment processed: City-CBD Route</div>
+                <div class="ti7cker-item"><i class="fas fa-check-circle"></i> Partner payout initiated successfully
+                </div>
+                <div class="ticker-item"><i class="fas fa-check-circle"></i> 150+ Secure Transactions in last hour</div>
+                <div class="ticker-item"><i class="fas fa-check-circle"></i> New Route Added: Avondale</div>
+                <div class="ticker-item"><i class="fas fa-check-circle"></i> Commuter trip verified: Msasa</div>
+                <!-- Duplicate for smooth seamless loop -->
+                <div class="ticker-item"><i class="fas fa-check-circle"></i> Payment processed: City-CBD Route</div>
+                <div class="ticker-item"><i class="fas fa-check-circle"></i> Partner payout initiated successfully</div>
+                <div class="ticker-item"><i class="fas fa-check-circle"></i> 150+ Secure Transactions in last hour</div>
+                <div class="ticker-item"><i class="fas fa-check-circle"></i> New Route Added: Avondale</div>
+                <div class="ticker-item"><i class="fas fa-check-circle"></i> Commuter trip verified: Msasa</div>
+            </div>
+        </div>
+
+        <div class="container paywega-container">
+            <div class="paywega-text">
+                <h3>Paywega <span class="tag">Coming Soon</span></h3>
+                <h2>No Change? No Problem.</h2>
+                <p>Paywega is our flagship payment system designed to eliminate the "no change" hassle in combis and
+                    buses. Use your phone to perform instant peer transactions.</p>
+
+
+
+                <ul class="features-list">
+                    <li><i class="fas fa-check-circle"></i> Instant peer-to-peer transfers</li>
+                    <li><i class="fas fa-check-circle"></i> Works on all major networks</li>
+                    <li><i class="fas fa-check-circle"></i> Secure and transparent</li>
+                </ul>
+            </div>
+            <div class="paywega-visual">
+                <!-- Visual representation or abstract phone UI -->
+                <div class="phone-mockup static-preview">
+                    <!-- Static Image of the App UI -->
+                    <div class="screen static-screen">
+                        <div class="app-header">Paywega</div>
+                        <div class="balance">
+                            <span>Balance</span>
+                            <h3>$15.50</h3>
+                        </div>
+                        <div class="actions">
+                            <div class="btn-action">Pay</div>
+                            <div class="btn-action">Receive</div>
+                        </div>
+                        <div class="transactions">
+                            <div class="trans-item">
+                                <span>City - CBD</span>
+                                <span>-$0.50</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="download-btns">
+                    <a href="app.html" target="_blank" class="btn-store">
+                        <i class="fab fa-google-play"></i>
+                        <div>
+                            <small>GET IT ON</small>
+                            <span>Google Play</span>
+                        </div>
+                    </a>
+                    <a href="app.html" target="_blank" class="btn-store btn-direct">
+                        <i class="fas fa-mobile-alt"></i>
+                        <div>
+                            <small>TRY DEMO</small>
+                            <span>Open Web App</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="feedback">
+        <div class="container feedback-content">
+            <h2>We Want To Hear From You</h2>
+            <p>Your suggestions drive our improvements. Connect directly with our department heads via WhatsApp.</p>
+            <div class="contact-grid">
+                <div class="contact-method">
+                    <h3>WhatsApp</h3>
+                    <a href="https://wa.me/263778602890?text=Hello%20Mwanawev%2C%20I%20would%20like%20to%20inquire%20about%20your%20services."
+                        target="_blank" class="btn btn-whatsapp">
+                        <i class="fab fa-whatsapp"></i> Chat Now
+                    </a>
+                    <div class="qr-container">
+                        <p>Or scan to chat:</p>
+                        <div class="qr-box">
+                            <!-- User's QR Code -->
+                            <img src="whatsapp_qr.jpeg" alt="WhatsApp QR Code" class="qr-image">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-method">
+                    <h3>Direct Call</h3>
+                    <div style="margin-bottom: 20px;">
+                        <i class="fas fa-phone-volume"
+                            style="font-size: 4rem; color: var(--secondary-color); margin-bottom: 15px; display: block;"></i>
+                        <h4 style="margin-bottom: 5px; color: var(--dark-bg); font-size: 1.2rem;">Godfrey Munkuli</h4>
+                        <p style="color: #666;">Chief Communications Officer</p>
+                    </div>
+                    <a href="tel:+263778602890" class="btn btn-primary"
+                        style="border-radius: 50px; padding: 12px 30px; display: inline-flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-phone-alt"></i> +263 77 860 2890
+                    </a>
+                </div>
+
+                <div class="contact-method">
+                    <h3>Email Us</h3>
+                    <p>Send detailed feedback for our customer care team to review.</p>
+                    <form id="email-form">
+                        <div class="form-group">
+                            <input type="email" placeholder="Your Email Address" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea placeholder="Your Message / Feedback" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Email</button>
+                    </form>
+                </div>
+            </div>
+
+            <p class="small-text">Direct line to Department Head</p>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <p class="address" style="margin-bottom: 10px;"><i class="fas fa-map-marker-alt"></i> 3620 Mutiti Road,
+                Rusike Park, Marondera</p>
+            <p>&copy; 2025 Mwanawev. All Rights Reserved.</p>
+            <div class="socials">
+                <a href="https://www.facebook.com/share/1KLp1VtHU9/" target="_blank" title="Follow us on Facebook"><i
+                        class="fab fa-facebook-f"></i></a>
+                <a href="https://www.instagram.com/mwanawevtech" target="_blank" title="Follow us on Instagram"><i
+                        class="fab fa-instagram"></i></a>
+                <a href="https://wa.me/263778602890" target="_blank" title="Chat on WhatsApp"><i
+                        class="fab fa-whatsapp"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
