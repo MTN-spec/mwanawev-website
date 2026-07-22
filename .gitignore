@@ -45,3 +45,6 @@ desktop.ini
 # Zip archives
 # ========================
 *.zip
+
+# Allow the distributable APK in root
+!paywega.apk
