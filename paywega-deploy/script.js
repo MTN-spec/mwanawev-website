@@ -1,21 +1,30 @@
+function hideLoader() {
+    const loader = document.getElementById('loader');
+    if (loader && !loader.classList.contains('fade-out')) {
+        loader.classList.add('fade-out');
+        setTimeout(() => {
+            if (loader && loader.parentNode) {
+                loader.remove();
+            }
+        }, 500);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Basic Website Logic
     initWebsiteInteractions();
+    const loader = document.getElementById('loader');
+    if (loader) {
+        loader.addEventListener('click', hideLoader);
+        setTimeout(hideLoader, 500);
+    }
 });
 
 window.addEventListener('load', () => {
-    const loader = document.getElementById('loader');
-    if (loader) {
-        // Minimum display time for the logo to be "vivid"
-        setTimeout(() => {
-            loader.classList.add('fade-out');
-            // Remove from DOM after transition to free up resources
-            setTimeout(() => {
-                loader.remove();
-            }, 500);
-        }, 2000); // 2 seconds splash time
-    }
+    hideLoader();
 });
+
+// Failsafe: guarantee loader is removed within 1 second max
+setTimeout(hideLoader, 1000);
 
 function initWebsiteInteractions() {
     // Smooth scrolling

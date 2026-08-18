@@ -123,9 +123,9 @@
         <div class="portal-container">
             <a href="index.html">
                 <img src="logo.png?v=concept1" alt="MTNSPEC" class="logo">
-                <h2>Team Email Portal</h2>
-            </div>
-            <p class="subtitle">Access your @mtnspec.com email</p>
+            </a>
+            <h2>Team Portal</h2>
+            <p class="subtitle">Access your MTNSPEC team workspace</p>
             
             <form id="portal-form" onsubmit="handlePortalSubmit(event)">
                 <div class="form-group">
@@ -150,6 +150,10 @@
                         <li>Enter your full email (e.g. yourname@mtnspec.com)</li>
                     </ul>
                 </div>
+
+                <button type="submit" class="email-btn" style="width: 100%; justify-content: center; margin-top: 15px; border: none; cursor: pointer;">
+                    <i class="fas fa-sign-in-alt"></i> Access Team Portal
+                </button>
             </form>
 
             <a href="index.html" class="back-link">
@@ -158,6 +162,20 @@
             </a>
         </div>
     </div>
+
+    <script>
+        function handlePortalSubmit(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Accessing Team Portal...';
+                btn.disabled = true;
+            }
+            setTimeout(() => {
+                window.location.href = 'team.html';
+            }, 500);
+        }
+    </script>
 </body>
 
 </html>
