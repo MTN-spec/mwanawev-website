@@ -93,11 +93,11 @@ header {
 }
 
 .logo {
-    height: 90px;
+    height: 70px;
     width: auto;
     object-fit: contain;
-    mix-blend-mode: multiply;
-    /* blending to hide white box */
+    mix-blend-mode: normal;
+    border-radius: 8px;
 }
 
 .dot {
@@ -450,6 +450,7 @@ nav a.btn-nav:hover {
     max-width: 300px;
     max-height: 300px;
     object-fit: cover;
+    object-position: top center;
     border-radius: 15px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     font-size: 10rem;
@@ -888,25 +889,27 @@ nav a.btn-nav:hover {
 }
 
 .qr-box {
-    width: 200px;
-    height: 200px;
+    width: 220px;
+    height: 220px;
     background: white;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
-    /* Key for cropping */
     position: relative;
     border: 2px solid #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
 .qr-image {
-    width: 300%;
-    /* Zoom in to crop */
-    height: 300%;
-    object-fit: cover;
-    object-position: center;
-    /* Center to find the code */
-    transform: translate(-33%, -33%);
-    /* Center the zoom */
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    transform: none !important;
+    border-radius: 8px;
 }
 
 /* Form Styles */

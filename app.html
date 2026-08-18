@@ -272,8 +272,15 @@
                 <i class="fas fa-sign-out-alt btn-logout"></i>
             </div>
             <div class="balance-card">
-                <span class="label">Token Balance</span>
-                <h1 class="amount"><span id="commuter-balance">0.00</span></h1>
+                <div class="balance-header-row">
+                    <span class="label">Token Balance</span>
+                    <span class="currency-badge"><i class="fas fa-globe-africa"></i> 3 Currencies</span>
+                </div>
+                <h1 class="amount">$<span id="commuter-balance">0.00</span> <small class="token-tag">tokens</small></h1>
+                <div class="currency-equivalents">
+                    <div class="curr-pill"><span class="flag">🇿🇦</span> <span id="commuter-balance-zar">R 0.00</span></div>
+                    <div class="curr-pill"><span class="flag">🇿🇼</span> <span id="commuter-balance-zig">0.00 ZiG</span></div>
+                </div>
                 <button class="btn-sm btn-ecocash"><i class="fas fa-plus"></i> Buy Tokens</button>
             </div>
 
@@ -320,8 +327,15 @@
             </div>
 
             <div class="balance-card driver-balance">
-                <span class="label">Today's Earnings</span>
-                <h1 class="amount"><span id="driver-balance">0.00</span></h1>
+                <div class="balance-header-row">
+                    <span class="label">Today's Earnings</span>
+                    <span class="currency-badge"><i class="fas fa-globe-africa"></i> Live Rates</span>
+                </div>
+                <h1 class="amount">$<span id="driver-balance">0.00</span> <small class="token-tag">tokens</small></h1>
+                <div class="currency-equivalents">
+                    <div class="curr-pill"><span class="flag">🇿🇦</span> <span id="driver-balance-zar">R 0.00</span></div>
+                    <div class="curr-pill"><span class="flag">🇿🇼</span> <span id="driver-balance-zig">0.00 ZiG</span></div>
+                </div>
                 <div class="driver-btns">
                     <button class="btn-sm btn-show-qr"><i class="fas fa-qrcode"></i> Show QR</button>
                     <button class="btn-sm btn-withdraw"><i class="fas fa-money-bill-wave"></i> Withdraw</button>
@@ -343,8 +357,15 @@
                 <i class="fas fa-sign-out-alt btn-logout"></i>
             </div>
             <div class="balance-card owner-balance">
-                <span class="label">Total Fleet Revenue</span>
-                <h1 class="amount">$<span id="owner-total">0.00</span></h1>
+                <div class="balance-header-row">
+                    <span class="label">Total Fleet Revenue</span>
+                    <span class="currency-badge"><i class="fas fa-globe-africa"></i> Multi-Currency</span>
+                </div>
+                <h1 class="amount">$<span id="owner-total">0.00</span> <small class="token-tag">tokens</small></h1>
+                <div class="currency-equivalents">
+                    <div class="curr-pill"><span class="flag">🇿🇦</span> <span id="owner-total-zar">R 0.00</span></div>
+                    <div class="curr-pill"><span class="flag">🇿🇼</span> <span id="owner-total-zig">0.00 ZiG</span></div>
+                </div>
             </div>
             <div class="section-header">
                 <h4><i class="fas fa-bus"></i> My Fleet</h4>

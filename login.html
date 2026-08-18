@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Email Portal | Mwanawev</title>
-    <meta name="description" content="Access your Mwanawev company email.">
+    <title>Team Email Portal | MTNSPEC</title>
+    <meta name="description" content="Access your MTNSPEC company email.">
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -122,24 +122,35 @@
     <div class="email-portal">
         <div class="portal-container">
             <a href="index.html">
-                <img src="logo.png" alt="Mwanawev" class="logo">
-            </a>
-            <h1>Team Email Portal</h1>
-            <p class="subtitle">Access your @mwanawevtech.com email</p>
-
-            <a href="https://webmail.dreamhost.com" target="_blank" class="email-btn">
-                <i class="fas fa-envelope"></i>
-                Open Webmail
-            </a>
-
-            <div class="instructions">
-                <h3><i class="fas fa-info-circle"></i> How to Login</h3>
-                <ol>
-                    <li>Click the button above</li>
-                    <li>Enter your full email (e.g. yourname@mwanawevtech.com)</li>
-                    <li>Enter the password given by admin</li>
-                </ol>
+                <img src="logo.png?v=concept1" alt="MTNSPEC" class="logo">
+                <h2>Team Email Portal</h2>
             </div>
+            <p class="subtitle">Access your @mtnspec.com email</p>
+            
+            <form id="portal-form" onsubmit="handlePortalSubmit(event)">
+                <div class="form-group">
+                    <label for="email">Company Email</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" placeholder="name@mtnspec.com" required autocomplete="username">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                </div>
+
+                <div class="form-instructions">
+                    <p><i class="fas fa-info-circle"></i> Instructions:</p>
+                    <ul>
+                        <li>Enter your full email (e.g. yourname@mtnspec.com)</li>
+                    </ul>
+                </div>
+            </form>
 
             <a href="index.html" class="back-link">
                 <i class="fas fa-arrow-left"></i>

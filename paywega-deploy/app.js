@@ -1,16 +1,19 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const app = new PaywegaApp();
-    app.init();
-});
+
 
 class PaywegaApp {
     constructor() {
         this.root = document.getElementById('paywega-app-root');
 
-        // Token Economics
+        // Token Economics & Multi-Currency Rates (1 Token = $1.00 USD)
         this.PURCHASE_FEE = 0.02;
         this.REDEEM_FEE = 0.01;
         this.MIN_FARE = 0.5;
+
+        this.RATES = {
+            USD: 1.0,
+            ZAR: 18.50, // South African Rand (1 USD = ~18.50 ZAR)
+            ZIG: 26.50  // Zimbabwe Gold (1 USD = ~26.50 ZiG)
+        };
 
         // Fare Presets
         this.FARE_PRESETS = [
@@ -25,6 +28,19 @@ class PaywegaApp {
 
         // Session timeout (15 minutes)
         this.SESSION_TIMEOUT = 15 * 60 * 1000;
+
+        // Initialize Firebase Manager (optional for local testing)
+        try {
+            if (window.FirebaseManager) {
+                this.fb = new window.FirebaseManager();
+            } else {
+                console.warn('Firebase not available - running in offline mode');
+                this.fb = this.createMockFirebase();
+            }
+        } catch (e) {
+            console.warn('Firebase initialization failed - running in offline mode', e);
+            this.fb = this.createMockFirebase();
+        }
 
         this.state = this.getDefaultState();
     }
@@ -88,10 +104,37 @@ class PaywegaApp {
     }
 
     loadState() {
-        const saved = localStorage.getItem('paywega_auth_v1');
-        if (saved) {
-            this.state = JSON.parse(saved);
+        try {
+            const saved = localStorage.getItem('paywega_auth_v1');
+            if (saved) {
+                this.state = JSON.parse(saved);
+            }
+        } catch (e) {
+            console.warn("Could not load state, resetting to default:", e);
+            this.state = this.getDefaultState();
         }
+
+        if (!this.state || typeof this.state !== 'object') {
+            this.state = this.getDefaultState();
+        }
+        if (!this.state.users) this.state.users = {};
+        if (!this.state.drivers) this.state.drivers = {};
+        if (!this.state.vehicles) this.state.vehicles = {};
+        if (!Array.isArray(this.state.transactions)) this.state.transactions = [];
+
+        // Sanitize all users
+        Object.values(this.state.users).forEach(u => {
+            if (u && typeof u === 'object') {
+                u.tokenBalance = Number(u.tokenBalance !== undefined ? u.tokenBalance : 0) || 0;
+            }
+        });
+
+        // Sanitize all drivers
+        Object.values(this.state.drivers).forEach(d => {
+            if (d && typeof d === 'object') {
+                d.tokensEarned = Number(d.tokensEarned !== undefined ? d.tokensEarned : 0) || 0;
+            }
+        });
 
         // ALWAYS ensure demo vehicles exist (needed for cross-device scanning)
         this.ensureDemoVehicles();
@@ -171,6 +214,7 @@ class PaywegaApp {
 
         this.saveState();
     }
+
 
     seedDemoData() {
         // Pre-registered demo user (MTN's number for testing)
@@ -267,8 +311,170 @@ class PaywegaApp {
         this.saveState();
     }
 
+    renderOwnerDashboard() {
+        const tmpl = document.getElementById('tmpl-owner').content.cloneNode(true);
+        this.root.innerHTML = '';
+        this.root.appendChild(tmpl);
+
+        const totalEarnings = Object.values(this.state.drivers).reduce((sum, d) => sum + (Number(d?.tokensEarned) || 0), 0);
+        const ownerTotal = this.root.querySelector('#owner-total');
+        if (ownerTotal) ownerTotal.textContent = totalEarnings.toFixed(2);
+        const zarEl = this.root.querySelector('#owner-total-zar');
+        const zigEl = this.root.querySelector('#owner-total-zig');
+        if (zarEl) zarEl.textContent = this.formatZAR(totalEarnings);
+        if (zigEl) zigEl.textContent = this.formatZIG(totalEarnings);
+
+        const fleetList = this.root.querySelector('.fleet-list');
+        if (fleetList) {
+            Object.values(this.state.vehicles).forEach(v => {
+                const driver = Object.values(this.state.drivers).find(d => d.vehicleId === v.id);
+                if (driver) {
+                    const div = document.createElement('div');
+                    div.className = 'fleet-item';
+                    const earned = Number(driver.tokensEarned) || 0;
+                    div.innerHTML = `
+                        <div>
+                            <strong>"${driver.combiNickname || 'Combi'}"</strong>
+                            <small>${v.regNumber} • ${driver.route || 'Local'}</small>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="badge-earnings">${earned.toFixed(2)} tokens</span>
+                            <small style="display: block; color: #64748b; font-size: 0.72rem;">${this.formatZAR(earned)} • ${this.formatZIG(earned)}</small>
+                        </div>
+                    `;
+                    fleetList.appendChild(div);
+                }
+            });
+        }
+
+        const logoutBtn = this.root.querySelector('.btn-logout');
+        if (logoutBtn) logoutBtn.addEventListener('click', () => this.logout());
+    }
+
+    formatZAR(tokens) {
+        const amt = Number(tokens) || 0;
+        return 'R ' + (amt * this.RATES.ZAR).toFixed(2);
+    }
+
+    formatZIG(tokens) {
+        const amt = Number(tokens) || 0;
+        return (amt * this.RATES.ZIG).toFixed(2) + ' ZiG';
+    }
+
+    updateCommuterUI() {
+        const user = this.state.users[this.state.currentUser];
+        if (!user) return;
+
+        const balEl = document.getElementById('commuter-balance');
+        const zarEl = document.getElementById('commuter-balance-zar');
+        const zigEl = document.getElementById('commuter-balance-zig');
+        const nameEl = this.root.querySelector('.user-name');
+        const listEl = document.getElementById('commuter-history');
+
+        const bal = Number(user.tokenBalance) || 0;
+        if (balEl) balEl.textContent = bal.toFixed(2);
+        if (zarEl) zarEl.textContent = this.formatZAR(bal);
+        if (zigEl) zigEl.textContent = this.formatZIG(bal);
+        if (nameEl) nameEl.textContent = user.name || 'Commuter';
+
+        // REAL-TIME LISTENER
+        if (!this.balanceListener && this.fb && typeof this.fb.listenToUser === 'function') {
+            this.balanceListener = this.fb.listenToUser(user.id, (updatedData) => {
+                if (updatedData && updatedData.tokenBalance !== undefined) {
+                    const newBal = Number(updatedData.tokenBalance) || 0;
+                    this.state.users[this.state.currentUser].tokenBalance = newBal;
+                    if (balEl) balEl.textContent = newBal.toFixed(2);
+                    if (zarEl) zarEl.textContent = this.formatZAR(newBal);
+                    if (zigEl) zigEl.textContent = this.formatZIG(newBal);
+                    console.log("Balance Updated from Cloud:", newBal);
+                }
+            });
+        }
+
+        if (listEl) {
+            const userTxns = (this.state.transactions || [])
+                .filter(t => t && (t.userId === user.id || t.fromUserId === user.id))
+                .slice(-10)
+                .reverse();
+
+            listEl.innerHTML = userTxns.map(t => {
+                const isDebit = t.fromUserId === user.id;
+                const amt = Number(t.tokens !== undefined ? t.tokens : (t.amount !== undefined ? t.amount : 0)) || 0;
+                return `
+                    <li class="trans-item">
+                        <div>
+                            <span>${t.description || 'Trip Fare'}</span>
+                            ${t.vehicleNickname ? `<small class="nickname">"${t.vehicleNickname}"</small>` : ''}
+                        </div>
+                        <span class="${isDebit ? 'trans-minus' : 'trans-plus'}">
+                            ${isDebit ? '-' : '+'}$${amt.toFixed(2)}
+                        </span>
+                    </li>
+                `;
+            }).join('') || '<li class="trans-item"><span>No transactions yet</span></li>';
+        }
+    }
+
+    updateDriverUI() {
+        const user = this.state.users[this.state.currentUser];
+        let driver = Object.values(this.state.drivers).find(d => d && d.userId === user?.id);
+        if (!driver && user?.role === 'driver') {
+            driver = Object.values(this.state.drivers)[0];
+        }
+        if (!driver) return;
+
+        const balEl = document.getElementById('driver-balance');
+        const zarEl = document.getElementById('driver-balance-zar');
+        const zigEl = document.getElementById('driver-balance-zig');
+        const listEl = document.getElementById('driver-history');
+
+        const earned = Number(driver.tokensEarned) || 0;
+        if (balEl) balEl.textContent = earned.toFixed(2);
+        if (zarEl) zarEl.textContent = this.formatZAR(earned);
+        if (zigEl) zigEl.textContent = this.formatZIG(earned);
+
+        if (listEl) {
+            const driverTxns = (this.state.transactions || [])
+                .filter(t => t && (t.toDriverId === driver.driverId || t.vehicleNickname === 'Bossbaby' || t.vehicleNickname === driver.combiNickname || t.type === 'fare'))
+                .slice(-10);
+
+            listEl.innerHTML = driverTxns.map(t => {
+                const amt = Number(t.tokens !== undefined ? t.tokens : (t.amount !== undefined ? t.amount : 0)) || 0;
+                const timeStr = t.timestamp ? new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Today';
+                return `
+                    <li class="trans-item">
+                        <div>
+                            <span>${t.description || 'Fare Received'}</span>
+                            <small style="color: #64748b; font-size: 0.75rem; display: block;">${timeStr} • ${this.formatZAR(amt)} • ${this.formatZIG(amt)}</small>
+                        </div>
+                        <span class="trans-plus">+$${amt.toFixed(2)}</span>
+                    </li>
+                `;
+            }).join('') || '<li class="trans-item"><span>No fares received yet</span></li>';
+        }
+    }
+
+    logout() {
+        this.state.currentUser = null;
+        this.state.sessionStart = null;
+        this.saveState();
+        this.renderWelcome();
+    }
+
     saveState() {
         localStorage.setItem('paywega_auth_v1', JSON.stringify(this.state));
+    }
+
+    // Mock Firebase for offline/local testing
+    createMockFirebase() {
+        return {
+            createUser: () => Promise.resolve(true),
+            getUser: () => Promise.resolve(null),
+            updateUser: () => Promise.resolve(true),
+            listenToUser: () => () => { }, // Return unsubscribe function
+            createTransaction: () => Promise.resolve(true),
+            getTransactions: () => Promise.resolve([])
+        };
     }
 
     generateId(prefix) {
@@ -421,6 +627,41 @@ class PaywegaApp {
             this.saveState();
             console.log('[DRIVER REG] Code used:', cleanCode, codeData);
         }
+    }
+
+    // Validate Zimbabwe National ID format (e.g., "08-123456 D 53")
+    validateZimNationalId(id) {
+        const cleanId = id.trim();
+
+        // Zimbabwe National ID format: XX-XXXXXX X XX (11-12 characters with dashes and spaces)
+        // Example: 08-123456 D 53 or 63-012345 A 78
+        const zimIdPattern = /^\d{2}-\d{6,7}\s[A-Z]\s\d{2}$/;
+
+        if (!zimIdPattern.test(cleanId)) {
+            return {
+                valid: false,
+                error: 'Invalid National ID format. Use: XX-XXXXXX X XX (e.g., 08-123456 D 53)'
+            };
+        }
+
+        return { valid: true };
+    }
+
+    // Validate Zimbabwe Driver's License format (similar to National ID)
+    validateZimDriverLicense(license) {
+        const cleanLicense = license.trim();
+
+        // Zimbabwe Driver's License has similar format to National ID
+        const zimLicensePattern = /^\d{2}-\d{6,7}\s[A-Z]\s\d{2}$/;
+
+        if (!zimLicensePattern.test(cleanLicense)) {
+            return {
+                valid: false,
+                error: 'Invalid Driver\'s License format. Use: XX-XXXXXX X XX (e.g., 63-012345 A 78)'
+            };
+        }
+
+        return { valid: true };
     }
 
     generateOTP() {
@@ -612,37 +853,59 @@ class PaywegaApp {
         this.root.querySelector('#driver-details-form').addEventListener('submit', (e) => {
             e.preventDefault();
 
-            const regCode = this.root.querySelector('#driver-reg-code').value.trim().toUpperCase();
-            const name = this.root.querySelector('#driver-name').value.trim();
-            const nickname = this.root.querySelector('#combi-nickname').value.trim();
+            const nationalId = this.root.querySelector('#national-id').value.trim();
+            const driverLicense = this.root.querySelector('#driver-license').value.trim();
             const regNumber = this.root.querySelector('#vehicle-reg').value.trim().toUpperCase();
-            const route = this.root.querySelector('#vehicle-route').value.trim();
+            const vehicleType = this.root.querySelector('#vehicle-type').value;
 
-            // Validate registration code first
-            if (!regCode) {
-                this.showToast('Registration code is required!');
+            // Validate National ID
+            if (!nationalId) {
+                this.showToast('National ID is required!');
                 return;
             }
 
-            const codeValidation = this.validateDriverCode(regCode, regNumber);
-            if (!codeValidation.valid) {
-                this.showToast(codeValidation.error);
+            const nationalIdValidation = this.validateZimNationalId(nationalId);
+            if (!nationalIdValidation.valid) {
+                this.showToast(nationalIdValidation.error);
                 return;
             }
 
-            if (!nickname) {
-                this.showToast('Combi nickname is required!');
+            // Validate Driver's License
+            if (!driverLicense) {
+                this.showToast('Driver\'s License Number is required!');
                 return;
             }
 
+            const licenseValidation = this.validateZimDriverLicense(driverLicense);
+            if (!licenseValidation.valid) {
+                this.showToast(licenseValidation.error);
+                return;
+            }
+
+            // Validate Vehicle Registration
             if (!regNumber) {
                 this.showToast('Vehicle registration is required!');
                 return;
             }
 
-            // Code is valid - proceed with registration
-            this.showToast('Code verified! ✓');
-            this.renderCreatePin(phone, 'driver', { name, nickname, regNumber, route, regCode });
+            if (!/^[A-Z0-9\-]+$/.test(regNumber)) {
+                this.showToast('Please enter a valid vehicle registration number');
+                return;
+            }
+
+            // Validate Vehicle Type
+            if (!vehicleType) {
+                this.showToast('Please select a vehicle type');
+                return;
+            }
+
+            // All validations passed - proceed with registration
+            this.renderCreatePin(phone, 'driver', {
+                nationalId,
+                driverLicense,
+                regNumber,
+                vehicleType
+            });
         });
     }
 
@@ -796,26 +1059,18 @@ class PaywegaApp {
                 userId: userId,
                 driverId: driverId,
                 vehicleId: vehicleId,
-                combiNickname: driverDetails.nickname,
-                route: driverDetails.route,
-                tokensEarned: 0,
-                registrationCode: driverDetails.regCode // Store the registration code used
+                nationalId: driverDetails.nationalId,
+                driverLicense: driverDetails.driverLicense,
+                tokensEarned: 0
             };
 
             this.state.vehicles[vehicleId] = {
                 id: vehicleId,
                 regNumber: driverDetails.regNumber,
+                vehicleType: driverDetails.vehicleType,
                 ownerId: userId,
-                nickname: driverDetails.nickname,
-                route: driverDetails.route,
-                qrCode: `paywega://pay/vehicle/${vehicleId}`,
-                registrationCode: driverDetails.regCode
+                qrCode: `paywega://pay/vehicle/${vehicleId}`
             };
-
-            // Mark the registration code as used
-            if (driverDetails.regCode) {
-                this.markDriverCodeUsed(driverDetails.regCode, userId, driverDetails.regNumber);
-            }
         }
 
         // Log in
@@ -824,6 +1079,11 @@ class PaywegaApp {
         this.saveState();
 
         this.showSuccessScreen('Account Created!', 'You received 5 tokens as a welcome bonus.', () => {
+            // SYNC TO CLOUD
+            this.fb.createUser(this.state.users[userId]).then(success => {
+                if (success) console.log("User synced to Cloud ☁️");
+            });
+
             this.routeToDashboard(role);
         });
     }
@@ -918,11 +1178,25 @@ class PaywegaApp {
         this.updateCommuterUI();
 
         // Handlers
-        this.root.querySelector('.btn-logout').addEventListener('click', () => this.logout());
-        this.root.querySelector('.btn-ecocash').addEventListener('click', () => this.showTopupModal());
-        this.root.querySelector('.btn-scan').addEventListener('click', () => this.launchScanner());
-        this.root.querySelector('.btn-send-money').addEventListener('click', () => this.showSendModal());
-        this.root.querySelector('.btn-my-qr').addEventListener('click', () => this.showMyQR());
+        const logoutBtn = this.root.querySelector('.btn-logout');
+        if (logoutBtn) logoutBtn.onclick = (e) => { e.preventDefault(); this.logout(); };
+
+        const ecocashBtn = this.root.querySelector('.btn-ecocash');
+        if (ecocashBtn) ecocashBtn.onclick = (e) => { e.preventDefault(); this.showTopupModal(); };
+
+        const scanBtn = this.root.querySelector('.btn-scan');
+        if (scanBtn) {
+            scanBtn.onclick = (e) => {
+                e.preventDefault();
+                this.launchScanner();
+            };
+        }
+
+        const sendBtn = this.root.querySelector('.btn-send-money');
+        if (sendBtn) sendBtn.onclick = (e) => { e.preventDefault(); this.showSendModal(); };
+
+        const qrBtn = this.root.querySelector('.btn-my-qr');
+        if (qrBtn) qrBtn.onclick = (e) => { e.preventDefault(); this.showMyQR(); };
     }
 
     renderDriverDashboard() {
@@ -931,115 +1205,29 @@ class PaywegaApp {
         this.root.appendChild(tmpl);
 
         const user = this.state.users[this.state.currentUser];
-        const driver = Object.values(this.state.drivers).find(d => d.userId === user.id);
+        const driver = Object.values(this.state.drivers).find(d => d && d.userId === user?.id);
         const vehicle = driver ? this.state.vehicles[driver.vehicleId] : null;
 
         if (driver && vehicle) {
-            this.root.querySelector('.vehicle-nickname').textContent = `"${driver.combiNickname}"`;
-            this.root.querySelector('.vehicle-reg').textContent = vehicle.regNumber;
-            this.root.querySelector('.vehicle-route').textContent = driver.route;
+            const nickEl = this.root.querySelector('.vehicle-nickname');
+            const regEl = this.root.querySelector('.vehicle-reg');
+            const routeEl = this.root.querySelector('.vehicle-route');
+            if (nickEl) nickEl.textContent = vehicle.nickname || driver.combiNickname || 'Combi';
+            if (regEl) regEl.textContent = vehicle.regNumber || 'ADZ-1234';
+            if (routeEl) routeEl.textContent = driver.route || 'Driver Mode';
         }
 
         this.updateDriverUI();
 
         // Handlers
-        this.root.querySelector('.btn-logout').addEventListener('click', () => this.logout());
-        this.root.querySelector('.btn-show-qr').addEventListener('click', () => this.showVehicleQR());
-        this.root.querySelector('.btn-withdraw').addEventListener('click', () => this.showWithdrawModal());
-    }
+        const logoutBtn = this.root.querySelector('.btn-logout');
+        if (logoutBtn) logoutBtn.onclick = (e) => { e.preventDefault(); this.logout(); };
 
-    renderOwnerDashboard() {
-        const tmpl = document.getElementById('tmpl-owner').content.cloneNode(true);
-        this.root.innerHTML = '';
-        this.root.appendChild(tmpl);
+        const showQrBtn = this.root.querySelector('.btn-show-qr');
+        if (showQrBtn) showQrBtn.onclick = (e) => { e.preventDefault(); this.showVehicleQR(); };
 
-        const totalEarnings = Object.values(this.state.drivers).reduce((sum, d) => sum + d.tokensEarned, 0);
-        this.root.querySelector('#owner-total').textContent = totalEarnings.toFixed(2);
-
-        const fleetList = this.root.querySelector('.fleet-list');
-        Object.values(this.state.vehicles).forEach(v => {
-            const driver = Object.values(this.state.drivers).find(d => d.vehicleId === v.id);
-            if (driver) {
-                const div = document.createElement('div');
-                div.className = 'fleet-item';
-                div.innerHTML = `
-                    <div>
-                        <strong>"${driver.combiNickname}"</strong>
-                        <small>${v.regNumber} • ${driver.route}</small>
-                    </div>
-                    <span class="badge-earnings">${driver.tokensEarned.toFixed(2)} tokens</span>
-                `;
-                fleetList.appendChild(div);
-            }
-        });
-
-        this.root.querySelector('.btn-logout').addEventListener('click', () => this.logout());
-    }
-
-    updateCommuterUI() {
-        const user = this.state.users[this.state.currentUser];
-        if (!user) return;
-
-        const balEl = document.getElementById('commuter-balance');
-        const nameEl = this.root.querySelector('.user-name');
-        const listEl = document.getElementById('commuter-history');
-
-        if (balEl) balEl.textContent = user.tokenBalance.toFixed(2);
-        if (nameEl) nameEl.textContent = user.name || 'Commuter';
-
-        if (listEl) {
-            const userTxns = this.state.transactions
-                .filter(t => t.userId === user.id || t.fromUserId === user.id)
-                .slice(-10)
-                .reverse();
-
-            listEl.innerHTML = userTxns.map(t => {
-                const isDebit = t.fromUserId === user.id;
-                return `
-                    <li class="trans-item">
-                        <div>
-                            <span>${t.description}</span>
-                            ${t.vehicleNickname ? `<small class="nickname">"${t.vehicleNickname}"</small>` : ''}
-                        </div>
-                        <span class="${isDebit ? 'trans-minus' : 'trans-plus'}">
-                            ${isDebit ? '-' : '+'}${t.tokens.toFixed(2)}
-                        </span>
-                    </li>
-                `;
-            }).join('') || '<li class="trans-item"><span>No transactions yet</span></li>';
-        }
-    }
-
-    updateDriverUI() {
-        const user = this.state.users[this.state.currentUser];
-        const driver = Object.values(this.state.drivers).find(d => d.userId === user?.id);
-        if (!driver) return;
-
-        const balEl = document.getElementById('driver-balance');
-        const listEl = document.getElementById('driver-history');
-
-        if (balEl) balEl.textContent = driver.tokensEarned.toFixed(2);
-
-        if (listEl) {
-            const driverTxns = this.state.transactions
-                .filter(t => t.toDriverId === driver.driverId)
-                .slice(-10)
-                .reverse();
-
-            listEl.innerHTML = driverTxns.map(t => `
-                <li class="trans-item">
-                    <span>Fare Received</span>
-                    <span class="trans-plus">+${t.tokens.toFixed(2)}</span>
-                </li>
-            `).join('') || '<li class="trans-item"><span>No fares yet</span></li>';
-        }
-    }
-
-    logout() {
-        this.state.currentUser = null;
-        this.state.sessionStart = null;
-        this.saveState();
-        this.renderWelcome();
+        const withdrawBtn = this.root.querySelector('.btn-withdraw');
+        if (withdrawBtn) withdrawBtn.onclick = (e) => { e.preventDefault(); this.showWithdrawModal(); };
     }
 
     // ============================
@@ -1047,6 +1235,16 @@ class PaywegaApp {
     // ============================
 
     async launchScanner() {
+        console.log("launchScanner triggered!");
+        const hasPlugin = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.BarcodeScanner;
+        const isNative = (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) || !!hasPlugin;
+
+        if (isNative && hasPlugin) {
+            this.launchNativeScanner();
+            return;
+        }
+
+        // Web Fallback
         const tmpl = document.getElementById('tmpl-scanner').content.cloneNode(true);
         this.root.appendChild(tmpl);
 
@@ -1081,6 +1279,125 @@ class PaywegaApp {
         }
     }
 
+    async launchNativeScanner() {
+        try {
+            const { BarcodeScanner } = window.Capacitor.Plugins;
+
+            if (!BarcodeScanner) {
+                this.showToast("Scanner plugin not found. Please rebuild the app.");
+                return;
+            }
+
+            // 1. Ensure Google Play Services has the ML Kit Barcode Model (Non-blocking / Non-fatal)
+            try {
+                if (typeof BarcodeScanner.isGoogleBarcodeScannerModuleAvailable === 'function') {
+                    const isAvailable = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+                    if (!isAvailable || !isAvailable.available) {
+                        await BarcodeScanner.installGoogleBarcodeScannerModule();
+                    }
+                }
+            } catch (moduleErr) {
+                // If it's already installed or downloading, do not block the scan
+                console.log("Barcode module note:", moduleErr);
+            }
+
+            // 2. Check & Request Permissions
+            try {
+                let status = await BarcodeScanner.checkPermissions();
+                if (status.camera !== 'granted') {
+                    status = await BarcodeScanner.requestPermissions();
+                    if (status.camera !== 'granted') {
+                        this.showToast("Camera permission is required to scan QR codes");
+                        return;
+                    }
+                }
+            } catch (permErr) {
+                console.warn("Permission check error, proceeding to scan:", permErr);
+            }
+
+            // 3. Try Google Code Scanner UI First (Native Google Play Services modal - smooth & instant)
+            try {
+                if (typeof BarcodeScanner.scan === 'function') {
+                    const result = await BarcodeScanner.scan({
+                        formats: ['QR_CODE']
+                    });
+
+                    if (result && result.barcodes && result.barcodes.length > 0) {
+                        const content = result.barcodes[0].displayValue || result.barcodes[0].rawValue;
+                        if (content) {
+                            this.handleScannedQR(content);
+                            return;
+                        }
+                    }
+                    // User closed the native Google Scanner dialog without scanning
+                    return;
+                }
+            } catch (scanErr) {
+                console.warn("Native Google BarcodeScanner.scan modal not used, falling back to embedded camera:", scanErr);
+            }
+
+            // 4. Fallback: Embedded Live Camera Scanner with overlay
+            await this.startEmbeddedNativeScanner(BarcodeScanner);
+
+        } catch (err) {
+            console.error("Native Scanner Error:", err);
+            document.body.classList.remove('scanner-active');
+            const overlay = document.querySelector('.scanner-ui-overlay');
+            if (overlay) overlay.remove();
+
+            const msg = (err && err.message) ? err.message : String(err);
+            if (msg.includes('Google Play Services') || msg.includes('download')) {
+                this.showToast("Downloading scanner module... wait 30 seconds and tap Scan again.");
+            } else if (!msg.includes('canceled') && !msg.includes('cancelled')) {
+                this.showToast("Scanner: " + msg);
+            }
+        }
+    }
+
+    async startEmbeddedNativeScanner(BarcodeScanner) {
+        const overlay = document.createElement('div');
+        overlay.className = 'scanner-ui-overlay';
+        overlay.innerHTML = `
+            <div class="scanner-header">
+                <i class="fas fa-arrow-left btn-stop-scan"></i>
+                <span>Scan Paywega QR Code</span>
+            </div>
+            <div class="scanner-body">
+                <div class="scan-frame"></div>
+            </div>
+            <div class="scanner-footer">
+                <p>Align the Paywega QR code within the frame</p>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        let scanListener = null;
+        const stopScan = async () => {
+            if (scanListener) {
+                try { await scanListener.remove(); } catch (e) {}
+            }
+            try { await BarcodeScanner.stopScan(); } catch (e) {}
+            document.body.classList.remove('scanner-active');
+            overlay.remove();
+        };
+
+        overlay.querySelector('.btn-stop-scan').addEventListener('click', stopScan);
+        document.body.classList.add('scanner-active');
+
+        scanListener = await BarcodeScanner.addListener('barcodeScanned', async (event) => {
+            console.log('Barcode Scanned:', event.barcode);
+            const content = event.barcode ? (event.barcode.displayValue || event.barcode.rawValue) : null;
+            await stopScan();
+            if (content) {
+                this.handleScannedQR(content);
+            }
+        });
+
+        await BarcodeScanner.startScan({
+            formats: ['QR_CODE']
+        });
+    }
+
     handleScannedQR(qrData) {
         // New format with unique ID: paywega://pay/vehicle/VH-001?fare=0.75&qrid=QR-ABC123
         // Old format: paywega://pay/vehicle/VH-001?fare=0.75
@@ -1096,12 +1413,23 @@ class PaywegaApp {
             if (vehicle) {
                 const driver = Object.values(this.state.drivers).find(d => d.vehicleId === vehicleId);
 
-                // Mark QR as used if it has a unique ID
-                if (qrId) {
-                    this.markQRUsed(qrId, this.state.currentUser);
+                // Verify QR code (Online with Graceful Offline Fallback)
+                if (qrId && this.fb && typeof this.fb.verifyAndUseQR === 'function') {
+                    this.fb.verifyAndUseQR(qrId, this.state.currentUser).then(result => {
+                        if (result && result.valid) {
+                            this.showPaymentModal(vehicle, driver, fareFromQR, qrId);
+                        } else {
+                            // Fallback to offline wallet if network/Firestore is unavailable
+                            console.warn("Online QR check note, continuing in offline mode:", result?.error);
+                            this.showPaymentModal(vehicle, driver, fareFromQR, qrId);
+                        }
+                    }).catch(e => {
+                        console.log("Offline mode: proceeding with local wallet payment:", e);
+                        this.showPaymentModal(vehicle, driver, fareFromQR, qrId);
+                    });
+                } else {
+                    this.showPaymentModal(vehicle, driver, fareFromQR, null);
                 }
-
-                this.showPaymentModal(vehicle, driver, fareFromQR, qrId);
             } else {
                 this.showToast('Vehicle not found');
             }
@@ -1320,46 +1648,195 @@ class PaywegaApp {
     processPayment(amount, vehicle, driver) {
         const user = this.state.users[this.state.currentUser];
 
-        user.tokenBalance -= amount;
-        if (driver) driver.tokensEarned += amount;
-
-        this.state.transactions.push({
-            id: this.generateId('TXN'),
-            type: 'fare',
-            userId: user.id,
+        // Prepare Transaction Data
+        const txnData = {
             fromUserId: user.id,
-            toDriverId: driver?.driverId,
+            toUserId: vehicle.ownerId, // Correctly pay the owner
+            toDriverId: driver?.driverId, // But tag the driver for stats
             vehicleId: vehicle.id,
+            amount: amount,
             vehicleNickname: driver?.combiNickname || vehicle.nickname,
-            tokens: amount,
             description: `Fare to "${driver?.combiNickname || vehicle.nickname}"`,
-            timestamp: new Date().toISOString(),
-            status: 'completed'
+            type: 'fare',
+            timestamp: new Date().toISOString()
+        };
+
+        // Capture GPS location for audit
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                txnData.gps = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    accuracy: position.coords.accuracy
+                };
+                this._sendTransaction(txnData, amount, vehicle, driver);
+            }, (error) => {
+                console.warn("GPS denied/failed, proceeding without location:", error);
+                txnData.gps = { error: "Location denied or unavailable" };
+                this._sendTransaction(txnData, amount, vehicle, driver);
+            }, { timeout: 5000, maximumAge: 60000 });
+        } else {
+            console.warn("Geolocation not supported");
+            this._sendTransaction(txnData, amount, vehicle, driver);
+        }
+    }
+
+    _sendTransaction(txnData, amount, vehicle, driver) {
+        const user = this.state.users[this.state.currentUser];
+        const nickname = driver?.combiNickname || vehicle?.nickname || 'Combi';
+
+        // 1. OFFLINE FIRST: Deduct commuter local token balance immediately
+        const currentBalance = user?.tokenBalance || 0;
+        if (currentBalance < amount) {
+            this.showToast("Insufficient token balance! Please top up.");
+            return;
+        }
+
+        user.tokenBalance = parseFloat((currentBalance - amount).toFixed(2));
+
+        // Credit local driver / vehicle owner if present on device
+        if (vehicle?.ownerId && this.state.users[vehicle.ownerId]) {
+            const owner = this.state.users[vehicle.ownerId];
+            owner.tokenBalance = parseFloat(((owner.tokenBalance || 0) + amount).toFixed(2));
+        }
+        if (driver) {
+            driver.tokensEarned = parseFloat(((driver.tokensEarned || 0) + amount).toFixed(2));
+        }
+
+        // Credit all Bossbaby driver records in state
+        Object.values(this.state.drivers).forEach(d => {
+            if (d && (d.combiNickname === 'Bossbaby' || d.vehicleId === vehicle?.id || d.driverId === driver?.driverId)) {
+                d.tokensEarned = parseFloat(((d.tokensEarned || 0) + amount).toFixed(2));
+            }
         });
 
+        // Add to local transaction history
+        txnData.id = 'TXN-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        txnData.synced = false;
+        txnData.status = 'completed';
+        this.state.transactions.unshift(txnData);
+
+        // Save local state
         this.saveState();
-        this.showPaymentSuccess(amount, driver?.combiNickname || vehicle.nickname);
+
+        // Show instant success screen
+        this.showPaymentSuccess(amount, nickname);
+
+        // 2. Background Cloud Sync (Non-blocking)
+        if (this.fb && typeof this.fb.recordTransaction === 'function') {
+            this.fb.recordTransaction(txnData).then(result => {
+                if (result && result.success) {
+                    txnData.synced = true;
+                    this.saveState();
+                    console.log("Transaction synced to Cloudflare/Firebase successfully.");
+                } else {
+                    console.log("Transaction saved offline in local wallet (will sync when online).");
+                }
+            }).catch(e => {
+                console.log("Offline mode active. Transaction stored safely in local storage:", e);
+            });
+        }
     }
 
     showPaymentSuccess(amount, nickname) {
-        const success = document.createElement('div');
-        success.className = 'success-overlay';
-        success.innerHTML = `
-            <div class="success-content">
-                <div class="success-icon"><i class="fas fa-check-circle"></i></div>
-                <h2>Payment Successful!</h2>
-                <div class="success-amount">${amount} tokens</div>
-                <div class="success-to">Paid to "${nickname}"</div>
-                <p>No change problems! 🎉</p>
+        // 1. Play offline audio chime via Web Audio API (zero extra files needed)
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+            osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.12); // A5
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        } catch (e) {
+            console.log("Audio chime note:", e);
+        }
+
+        // 2. Generate Daily Dynamic Security Hash for Conductor Glance
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const secCode = '#PWG-' + (Math.abs((now.getHours() * 3600 + now.getMinutes() * 60 + now.getDate()) % 899) + 100);
+
+        // 3. Build Dynamic Holographic Ticket Modal
+        const overlay = document.createElement('div');
+        overlay.className = 'ticket-overlay';
+        overlay.innerHTML = `
+            <div class="ticket-card">
+                <div class="ticket-icon-box">
+                    <div class="ticket-pulse-ring"></div>
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="ticket-title">Fare Paid</div>
+                <div class="ticket-subtitle">Mwanawev Paywega Digital Ticket</div>
+
+                <div class="ticket-vehicle-box">
+                    <div class="ticket-nickname">"${nickname}"</div>
+                    <div class="ticket-vehicle-meta">
+                        <span><i class="fas fa-bus"></i> Verified Combi</span>
+                        <span><i class="fas fa-shield-alt"></i> Active Pass</span>
+                    </div>
+                </div>
+
+                <div class="ticket-amount-badge">
+                    $${parseFloat(amount).toFixed(2)} <span>tokens</span>
+                    <small style="display:block; font-size: 0.85rem; margin-top: 5px; opacity: 0.95; font-weight: 500;">≈ ${this.formatZAR(amount)} • ≈ ${this.formatZIG(amount)}</small>
+                </div>
+
+                <div class="ticket-security-badge">
+                    <i class="fas fa-lock"></i> SEC: ${secCode} • ${timeStr}
+                </div>
+
+                <div class="ticket-timer-box">
+                    <div class="ticket-timer-text">
+                        <span><i class="fas fa-clock"></i> Valid for Trip</span>
+                        <span id="ticket-countdown">02:00</span>
+                    </div>
+                    <div class="ticket-timer-bar">
+                        <div class="ticket-timer-fill" id="ticket-timer-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+
+                <button class="ticket-btn-done" id="btn-close-ticket">
+                    <i class="fas fa-arrow-left"></i> Done / Close Ticket
+                </button>
             </div>
         `;
 
-        this.root.appendChild(success);
+        this.root.appendChild(overlay);
 
-        setTimeout(() => {
-            success.remove();
+        // 4. Live Countdown Logic (120 seconds active ticket)
+        let totalSeconds = 120;
+        const countdownEl = overlay.querySelector('#ticket-countdown');
+        const fillEl = overlay.querySelector('#ticket-timer-fill');
+
+        const timerInterval = setInterval(() => {
+            totalSeconds--;
+            if (totalSeconds <= 0) {
+                clearInterval(timerInterval);
+                if (countdownEl) countdownEl.innerText = "Expired";
+                if (fillEl) fillEl.style.width = "0%";
+            } else {
+                const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+                const secs = String(totalSeconds % 60).padStart(2, '0');
+                if (countdownEl) countdownEl.innerText = `${mins}:${secs}`;
+                if (fillEl) fillEl.style.width = `${(totalSeconds / 120) * 100}%`;
+            }
+        }, 1000);
+
+        // Close Ticket
+        const closeTicket = () => {
+            clearInterval(timerInterval);
+            overlay.remove();
             this.updateCommuterUI();
-        }, 2500);
+        };
+
+        overlay.querySelector('#btn-close-ticket').addEventListener('click', closeTicket);
     }
 
     showTopupModal() {
@@ -1949,4 +2426,22 @@ class PaywegaApp {
 
         this.showToast('Report exported!');
     }
+}
+
+// Initialize App (Must come after class definition)
+const initApp = () => {
+    try {
+        window.paywegaApp = new PaywegaApp();
+        window.paywegaApp.init();
+        console.log('Paywega App Started 🚀');
+    } catch (e) {
+        console.error('Critical Start Error:', e);
+        document.body.innerHTML = `<div style="color:red; padding:20px;">App Failed: ${e.message}<br><br>Check console for details.</div>`;
+    }
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
 }

@@ -7,6 +7,7 @@
     <title>Paywega - No Change? No Problem!</title>
     <link rel="stylesheet" href="app.css">
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="app-icon.png">
     <link rel="apple-touch-icon" href="app-icon.png">
     <meta name="theme-color" content="#0056b3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,6 +16,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+    <!-- Firebase SDKs (modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        // We will maintain a global instance for compatibility with existing app.js
+        window.firebaseModules = { initializeApp, getFirestore, enableIndexedDbPersistence, getAuth };
+    </script>
+    <script src="firebase-config.js?v=20260102" type="module"></script>
+    <!-- Helper Script for Database Logic -->
+    <script src="firebase-helper.js?v=20260102" type="module"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
@@ -129,37 +142,40 @@
                 <span>Combi Details</span>
             </div>
             <div class="form-container">
+                <div class="form-icon"><i class="fas fa-id-card"></i></div>
+                <h2>Driver Registration</h2>
+                <p>Enter your details for emergency accountability</p>
                 <form id="driver-details-form">
-                    <div class="form-group highlight" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0);">
-                        <label><i class="fas fa-key"></i> Paywega Registration Code</label>
-                        <input type="text" id="driver-reg-code" placeholder="PWG-DRV-2024-001" required
+                    <div class="form-group">
+                        <label><i class="fas fa-id-card"></i> National ID Number</label>
+                        <input type="text" id="national-id" placeholder="e.g. 08-123456 D 53" required>
+                        <small>Zimbabwe National ID format (with dashes)</small>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-id-badge"></i> Driver's License Number</label>
+                        <input type="text" id="driver-license" placeholder="e.g. 63-012345 A 78" required>
+                        <small>Zimbabwe Driver's License format (with dashes)</small>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-car"></i> Vehicle Registration Number</label>
+                        <input type="text" id="vehicle-reg" placeholder="e.g. ADZ-1234" required
                             style="text-transform: uppercase;">
-                        <small style="color: #166534;">Obtain this code from Paywega offices after document
-                            verification</small>
+                        <small>Your vehicle's registration plate number</small>
                     </div>
                     <div class="form-group">
-                        <label>Your Name</label>
-                        <input type="text" id="driver-name" placeholder="Tino Mufudzi" required>
+                        <label><i class="fas fa-bus"></i> Vehicle Type</label>
+                        <select id="vehicle-type" required>
+                            <option value="">Select vehicle type</option>
+                            <option value="kombi">Kombi (16-seater)</option>
+                            <option value="minibus">Minibus (18-22 seater)</option>
+                            <option value="sedan">Sedan (4-5 seater)</option>
+                            <option value="suv">SUV/4x4</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <small>Type of vehicle you operate</small>
                     </div>
-                    <div class="form-group highlight">
-                        <label><i class="fas fa-star"></i> Combi Nickname</label>
-                        <input type="text" id="combi-nickname" placeholder='"Bossbaby", "Street King"' required>
-                        <small>How commuters know your combi!</small>
-                    </div>
-                    <div class="form-group">
-                        <label>Vehicle Registration</label>
-                        <input type="text" id="vehicle-reg" placeholder="ADZ-1234" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Main Route</label>
-                        <input type="text" id="vehicle-route" placeholder="City - Avondale" required>
-                    </div>
-                    <button type="submit" class="btn-primary btn-full">Verify & Continue</button>
+                    <button type="submit" class="btn-primary btn-full">Continue</button>
                 </form>
-                <p class="registration-help"
-                    style="margin-top: 15px; font-size: 0.85rem; color: #64748b; text-align: center;">
-                    <i class="fas fa-info-circle"></i> Don't have a code? Visit our offices with your vehicle documents.
-                </p>
             </div>
         </div>
     </template>
@@ -256,8 +272,15 @@
                 <i class="fas fa-sign-out-alt btn-logout"></i>
             </div>
             <div class="balance-card">
-                <span class="label">Token Balance</span>
-                <h1 class="amount"><span id="commuter-balance">0.00</span></h1>
+                <div class="balance-header-row">
+                    <span class="label">Token Balance</span>
+                    <span class="currency-badge"><i class="fas fa-globe-africa"></i> 3 Currencies</span>
+                </div>
+                <h1 class="amount">$<span id="commuter-balance">0.00</span> <small class="token-tag">tokens</small></h1>
+                <div class="currency-equivalents">
+                    <div class="curr-pill"><span class="flag">🇿🇦</span> <span id="commuter-balance-zar">R 0.00</span></div>
+                    <div class="curr-pill"><span class="flag">🇿🇼</span> <span id="commuter-balance-zig">0.00 ZiG</span></div>
+                </div>
                 <button class="btn-sm btn-ecocash"><i class="fas fa-plus"></i> Buy Tokens</button>
             </div>
 
@@ -304,8 +327,15 @@
             </div>
 
             <div class="balance-card driver-balance">
-                <span class="label">Today's Earnings</span>
-                <h1 class="amount"><span id="driver-balance">0.00</span></h1>
+                <div class="balance-header-row">
+                    <span class="label">Today's Earnings</span>
+                    <span class="currency-badge"><i class="fas fa-globe-africa"></i> Live Rates</span>
+                </div>
+                <h1 class="amount">$<span id="driver-balance">0.00</span> <small class="token-tag">tokens</small></h1>
+                <div class="currency-equivalents">
+                    <div class="curr-pill"><span class="flag">🇿🇦</span> <span id="driver-balance-zar">R 0.00</span></div>
+                    <div class="curr-pill"><span class="flag">🇿🇼</span> <span id="driver-balance-zig">0.00 ZiG</span></div>
+                </div>
                 <div class="driver-btns">
                     <button class="btn-sm btn-show-qr"><i class="fas fa-qrcode"></i> Show QR</button>
                     <button class="btn-sm btn-withdraw"><i class="fas fa-money-bill-wave"></i> Withdraw</button>
@@ -327,8 +357,15 @@
                 <i class="fas fa-sign-out-alt btn-logout"></i>
             </div>
             <div class="balance-card owner-balance">
-                <span class="label">Total Fleet Revenue</span>
-                <h1 class="amount">$<span id="owner-total">0.00</span></h1>
+                <div class="balance-header-row">
+                    <span class="label">Total Fleet Revenue</span>
+                    <span class="currency-badge"><i class="fas fa-globe-africa"></i> Multi-Currency</span>
+                </div>
+                <h1 class="amount">$<span id="owner-total">0.00</span> <small class="token-tag">tokens</small></h1>
+                <div class="currency-equivalents">
+                    <div class="curr-pill"><span class="flag">🇿🇦</span> <span id="owner-total-zar">R 0.00</span></div>
+                    <div class="curr-pill"><span class="flag">🇿🇼</span> <span id="owner-total-zig">0.00 ZiG</span></div>
+                </div>
             </div>
             <div class="section-header">
                 <h4><i class="fas fa-bus"></i> My Fleet</h4>
@@ -353,7 +390,7 @@
         </div>
     </template>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=20260129"></script>
 </body>
 
 </html>

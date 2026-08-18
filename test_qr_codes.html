@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paywega Test QR Codes - Scan with Phone</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+        body {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .header {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 40px;
+        }
+        .header h1 {
+            font-size: 2.4rem;
+            color: #38bdf8;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .qr-card {
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .qr-card:hover {
+            transform: translateY(-5px);
+            border-color: #38bdf8;
+        }
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        .badge-fixed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid #10b981;
+        }
+        .badge-open {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid #f59e0b;
+        }
+        .qr-img-wrapper {
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 12px;
+            display: inline-block;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .qr-img-wrapper img {
+            display: block;
+            width: 200px;
+            height: 200px;
+        }
+        .vehicle-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+        .route-info {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+        .fare-tag {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #38bdf8;
+            margin-bottom: 12px;
+        }
+        .qr-raw {
+            background: #0f172a;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: #64748b;
+            word-break: break-all;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>📲 Paywega Driver QR Codes</h1>
+        <p>Open the updated <strong>Paywega App</strong> on your phone, tap <strong>Scan</strong>, and point your camera at any of the 5 QR codes below!</p>
+    </div>
+
+    <div class="qr-grid">
+        <!-- QR 1 -->
+        <div class="qr-card">
+            <span class="badge badge-fixed">Standard Trip</span>
+            <div class="vehicle-title">🚐 Bossbaby (City - Avondale)</div>
+            <div class="route-info">Reg: ADZ-1234 • Vehicle #1</div>
+            <div class="fare-tag">$0.50 Fare</div>
+            <div class="qr-img-wrapper">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=paywega://pay/vehicle/VH-DEMO-001?fare=0.50" alt="QR 1">
+            </div>
+            <div class="qr-raw">paywega://pay/vehicle/VH-DEMO-001?fare=0.50</div>
+        </div>
+
+        <!-- QR 2 -->
+        <div class="qr-card">
+            <span class="badge badge-fixed">Long Route</span>
+            <div class="vehicle-title">🚐 Glenview Express</div>
+            <div class="route-info">Reg: ADZ-1234 • Takunda Mhandu</div>
+            <div class="fare-tag">$0.75 Fare</div>
+            <div class="qr-img-wrapper">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=paywega://pay/vehicle/VH-TEST-001?fare=0.75" alt="QR 2">
+            </div>
+            <div class="qr-raw">paywega://pay/vehicle/VH-TEST-001?fare=0.75</div>
+        </div>
+
+        <!-- QR 3 -->
+        <div class="qr-card">
+            <span class="badge badge-fixed">Highway Transit</span>
+            <div class="vehicle-title">🚌 Chitungwiza Express</div>
+            <div class="route-info">Reg: ADZ-1234 • Fast Lane</div>
+            <div class="fare-tag">$1.00 Fare</div>
+            <div class="qr-img-wrapper">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=paywega://pay/vehicle/VH-DEMO-001?fare=1.00" alt="QR 3">
+            </div>
+            <div class="qr-raw">paywega://pay/vehicle/VH-DEMO-001?fare=1.00</div>
+        </div>
+
+        <!-- QR 4 -->
+        <div class="qr-card">
+            <span class="badge badge-fixed">Local Short Trip</span>
+            <div class="vehicle-title">🚐 Kuwadzana Shuttle</div>
+            <div class="route-info">Reg: ADZ-1234 • Bossbaby</div>
+            <div class="fare-tag">$0.50 Fare</div>
+            <div class="qr-img-wrapper">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=paywega://pay/vehicle/VH-TEST-001?fare=0.50" alt="QR 4">
+            </div>
+            <div class="qr-raw">paywega://pay/vehicle/VH-TEST-001?fare=0.50</div>
+        </div>
+
+        <!-- QR 5 -->
+        <div class="qr-card">
+            <span class="badge badge-open">Custom / Flexible</span>
+            <div class="vehicle-title">🚐 Open Fare Vehicle</div>
+            <div class="route-info">Reg: ADZ-1234 • Prompt Commuter</div>
+            <div class="fare-tag">Enter Custom Fare</div>
+            <div class="qr-img-wrapper">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=paywega://pay/vehicle/VH-DEMO-001" alt="QR 5">
+            </div>
+            <div class="qr-raw">paywega://pay/vehicle/VH-DEMO-001</div>
+        </div>
+    </div>
+
+</body>
+</html>
