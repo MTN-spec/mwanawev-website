@@ -29,17 +29,13 @@ class PaywegaApp {
         // Session timeout (15 minutes)
         this.SESSION_TIMEOUT = 15 * 60 * 1000;
 
-        // Initialize Firebase Manager (optional for local testing)
-        try {
-            if (window.FirebaseManager) {
-                this.fb = new window.FirebaseManager();
-            } else {
-                console.warn('Firebase not available - running in offline mode');
-                this.fb = this.createMockFirebase();
-            }
-        } catch (e) {
-            console.warn('Firebase initialization failed - running in offline mode', e);
-            this.fb = this.createMockFirebase();
+        // Initialize Firebase Manager — start with mock, upgrade when modules load
+        this.fb = this.createMockFirebase();
+        // Firebase modules (type="module") load async; upgrade fb after DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this._initFirebase());
+        } else {
+            setTimeout(() => this._initFirebase(), 0);
         }
 
         this.state = this.getDefaultState();
@@ -65,6 +61,19 @@ class PaywegaApp {
                 'BETA-005': { vehicleReg: null, status: 'available', issuedAt: '2026-01-06', expiresAt: '2027-12-31' }
             }
         };
+    }
+
+    _initFirebase() {
+        try {
+            if (window.FirebaseManager) {
+                this.fb = new window.FirebaseManager();
+                console.log('FirebaseManager initialized ✅');
+            } else {
+                console.warn('FirebaseManager not found - staying in offline mode');
+            }
+        } catch (e) {
+            console.warn('FirebaseManager init failed - offline mode', e);
+        }
     }
 
     init() {
@@ -141,6 +150,20 @@ class PaywegaApp {
 
         // ALWAYS ensure test accounts exist (for beta testing)
         this.ensureTestAccounts();
+
+        // Background cloud hydration
+        if (this.fb && typeof this.fb.getUser === 'function' && this.state.currentUser) {
+            const uid = this.state.currentUser;
+            this.fb.getUser(uid).then(cloudUser => {
+                if (cloudUser && this.state.users[uid]) {
+                    this.state.users[uid] = {
+                        ...this.state.users[uid],
+                        ...cloudUser
+                    };
+                    localStorage.setItem('paywega_auth_v1', JSON.stringify(this.state));
+                }
+            }).catch(e => console.warn("Cloud hydration skipped:", e));
+        }
     }
 
     ensureDemoVehicles() {
@@ -455,6 +478,10 @@ class PaywegaApp {
     }
 
     logout() {
+        if (typeof this.balanceListener === 'function') {
+            this.balanceListener();
+            this.balanceListener = null;
+        }
         this.state.currentUser = null;
         this.state.sessionStart = null;
         this.saveState();
@@ -463,6 +490,10 @@ class PaywegaApp {
 
     saveState() {
         localStorage.setItem('paywega_auth_v1', JSON.stringify(this.state));
+        // Background cloud sync for current user
+        if (this.fb && typeof this.fb.updateUser === 'function' && this.state.currentUser && this.state.users[this.state.currentUser]) {
+            this.fb.updateUser(this.state.currentUser, this.state.users[this.state.currentUser]);
+        }
     }
 
     // Mock Firebase for offline/local testing
@@ -1078,11 +1109,34 @@ class PaywegaApp {
         this.state.sessionStart = Date.now();
         this.saveState();
 
-        this.showSuccessScreen('Account Created!', 'You received 5 tokens as a welcome bonus.', () => {
-            // SYNC TO CLOUD
-            this.fb.createUser(this.state.users[userId]).then(success => {
-                if (success) console.log("User synced to Cloud ☁️");
-            });
+        this.showSuccessScreen('Account Created!', 'You received 5 tokens as a welcome bonus.', async () => {
+            // SYNC TO CLOUD — wait for Firebase auth to be ready first!
+            try {
+                if (window.paywegaFirebaseReady) {
+                    await window.paywegaFirebaseReady;
+                }
+                // Re-init fb if it's still the mock (modules may now be loaded)
+                if (this.fb && this.fb.isMock !== false && window.FirebaseManager) {
+                    this.fb = new window.FirebaseManager();
+                }
+                const success = await this.fb.createUser(this.state.users[userId]);
+                if (success) {
+                    console.log("User synced to Cloud ☁️", userId);
+                } else {
+                    console.warn("Cloud sync returned false — check Firestore rules");
+                }
+
+                if (role === 'driver' && driverDetails && typeof this.fb.registerDriver === 'function') {
+                    const driverObj = Object.values(this.state.drivers).find(d => d && d.userId === userId);
+                    const vehicleObj = driverObj ? this.state.vehicles[driverObj.vehicleId] : null;
+                    if (driverObj && vehicleObj) {
+                        await this.fb.registerDriver(driverObj, vehicleObj);
+                        console.log("Driver & Vehicle synced to Cloud ☁️");
+                    }
+                }
+            } catch (cloudErr) {
+                console.error("Cloud sync failed (user saved locally):", cloudErr);
+            }
 
             this.routeToDashboard(role);
         });
@@ -2429,8 +2483,11 @@ class PaywegaApp {
 }
 
 // Initialize App (Must come after class definition)
-const initApp = () => {
+const initApp = async () => {
     try {
+        if (window.paywegaFirebaseReady) {
+            await window.paywegaFirebaseReady;
+        }
         window.paywegaApp = new PaywegaApp();
         window.paywegaApp.init();
         console.log('Paywega App Started 🚀');

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'paywega-v6';
+const CACHE_NAME = 'paywega-v2-20260102';
 const urlsToCache = [
     './',
     './app.html',

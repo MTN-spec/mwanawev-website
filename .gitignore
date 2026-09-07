@@ -48,3 +48,8 @@ desktop.ini
 
 # Allow the distributable APK in root
 !paywega.apk
+
+android/.gradle_local/
+android/.gradle/
+android/build/
+android/app/build/
