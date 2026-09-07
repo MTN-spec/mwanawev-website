@@ -148,55 +148,99 @@ class FirebaseManager {
     async recordTransaction(txnData) {
         try {
             const db = await waitForFirebase();
-            if (!db) return;
-            const txnRef = doc(collection(db, DB_COLLECTIONS.TRANSACTIONS)); // Auto-ID
+            if (!db) return { success: false, error: "Database not ready" };
 
-            // Add server timestamp for security
-            txnData.serverTimestamp = serverTimestamp();
-            txnData.synced = true;
+            // Use existing transaction ID if provided (for offline idempotency), or generate new doc ID
+            const txnDocId = txnData.id || doc(collection(db, DB_COLLECTIONS.TRANSACTIONS)).id;
+            const txnRef = doc(db, DB_COLLECTIONS.TRANSACTIONS, txnDocId);
 
-            // Add GPS Data (if provided)
-            if (txnData.gps) {
-                txnData.gps = {
-                    lat: txnData.gps.lat || null,
-                    lng: txnData.gps.lng || null,
-                    accuracy: txnData.gps.accuracy || null
+            const payload = {
+                ...txnData,
+                id: txnDocId,
+                synced: true,
+                syncedAt: new Date().toISOString(),
+                serverTimestamp: serverTimestamp()
+            };
+
+            // Format GPS Data (if provided)
+            if (payload.gps) {
+                payload.gps = {
+                    lat: payload.gps.lat || null,
+                    lng: payload.gps.lng || null,
+                    accuracy: payload.gps.accuracy || null
                 };
             }
 
-            await runTransaction(db, async (transaction) => {
-                // 1. Read sender and receiver
-                const senderRef = doc(db, DB_COLLECTIONS.USERS, txnData.fromUserId);
-                const receiverRef = doc(db, DB_COLLECTIONS.USERS, txnData.toUserId);
+            // Always write transaction record so token usage is tracked in cloud DB
+            await setDoc(txnRef, payload, { merge: true });
+            console.log("Firebase: Transaction logged to Cloud ☁️", txnDocId);
 
-                const senderDoc = await transaction.get(senderRef);
-                const receiverDoc = await transaction.get(receiverRef);
+            const amount = parseFloat(txnData.amount || txnData.tokens || 0);
 
-                if (!senderDoc.exists() || !receiverDoc.exists()) {
-                    throw "User not found!";
+            // If fromUserId exists, update cloud balance
+            if (txnData.fromUserId && amount > 0) {
+                try {
+                    const senderRef = doc(db, DB_COLLECTIONS.USERS, txnData.fromUserId);
+                    const senderDoc = await getDoc(senderRef);
+                    if (senderDoc.exists()) {
+                        const currentCloudBalance = senderDoc.data().tokenBalance || 0;
+                        const newSenderBal = Math.max(0, parseFloat((currentCloudBalance - amount).toFixed(2)));
+                        await setDoc(senderRef, { tokenBalance: newSenderBal, lastActive: serverTimestamp() }, { merge: true });
+                    }
+                } catch (balErr) {
+                    console.warn("Could not update sender balance in cloud:", balErr);
                 }
+            }
 
-                const senderBalance = senderDoc.data().tokenBalance || 0;
-                const receiverBalance = receiverDoc.data().tokenBalance || 0;
-                const amount = parseFloat(txnData.amount);
-
-                if (senderBalance < amount) {
-                    throw "Insufficient funds!";
+            // If toUserId exists, credit receiver cloud balance
+            if (txnData.toUserId && amount > 0) {
+                try {
+                    const receiverRef = doc(db, DB_COLLECTIONS.USERS, txnData.toUserId);
+                    const receiverDoc = await getDoc(receiverRef);
+                    if (receiverDoc.exists()) {
+                        const currentCloudBalance = receiverDoc.data().tokenBalance || 0;
+                        const newReceiverBal = parseFloat((currentCloudBalance + amount).toFixed(2));
+                        await setDoc(receiverRef, { tokenBalance: newReceiverBal, lastActive: serverTimestamp() }, { merge: true });
+                    }
+                } catch (recErr) {
+                    console.warn("Could not update receiver balance in cloud:", recErr);
                 }
+            }
 
-                // 2. Adjust balances
-                transaction.update(senderRef, { tokenBalance: senderBalance - amount });
-                transaction.update(receiverRef, { tokenBalance: receiverBalance + amount });
-
-                // 3. Log transaction
-                transaction.set(txnRef, txnData);
-            });
-
-            return { success: true, id: txnRef.id };
+            return { success: true, id: txnDocId };
 
         } catch (e) {
-            console.error("Transaction Failed:", e);
+            console.error("Firebase Error (recordTransaction):", e);
             return { success: false, error: e.toString() };
+        }
+    }
+
+    async syncOfflineQueue(unsyncedTxns, currentUser) {
+        if (!unsyncedTxns || unsyncedTxns.length === 0) return [];
+        try {
+            const db = await waitForFirebase();
+            if (!db) return [];
+
+            const syncedIds = [];
+            for (const txn of unsyncedTxns) {
+                const res = await this.recordTransaction(txn);
+                if (res && res.success) {
+                    syncedIds.push(txn.id);
+                }
+            }
+
+            // Mirror user's latest token balance in cloud
+            if (currentUser && currentUser.id) {
+                await this.updateUser(currentUser.id, {
+                    tokenBalance: currentUser.tokenBalance,
+                    lastSyncAt: new Date().toISOString()
+                });
+            }
+
+            return syncedIds;
+        } catch (e) {
+            console.error("Firebase Error (syncOfflineQueue):", e);
+            return [];
         }
     }
 

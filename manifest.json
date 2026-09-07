@@ -1,6 +1,6 @@
 {
-    "name": "Mwanawev Paywega",
-    "short_name": "Paywega",
+    "name": "Mwanawev Change It",
+    "short_name": "Change It",
     "start_url": "./app.html",
     "display": "standalone",
     "background_color": "#000000",

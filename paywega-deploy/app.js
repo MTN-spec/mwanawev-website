@@ -1,6 +1,6 @@
 
 
-class PaywegaApp {
+class ChangeItApp {
     constructor() {
         this.root = document.getElementById('paywega-app-root');
 
@@ -31,6 +31,7 @@ class PaywegaApp {
 
         // Initialize Firebase Manager — start with mock, upgrade when modules load
         this.fb = this.createMockFirebase();
+        this._isSyncing = false;
         // Firebase modules (type="module") load async; upgrade fb after DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this._initFirebase());
@@ -51,7 +52,7 @@ class PaywegaApp {
             transactions: [],
             pendingOTP: null,
             qrRegistry: [], // Track all generated QR codes for accountability
-            // Driver registration codes - issued by Paywega offices after document verification
+            // Driver registration codes - issued by Change It offices after document verification
             driverRegistrationCodes: {
                 // Beta Testing Codes - All work with any vehicle
                 'BETA-001': { vehicleReg: null, status: 'available', issuedAt: '2026-01-06', expiresAt: '2027-12-31' },
@@ -68,6 +69,8 @@ class PaywegaApp {
             if (window.FirebaseManager) {
                 this.fb = new window.FirebaseManager();
                 console.log('FirebaseManager initialized ✅');
+                // Attempt an initial sync if online
+                this.syncPendingTransactions();
             } else {
                 console.warn('FirebaseManager not found - staying in offline mode');
             }
@@ -79,6 +82,71 @@ class PaywegaApp {
     init() {
         this.loadState();
         this.checkSession();
+
+        // Background Online Sync Triggers
+        window.addEventListener('online', () => {
+            console.log('Change It: Device online 🌐 — syncing pending transactions');
+            this.syncPendingTransactions();
+        });
+        // Check sync every 15 seconds
+        setInterval(() => this.syncPendingTransactions(), 15000);
+        // Initial sync attempt
+        setTimeout(() => this.syncPendingTransactions(), 2000);
+    }
+
+    async syncPendingTransactions() {
+        if (!navigator.onLine) return;
+        if (this._isSyncing) return;
+        this._isSyncing = true;
+
+        try {
+            if (window.paywegaFirebaseReady) {
+                await window.paywegaFirebaseReady;
+            }
+            if (this.fb && this.fb.isMock !== false && window.FirebaseManager) {
+                this.fb = new window.FirebaseManager();
+            }
+            if (!this.fb || typeof this.fb.recordTransaction !== 'function') {
+                this._isSyncing = false;
+                return;
+            }
+
+            const unsynced = (this.state.transactions || []).filter(t => t && t.synced === false);
+            if (unsynced.length === 0) {
+                const user = this.state.currentUser ? this.state.users[this.state.currentUser] : null;
+                if (user && typeof this.fb.updateUser === 'function') {
+                    await this.fb.updateUser(user.id, {
+                        tokenBalance: user.tokenBalance,
+                        lastSyncAt: new Date().toISOString()
+                    });
+                }
+                this._isSyncing = false;
+                return;
+            }
+
+            console.log(`Change It Sync: Found ${unsynced.length} unsynced transactions. Syncing to Cloud...`);
+            let syncedCount = 0;
+            for (const txn of unsynced) {
+                try {
+                    const res = await this.fb.recordTransaction(txn);
+                    if (res && res.success) {
+                        txn.synced = true;
+                        syncedCount++;
+                    }
+                } catch (txnErr) {
+                    console.warn("Could not sync transaction:", txn.id, txnErr);
+                }
+            }
+
+            if (syncedCount > 0) {
+                this.saveState();
+                console.log(`Change It Sync: Successfully synced ${syncedCount} transactions to Cloud ✅`);
+            }
+        } catch (e) {
+            console.warn("Background sync error:", e);
+        } finally {
+            this._isSyncing = false;
+        }
     }
 
     // ============================
@@ -114,7 +182,7 @@ class PaywegaApp {
 
     loadState() {
         try {
-            const saved = localStorage.getItem('paywega_auth_v1');
+            const saved = localStorage.getItem('changeit_auth_v1') || localStorage.getItem('paywega_auth_v1');
             if (saved) {
                 this.state = JSON.parse(saved);
             }
@@ -160,7 +228,9 @@ class PaywegaApp {
                         ...this.state.users[uid],
                         ...cloudUser
                     };
-                    localStorage.setItem('paywega_auth_v1', JSON.stringify(this.state));
+                    const ser = JSON.stringify(this.state);
+                    localStorage.setItem('changeit_auth_v1', ser);
+                    localStorage.setItem('paywega_auth_v1', ser);
                 }
             }).catch(e => console.warn("Cloud hydration skipped:", e));
         }
@@ -186,7 +256,7 @@ class PaywegaApp {
                 ownerId: 'USR-DEMO-002',
                 nickname: 'Bossbaby',
                 route: 'City - Avondale',
-                qrCode: 'paywega://pay/vehicle/VH-DEMO-001'
+                qrCode: 'changeit://pay/vehicle/VH-DEMO-001'
             };
         }
 
@@ -231,7 +301,7 @@ class PaywegaApp {
                 ownerId: 'USR-TEST-001',
                 nickname: 'Bossbaby',
                 route: 'Glenview - City',
-                qrCode: 'paywega://pay/vehicle/VH-TEST-001'
+                qrCode: 'changeit://pay/vehicle/VH-TEST-001'
             };
         }
 
@@ -284,7 +354,7 @@ class PaywegaApp {
             ownerId: 'USR-DEMO-002',
             nickname: 'Bossbaby',
             route: 'City - Avondale',
-            qrCode: 'paywega://pay/vehicle/VH-DEMO-001'
+            qrCode: 'changeit://pay/vehicle/VH-DEMO-001'
         };
 
         // USER'S TEST DRIVER ACCOUNT - Takunda Nigel Mhandu
@@ -317,7 +387,7 @@ class PaywegaApp {
             ownerId: 'USR-TEST-001',
             nickname: 'Bossbaby',
             route: 'Glenview - City',
-            qrCode: 'paywega://pay/vehicle/VH-TEST-001'
+            qrCode: 'changeit://pay/vehicle/VH-TEST-001'
         };
 
         // Welcome bonus transaction
@@ -489,10 +559,19 @@ class PaywegaApp {
     }
 
     saveState() {
-        localStorage.setItem('paywega_auth_v1', JSON.stringify(this.state));
+        try {
+            const serialized = JSON.stringify(this.state);
+            localStorage.setItem('changeit_auth_v1', serialized);
+            localStorage.setItem('paywega_auth_v1', serialized);
+        } catch (e) {
+            console.warn("Error saving local state:", e);
+        }
         // Background cloud sync for current user
         if (this.fb && typeof this.fb.updateUser === 'function' && this.state.currentUser && this.state.users[this.state.currentUser]) {
-            this.fb.updateUser(this.state.currentUser, this.state.users[this.state.currentUser]);
+            this.fb.updateUser(this.state.currentUser, {
+                tokenBalance: this.state.users[this.state.currentUser].tokenBalance,
+                lastActive: new Date().toISOString()
+            }).catch(e => console.warn("Cloud balance sync note:", e));
         }
     }
 
@@ -613,7 +692,7 @@ class PaywegaApp {
         return { valid: true };
     }
 
-    // Validate driver registration code from Paywega offices
+    // Validate driver registration code from Change It offices
     validateDriverCode(code, vehicleReg) {
         const cleanCode = code.trim().toUpperCase();
 
@@ -625,7 +704,7 @@ class PaywegaApp {
         const codeData = this.state.driverRegistrationCodes[cleanCode];
 
         if (!codeData) {
-            return { valid: false, error: 'Invalid registration code. Please visit Paywega offices to obtain a valid code.' };
+            return { valid: false, error: 'Invalid registration code. Please visit Change It offices to obtain a valid code.' };
         }
 
         if (codeData.status === 'used') {
@@ -634,7 +713,7 @@ class PaywegaApp {
 
         // Check expiry
         if (codeData.expiresAt && new Date(codeData.expiresAt) < new Date()) {
-            return { valid: false, error: 'This code has expired. Please obtain a new code from Paywega offices.' };
+            return { valid: false, error: 'This code has expired. Please obtain a new code from Change It offices.' };
         }
 
         // Check if code is tied to a specific vehicle
@@ -1052,14 +1131,22 @@ class PaywegaApp {
         });
     }
 
-    completeRegistration(phone, role, loginPin, txnPin, driverDetails) {
+    async completeRegistration(phone, role, loginPin, txnPin, driverDetails) {
+        // ENFORCE INTERNET CONNECTION DURING REGISTRATION
+        if (!navigator.onLine) {
+            this.showToast('Internet connection required to create your Change It account. Please connect to mobile data or Wi-Fi to register.', 5000);
+            return;
+        }
+
+        this.showToast('Connecting to Change It servers...');
+
         const userId = this.generateId('USR');
 
         // Create user
-        this.state.users[userId] = {
+        const newUser = {
             id: userId,
             phone: phone,
-            name: driverDetails?.name || 'Commuter',
+            name: driverDetails?.name || (role === 'driver' ? 'Driver' : 'Commuter'),
             pinHash: this.hashPin(loginPin),
             txnPinHash: this.hashPin(txnPin),
             tokenBalance: 5.00, // Welcome bonus
@@ -1070,15 +1157,47 @@ class PaywegaApp {
             createdAt: new Date().toISOString()
         };
 
+        // Ensure Firebase auth is ready
+        try {
+            if (window.paywegaFirebaseReady) {
+                await window.paywegaFirebaseReady;
+            }
+            if (this.fb && this.fb.isMock !== false && window.FirebaseManager) {
+                this.fb = new window.FirebaseManager();
+            }
+        } catch (e) {
+            console.warn('Firebase readiness check note:', e);
+        }
+
+        // SAVE TO CLOUD FIRST (ensures user exists in live Firestore)
+        let cloudSuccess = false;
+        try {
+            cloudSuccess = await this.fb.createUser(newUser);
+        } catch (cloudErr) {
+            console.error('Registration cloud error:', cloudErr);
+        }
+
+        if (!cloudSuccess) {
+            this.showToast('Could not register with Change It servers. Please check your data connection and try again.', 4000);
+            return;
+        }
+
+        console.log('User registered in Cloud DB ✅', userId);
+        this.state.users[userId] = newUser;
+
         // Welcome bonus transaction
         this.state.transactions.push({
             id: this.generateId('TXN'),
             type: 'bonus',
             userId: userId,
+            fromUserId: 'SYSTEM',
+            toUserId: userId,
+            amount: 5.00,
             tokens: 5.00,
             description: 'Welcome Bonus 🎉',
             timestamp: new Date().toISOString(),
-            status: 'completed'
+            status: 'completed',
+            synced: true
         });
 
         // If driver, create driver and vehicle records
@@ -1086,7 +1205,7 @@ class PaywegaApp {
             const driverId = this.generateId('DRV');
             const vehicleId = this.generateId('VH');
 
-            this.state.drivers[driverId] = {
+            const driverObj = {
                 userId: userId,
                 driverId: driverId,
                 vehicleId: vehicleId,
@@ -1095,49 +1214,33 @@ class PaywegaApp {
                 tokensEarned: 0
             };
 
-            this.state.vehicles[vehicleId] = {
+            const vehicleObj = {
                 id: vehicleId,
                 regNumber: driverDetails.regNumber,
                 vehicleType: driverDetails.vehicleType,
                 ownerId: userId,
-                qrCode: `paywega://pay/vehicle/${vehicleId}`
+                qrCode: `changeit://pay/vehicle/${vehicleId}`
             };
+
+            this.state.drivers[driverId] = driverObj;
+            this.state.vehicles[vehicleId] = vehicleObj;
+
+            if (typeof this.fb.registerDriver === 'function') {
+                try {
+                    await this.fb.registerDriver(driverObj, vehicleObj);
+                    console.log('Driver & Vehicle registered in Cloud DB ✅');
+                } catch (e) {
+                    console.warn('Driver cloud register warning:', e);
+                }
+            }
         }
 
-        // Log in
+        // Log in locally
         this.state.currentUser = userId;
         this.state.sessionStart = Date.now();
         this.saveState();
 
-        this.showSuccessScreen('Account Created!', 'You received 5 tokens as a welcome bonus.', async () => {
-            // SYNC TO CLOUD — wait for Firebase auth to be ready first!
-            try {
-                if (window.paywegaFirebaseReady) {
-                    await window.paywegaFirebaseReady;
-                }
-                // Re-init fb if it's still the mock (modules may now be loaded)
-                if (this.fb && this.fb.isMock !== false && window.FirebaseManager) {
-                    this.fb = new window.FirebaseManager();
-                }
-                const success = await this.fb.createUser(this.state.users[userId]);
-                if (success) {
-                    console.log("User synced to Cloud ☁️", userId);
-                } else {
-                    console.warn("Cloud sync returned false — check Firestore rules");
-                }
-
-                if (role === 'driver' && driverDetails && typeof this.fb.registerDriver === 'function') {
-                    const driverObj = Object.values(this.state.drivers).find(d => d && d.userId === userId);
-                    const vehicleObj = driverObj ? this.state.vehicles[driverObj.vehicleId] : null;
-                    if (driverObj && vehicleObj) {
-                        await this.fb.registerDriver(driverObj, vehicleObj);
-                        console.log("Driver & Vehicle synced to Cloud ☁️");
-                    }
-                }
-            } catch (cloudErr) {
-                console.error("Cloud sync failed (user saved locally):", cloudErr);
-            }
-
+        this.showSuccessScreen('Account Created!', 'You received 5 tokens as a welcome bonus.', () => {
             this.routeToDashboard(role);
         });
     }
@@ -1414,13 +1517,13 @@ class PaywegaApp {
         overlay.innerHTML = `
             <div class="scanner-header">
                 <i class="fas fa-arrow-left btn-stop-scan"></i>
-                <span>Scan Paywega QR Code</span>
+                <span>Scan Change It QR Code</span>
             </div>
             <div class="scanner-body">
                 <div class="scan-frame"></div>
             </div>
             <div class="scanner-footer">
-                <p>Align the Paywega QR code within the frame</p>
+                <p>Align the Change It QR code within the frame</p>
             </div>
         `;
         document.body.appendChild(overlay);
@@ -1453,10 +1556,23 @@ class PaywegaApp {
     }
 
     handleScannedQR(qrData) {
-        // New format with unique ID: paywega://pay/vehicle/VH-001?fare=0.75&qrid=QR-ABC123
-        // Old format: paywega://pay/vehicle/VH-001?fare=0.75
-        // Legacy format: paywega://pay/vehicle/VH-001
-        const match = qrData.match(/paywega:\/\/pay\/vehicle\/([^?]+)(\?fare=([^&]+))?(&qrid=(.+))?/);
+        if (!qrData || typeof qrData !== 'string') {
+            this.showToast('Invalid QR code');
+            return;
+        }
+
+        // 1. User QR Code: Scanned to give change or transfer tokens directly
+        const userMatch = qrData.match(/(?:changeit|paywega):\/\/pay\/user\/([^?]+)/);
+        if (userMatch) {
+            const recipientUserId = userMatch[1];
+            const recipientUser = this.state.users[recipientUserId];
+            const phone = recipientUser ? recipientUser.phone : '';
+            this.showSendModal(phone);
+            return;
+        }
+
+        // 2. Vehicle / Transport Fare QR Code
+        const match = qrData.match(/(?:changeit|paywega):\/\/pay\/vehicle\/([^?]+)(\?fare=([^&]+))?(&qrid=(.+))?/);
 
         if (match) {
             const vehicleId = match[1];
@@ -1776,20 +1892,8 @@ class PaywegaApp {
         // Show instant success screen
         this.showPaymentSuccess(amount, nickname);
 
-        // 2. Background Cloud Sync (Non-blocking)
-        if (this.fb && typeof this.fb.recordTransaction === 'function') {
-            this.fb.recordTransaction(txnData).then(result => {
-                if (result && result.success) {
-                    txnData.synced = true;
-                    this.saveState();
-                    console.log("Transaction synced to Cloudflare/Firebase successfully.");
-                } else {
-                    console.log("Transaction saved offline in local wallet (will sync when online).");
-                }
-            }).catch(e => {
-                console.log("Offline mode active. Transaction stored safely in local storage:", e);
-            });
-        }
+        // 2. Background Cloud Sync (Non-blocking queue sync)
+        this.syncPendingTransactions();
     }
 
     showPaymentSuccess(amount, nickname) {
@@ -1815,7 +1919,7 @@ class PaywegaApp {
         const now = new Date();
         const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
         const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const secCode = '#PWG-' + (Math.abs((now.getHours() * 3600 + now.getMinutes() * 60 + now.getDate()) % 899) + 100);
+        const secCode = '#CHG-' + (Math.abs((now.getHours() * 3600 + now.getMinutes() * 60 + now.getDate()) % 899) + 100);
 
         // 3. Build Dynamic Holographic Ticket Modal
         const overlay = document.createElement('div');
@@ -1827,7 +1931,7 @@ class PaywegaApp {
                     <i class="fas fa-check"></i>
                 </div>
                 <div class="ticket-title">Fare Paid</div>
-                <div class="ticket-subtitle">Mwanawev Paywega Digital Ticket</div>
+                <div class="ticket-subtitle">Mwanawev Change It Digital Ticket</div>
 
                 <div class="ticket-vehicle-box">
                     <div class="ticket-nickname">"${nickname}"</div>
@@ -1964,7 +2068,7 @@ class PaywegaApp {
         modal.querySelector('.btn-cancel').addEventListener('click', () => modal.remove());
     }
 
-    showSendModal() {
+    showSendModal(prefilledPhone = '') {
         const user = this.state.users[this.state.currentUser];
 
         const modal = document.createElement('div');
@@ -1972,19 +2076,19 @@ class PaywegaApp {
         modal.innerHTML = `
             <div class="modal send-modal">
                 <div class="modal-header">
-                    <h3>Send Tokens</h3>
+                    <h3>Send / Give Change</h3>
                     <i class="fas fa-times btn-close-modal"></i>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
                         <label>Recipient Phone</label>
-                        <input type="tel" id="send-phone" placeholder="+263 77...">
+                        <input type="tel" id="send-phone" placeholder="+263 77..." value="${prefilledPhone || ''}">
                     </div>
                     <div class="form-group">
-                        <label>Amount</label>
-                        <input type="number" id="send-amount" min="0.5" step="0.25" placeholder="1.00">
+                        <label>Amount (Tokens)</label>
+                        <input type="number" id="send-amount" min="0.5" step="0.25" placeholder="0.50">
                     </div>
-                    <div class="balance-display">Balance: ${user.tokenBalance.toFixed(2)} tokens</div>
+                    <div class="balance-display">Balance: $${user.tokenBalance.toFixed(2)} tokens</div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn-cancel">Cancel</button>
@@ -2056,23 +2160,35 @@ class PaywegaApp {
                         return;
                     }
 
-                    user.tokenBalance -= amount;
-                    this.state.transactions.push({
-                        id: this.generateId('TXN'),
+                    user.tokenBalance = parseFloat((user.tokenBalance - amount).toFixed(2));
+                    const txnId = this.generateId('TXN');
+                    const txnRecord = {
+                        id: txnId,
                         type: 'transfer',
                         userId: user.id,
                         fromUserId: user.id,
                         toPhone: phone,
+                        amount: amount,
                         tokens: amount,
-                        description: `Sent to ${phone}`,
+                        description: `Change sent to ${phone}`,
                         timestamp: new Date().toISOString(),
-                        status: 'completed'
-                    });
+                        status: 'completed',
+                        synced: false
+                    };
 
+                    // Credit local recipient if exists on this device
+                    const recipient = Object.values(this.state.users).find(u => u && u.phone === phone);
+                    if (recipient) {
+                        recipient.tokenBalance = parseFloat(((recipient.tokenBalance || 0) + amount).toFixed(2));
+                        txnRecord.toUserId = recipient.id;
+                    }
+
+                    this.state.transactions.unshift(txnRecord);
                     this.saveState();
                     modal.remove();
                     this.showToast(`Sent ${amount} tokens to ${phone}`);
                     this.updateCommuterUI();
+                    this.syncPendingTransactions();
                 }
             });
             input.addEventListener('keydown', (e) => {
@@ -2098,7 +2214,7 @@ class PaywegaApp {
                 </div>
                 <div class="modal-body">
                     <div id="my-qr-code" class="qr-display"></div>
-                    <p>Show to receive tokens</p>
+                    <p>Show to receive change & tokens</p>
                     <small>${user.phone}</small>
                 </div>
             </div>
@@ -2107,7 +2223,7 @@ class PaywegaApp {
         this.root.appendChild(modal);
 
         new QRCode(modal.querySelector('#my-qr-code'), {
-            text: `paywega://pay/user/${user.id}`,
+            text: `changeit://pay/user/${user.id}`,
             width: 200,
             height: 200,
             colorDark: "#0056b3"
@@ -2232,7 +2348,7 @@ class PaywegaApp {
         this.root.appendChild(modal);
 
         // Generate QR with unique ID encoded
-        const qrData = `paywega://pay/vehicle/${vehicle.id}?fare=${fareAmount}&qrid=${qrId}`;
+        const qrData = `changeit://pay/vehicle/${vehicle.id}?fare=${fareAmount}&qrid=${qrId}`;
         new QRCode(modal.querySelector('#vehicle-qr-code'), {
             text: qrData,
             width: 250,
@@ -2474,7 +2590,7 @@ class PaywegaApp {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `paywega_qr_report_${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = `change_it_qr_report_${new Date().toISOString().split('T')[0]}.csv`;
         a.click();
         window.URL.revokeObjectURL(url);
 
@@ -2482,15 +2598,21 @@ class PaywegaApp {
     }
 }
 
+// Aliases for compatibility
+const PaywegaApp = ChangeItApp;
+window.ChangeItApp = ChangeItApp;
+window.PaywegaApp = PaywegaApp;
+
 // Initialize App (Must come after class definition)
 const initApp = async () => {
     try {
         if (window.paywegaFirebaseReady) {
             await window.paywegaFirebaseReady;
         }
-        window.paywegaApp = new PaywegaApp();
-        window.paywegaApp.init();
-        console.log('Paywega App Started 🚀');
+        window.changeItApp = new ChangeItApp();
+        window.paywegaApp = window.changeItApp;
+        window.changeItApp.init();
+        console.log('Change It App Started 🚀');
     } catch (e) {
         console.error('Critical Start Error:', e);
         document.body.innerHTML = `<div style="color:red; padding:20px;">App Failed: ${e.message}<br><br>Check console for details.</div>`;
