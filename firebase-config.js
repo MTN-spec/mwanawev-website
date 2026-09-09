@@ -28,7 +28,7 @@ try {
     auth = getAuth(app);
 
     // REQUIRED: Firestore security rules require an authenticated Firebase user.
-    // This promise must resolve before any Firestore read/write is attempted.
+    // This promise resolves or warns gracefully so offline operations continue.
     window.paywegaFirebaseReady = signInAnonymously(auth)
         .then(() => {
             console.log("Firebase anonymous sign-in successful ✅");
@@ -36,8 +36,8 @@ try {
             window.paywegaAuth = auth;
         })
         .catch((e) => {
-            console.error("Firebase anonymous sign-in failed:", e);
-            throw e;
+            console.warn("Firebase anonymous sign-in unavailable (running in offline mode):", e);
+            // Allow app to continue in offline mode without crashing startup
         });
 
     // Enable Offline Persistence (The "Hybrid" magic)

@@ -2607,7 +2607,11 @@ window.PaywegaApp = PaywegaApp;
 const initApp = async () => {
     try {
         if (window.paywegaFirebaseReady) {
-            await window.paywegaFirebaseReady;
+            try {
+                await window.paywegaFirebaseReady;
+            } catch (fbErr) {
+                console.warn('Firebase connection unavailable at boot, continuing in offline mode:', fbErr);
+            }
         }
         window.changeItApp = new ChangeItApp();
         window.paywegaApp = window.changeItApp;
