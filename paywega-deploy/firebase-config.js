@@ -9,7 +9,7 @@ import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.co
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyC6trJ7K2_j0e8sn9H6cnPx-LXs3eIg978",
+    apiKey: "AIzaSyC6tru7K2Ij0e8sn9H6chPx-LXsBeIg978",
     authDomain: "mwanawevtech.firebaseapp.com",
     projectId: "mwanawevtech",
     storageBucket: "mwanawevtech.firebasestorage.app",
