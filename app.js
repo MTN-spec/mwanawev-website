@@ -1178,11 +1178,14 @@ class ChangeItApp {
         }
 
         if (!cloudSuccess) {
-            this.showToast('Could not register with Change It servers. Please check your data connection and try again.', 4000);
-            return;
+            console.warn('Firestore database did not respond or is pending setup. Proceeding with offline local profile.');
+            this.showToast('Note: Cloud DB pending setup. Saved locally; will sync once database is online.', 4000);
+            newUser.synced = false;
+        } else {
+            console.log('User registered in Cloud DB ✅', userId);
+            newUser.synced = true;
+            this.showToast('Registered with Change It Cloud ✅', 2000);
         }
-
-        console.log('User registered in Cloud DB ✅', userId);
         this.state.users[userId] = newUser;
 
         // Welcome bonus transaction

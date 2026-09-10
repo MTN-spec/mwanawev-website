@@ -15,10 +15,25 @@ const DB_COLLECTIONS = {
 // Helper: wait for Firebase auth to be ready before any Firestore write
 async function waitForFirebase() {
     if (window.paywegaFirebaseReady) {
-        await window.paywegaFirebaseReady;
+        try {
+            await Promise.race([
+                window.paywegaFirebaseReady,
+                new Promise((resolve) => setTimeout(resolve, 3000))
+            ]);
+        } catch (e) {
+            console.warn("waitForFirebase timeout or notice:", e);
+        }
     }
     // Re-read db in case it was set after module loaded
     return window.paywegaDb;
+}
+
+// Helper: prevent Firestore network calls from hanging indefinitely if DB is pending setup
+function withTimeout(promise, ms = 6000, errorMsg = "Firestore operation timed out") {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error(errorMsg)), ms))
+    ]);
 }
 
 class FirebaseManager {
@@ -37,7 +52,11 @@ class FirebaseManager {
         try {
             const db = await waitForFirebase();
             if (!db) { console.error("Firebase DB unavailable (createUser)"); return false; }
-            await setDoc(doc(db, DB_COLLECTIONS.USERS, userData.id), userData);
+            await withTimeout(
+                setDoc(doc(db, DB_COLLECTIONS.USERS, userData.id), userData),
+                6000,
+                "Firestore database did not respond"
+            );
             console.log("Firebase: User created ✅", userData.id);
             return true;
         } catch (e) {
@@ -124,17 +143,23 @@ class FirebaseManager {
     async registerDriver(driverData, vehicleData) {
         try {
             const db = await waitForFirebase();
-            if (!db) return;
-            // atomic write for driver + vehicle
-            await runTransaction(db, async (transaction) => {
-                const driverRef = doc(db, DB_COLLECTIONS.DRIVERS, driverData.driverId);
-                const vehicleRef = doc(db, DB_COLLECTIONS.VEHICLES, vehicleData.id);
-                transaction.set(driverRef, driverData);
-                transaction.set(vehicleRef, vehicleData);
-            });
+            if (!db) return false;
+            // atomic write for driver + vehicle with timeout
+            await withTimeout(
+                runTransaction(db, async (transaction) => {
+                    const driverRef = doc(db, DB_COLLECTIONS.DRIVERS, driverData.driverId);
+                    const vehicleRef = doc(db, DB_COLLECTIONS.VEHICLES, vehicleData.id);
+                    transaction.set(driverRef, driverData);
+                    transaction.set(vehicleRef, vehicleData);
+                }),
+                6000,
+                "Firestore registerDriver timed out"
+            );
             console.log("Firebase: Driver & Vehicle Registered ✅");
+            return true;
         } catch (e) {
             console.error("Firebase Error (registerDriver):", e);
+            return false;
         }
     }
 
