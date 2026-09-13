@@ -4,178 +4,378 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Email Portal | MTNSPEC</title>
-    <meta name="description" content="Access your MTNSPEC company email.">
-    <link rel="stylesheet" href="styles.css">
+    <title>Team & Operations Portal | MTNSPEC</title>
+    <meta name="description" content="MTNSPEC Team & Operations Workspace Hub">
+    <link rel="icon" type="image/png" href="logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .email-portal {
+        :root {
+            --bg-dark: #0a0e1a;
+            --surface: rgba(19, 25, 41, 0.7);
+            --surface-hover: rgba(26, 34, 54, 0.9);
+            --border: rgba(255, 255, 255, 0.08);
+            --primary: #00c896;
+            --primary-glow: rgba(0, 200, 150, 0.25);
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-amber: #f59e0b;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
             min-height: 100vh;
+            background: radial-gradient(ellipse at 20% 20%, rgba(0, 200, 150, 0.08) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 60%),
+                        var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 30px 20px;
+        }
+
+        .portal-header {
+            max-width: 960px;
+            margin: 0 auto 30px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-link {
             display: flex;
             align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
-            padding: 20px;
-        }
-
-        .portal-container {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 50px 40px;
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
-        }
-
-        .portal-container .logo {
-            width: 80px;
-            margin-bottom: 25px;
-            filter: drop-shadow(0 4px 15px rgba(0, 200, 150, 0.3));
-        }
-
-        .portal-container h1 {
-            color: #fff;
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-        }
-
-        .portal-container .subtitle {
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 35px;
-        }
-
-        .email-btn {
-            display: inline-flex;
-            align-items: center;
             gap: 12px;
-            padding: 18px 40px;
-            background: linear-gradient(135deg, #00c896, #00a87a);
-            border-radius: 12px;
-            color: #fff;
             text-decoration: none;
-            font-size: 1.1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 30px rgba(0, 200, 150, 0.3);
-            margin-bottom: 30px;
+            color: #fff;
         }
 
-        .email-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 40px rgba(0, 200, 150, 0.4);
+        .brand-link img {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
+            border-radius: 8px;
         }
 
-        .email-btn i {
+        .brand-link span {
             font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
-        .instructions {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-            text-align: left;
-        }
-
-        .instructions h3 {
-            color: #00c896;
-            font-size: 1rem;
-            margin-bottom: 12px;
-        }
-
-        .instructions ol {
-            color: rgba(255, 255, 255, 0.7);
-            padding-left: 20px;
-            margin: 0;
-            line-height: 1.8;
-        }
-
-        .back-link {
+        .system-status {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            color: rgba(255, 255, 255, 0.5);
+            background: rgba(0, 200, 150, 0.1);
+            border: 1px solid rgba(0, 200, 150, 0.3);
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.6; }
+        }
+
+        .hub-container {
+            max-width: 960px;
+            margin: 0 auto;
+            width: 100%;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 2.3rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* 4 Quick Access Cards */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 22px;
+            text-align: left;
+            margin-bottom: 40px;
+        }
+
+        .hub-card {
+            background: var(--surface);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px 26px;
             text-decoration: none;
-            margin-top: 25px;
-            transition: color 0.3s;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
-        .back-link:hover {
-            color: #00c896;
+        .hub-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: transparent;
+            transition: background 0.3s ease;
         }
 
-        @media (max-width: 480px) {
-            .portal-container {
-                padding: 35px 25px;
-            }
+        .hub-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: var(--surface-hover);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-admin:hover::before { background: linear-gradient(90deg, #00c896, #00b07a); }
+        .card-email:hover::before { background: linear-gradient(90deg, #ea4335, #4285f4); }
+        .card-app:hover::before   { background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+        .card-team:hover::before  { background: linear-gradient(90deg, #f59e0b, #ec4899); }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .icon-admin { background: rgba(0, 200, 150, 0.15); color: #00c896; border: 1px solid rgba(0, 200, 150, 0.3); }
+        .icon-email { background: rgba(234, 67, 53, 0.15); color: #ea4335; border: 1px solid rgba(234, 67, 53, 0.3); }
+        .icon-app   { background: rgba(59, 130, 246, 0.15); color: #38bdf8; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .icon-team  { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        .badge-pill {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-admin { background: rgba(0, 200, 150, 0.15); color: #00c896; border: 1px solid rgba(0, 200, 150, 0.3); }
+        .badge-email { background: rgba(66, 133, 244, 0.15); color: #60a5fa; border: 1px solid rgba(66, 133, 244, 0.3); }
+        .badge-app   { background: rgba(59, 130, 246, 0.15); color: #38bdf8; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .badge-team  { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .card-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .card-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition: gap 0.2s ease;
+        }
+
+        .card-admin .card-action { color: #00c896; }
+        .card-email .card-action { color: #60a5fa; }
+        .card-app .card-action   { color: #38bdf8; }
+        .card-team .card-action  { color: #fbbf24; }
+
+        .hub-card:hover .card-action {
+            gap: 12px;
+        }
+
+        .portal-footer {
+            max-width: 960px;
+            margin: 20px auto 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+
+        .portal-footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .portal-footer a:hover {
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 1.8rem; }
+            .portal-header { flex-direction: column; gap: 15px; text-align: center; }
+            .portal-footer { flex-direction: column; gap: 10px; text-align: center; }
         }
     </style>
 </head>
 
 <body>
-    <div class="email-portal">
-        <div class="portal-container">
-            <a href="index.html">
-                <img src="logo.png?v=concept1" alt="MTNSPEC" class="logo">
+
+    <!-- Header -->
+    <header class="portal-header">
+        <a href="index.html" class="brand-link">
+            <img src="logo.png?v=concept1" alt="MTNSPEC Logo">
+            <span>MTNSPEC</span>
+        </a>
+        <div class="system-status">
+            <div class="status-dot"></div>
+            <span>Cloudflare Production Online</span>
+        </div>
+    </header>
+
+    <!-- Main Hub -->
+    <main class="hub-container">
+        <h1 class="hero-title">Team & Operations Workspace</h1>
+        <p class="hero-subtitle">Centralized access to MTNSPEC transport administration, company communications, and live apps.</p>
+
+        <div class="cards-grid">
+            <!-- 1. Admin Dashboard -->
+            <a href="https://changeit-api.mhandutakunda.workers.dev/admin" target="_blank" class="hub-card card-admin">
+                <div>
+                    <div class="card-top">
+                        <div class="card-icon icon-admin">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <span class="badge-pill badge-admin">Master Ops</span>
+                    </div>
+                    <div class="card-title">Change It Admin Dashboard</div>
+                    <p class="card-desc">Real-time telemetry, driver approvals, account suspensions, and live transaction ledger.</p>
+                </div>
+                <div class="card-action">
+                    <span>Launch Admin Panel</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
             </a>
-            <h2>Team Portal</h2>
-            <p class="subtitle">Access your MTNSPEC team workspace</p>
-            
-            <form id="portal-form" onsubmit="handlePortalSubmit(event)">
-                <div class="form-group">
-                    <label for="email">Company Email</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" id="email" placeholder="name@mtnspec.com" required autocomplete="username">
+
+            <!-- 2. Google Workspace Email -->
+            <a href="https://mail.google.com/a/mtnspec.co.zw" target="_blank" class="hub-card card-email">
+                <div>
+                    <div class="card-top">
+                        <div class="card-icon icon-email">
+                            <i class="fas fa-envelope-open-text"></i>
+                        </div>
+                        <span class="badge-pill badge-email">Google Workspace</span>
                     </div>
+                    <div class="card-title">Company Email Portal</div>
+                    <p class="card-desc">Official @mtnspec.co.zw Gmail webmail access for executives and operations staff.</p>
                 </div>
-                
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+                <div class="card-action">
+                    <span>Open Company Mail</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- 3. Paywega Web App -->
+            <a href="app.html" class="hub-card card-app">
+                <div>
+                    <div class="card-top">
+                        <div class="card-icon icon-app">
+                            <i class="fas fa-bus"></i>
+                        </div>
+                        <span class="badge-pill badge-app">Client App</span>
                     </div>
+                    <div class="card-title">Paywega Transit App</div>
+                    <p class="card-desc">Passenger & driver payment interface with HMAC QR code scanner and token balance.</p>
                 </div>
-
-                <div class="form-instructions">
-                    <p><i class="fas fa-info-circle"></i> Instructions:</p>
-                    <ul>
-                        <li>Enter your full email (e.g. yourname@mtnspec.com)</li>
-                    </ul>
+                <div class="card-action">
+                    <span>Launch Paywega App</span>
+                    <i class="fas fa-arrow-right"></i>
                 </div>
+            </a>
 
-                <button type="submit" class="email-btn" style="width: 100%; justify-content: center; margin-top: 15px; border: none; cursor: pointer;">
-                    <i class="fas fa-sign-in-alt"></i> Access Team Portal
-                </button>
-            </form>
-
-            <a href="index.html" class="back-link">
-                <i class="fas fa-arrow-left"></i>
-                Back to Home
+            <!-- 4. Team Directory -->
+            <a href="team.html" class="hub-card card-team">
+                <div>
+                    <div class="card-top">
+                        <div class="card-icon icon-team">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <span class="badge-pill badge-team">Directory</span>
+                    </div>
+                    <div class="card-title">Team Directory & Bios</div>
+                    <p class="card-desc">Meet the executives, developers, geospatial officers, and department heads.</p>
+                </div>
+                <div class="card-action">
+                    <span>View Team Profiles</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
             </a>
         </div>
-    </div>
+    </main>
 
-    <script>
-        function handlePortalSubmit(e) {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            if (btn) {
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Accessing Team Portal...';
-                btn.disabled = true;
-            }
-            setTimeout(() => {
-                window.location.href = 'team.html';
-            }, 500);
-        }
-    </script>
+    <!-- Footer -->
+    <footer class="portal-footer">
+        <div>&copy; 2026 MTNSPEC (Pvt) Ltd. All Rights Reserved.</div>
+        <div>
+            <a href="index.html"><i class="fas fa-arrow-left"></i> Return to Main Website</a>
+        </div>
+    </footer>
+
 </body>
-
 </html>

@@ -29,15 +29,10 @@ class ChangeItApp {
         // Session timeout (15 minutes)
         this.SESSION_TIMEOUT = 15 * 60 * 1000;
 
-        // Initialize Firebase Manager — start with mock, upgrade when modules load
-        this.fb = this.createMockFirebase();
+        // Production API Client (replaces Firebase)
+        this.api = window.ChangeItAPI;
+        this.syncEngine = new (window.ChangeItSyncEngine || class { startAutoSync(){} async sync(){ return {synced:0}; } async pendingCount(){ return 0; } })();
         this._isSyncing = false;
-        // Firebase modules (type="module") load async; upgrade fb after DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this._initFirebase());
-        } else {
-            setTimeout(() => this._initFirebase(), 0);
-        }
 
         this.state = this.getDefaultState();
     }
@@ -64,88 +59,36 @@ class ChangeItApp {
         };
     }
 
-    _initFirebase() {
-        try {
-            if (window.FirebaseManager) {
-                this.fb = new window.FirebaseManager();
-                console.log('FirebaseManager initialized ✅');
-                // Attempt an initial sync if online
-                this.syncPendingTransactions();
-            } else {
-                console.warn('FirebaseManager not found - staying in offline mode');
-            }
-        } catch (e) {
-            console.warn('FirebaseManager init failed - offline mode', e);
-        }
-    }
-
     init() {
         this.loadState();
         this.checkSession();
 
-        // Background Online Sync Triggers
-        window.addEventListener('online', () => {
-            console.log('Change It: Device online 🌐 — syncing pending transactions');
-            this.syncPendingTransactions();
-        });
-        // Check sync every 15 seconds
-        setInterval(() => this.syncPendingTransactions(), 15000);
-        // Initial sync attempt
-        setTimeout(() => this.syncPendingTransactions(), 2000);
+        // Start the production sync engine
+        if (this.syncEngine && typeof this.syncEngine.startAutoSync === 'function') {
+            this.syncEngine.startAutoSync((result) => {
+                if (result && result.synced > 0) {
+                    console.log(`[ChangeIt] Synced ${result.synced} offline transactions ✅`);
+                    // Refresh balance from server after sync
+                    this._refreshBalanceFromServer();
+                }
+            });
+        }
     }
 
-    async syncPendingTransactions() {
-        if (!navigator.onLine) return;
-        if (this._isSyncing) return;
-        this._isSyncing = true;
-
+    // Refresh balance from server and update local state
+    async _refreshBalanceFromServer() {
         try {
-            if (window.paywegaFirebaseReady) {
-                await window.paywegaFirebaseReady;
-            }
-            if (this.fb && this.fb.isMock !== false && window.FirebaseManager) {
-                this.fb = new window.FirebaseManager();
-            }
-            if (!this.fb || typeof this.fb.recordTransaction !== 'function') {
-                this._isSyncing = false;
-                return;
-            }
-
-            const unsynced = (this.state.transactions || []).filter(t => t && t.synced === false);
-            if (unsynced.length === 0) {
-                const user = this.state.currentUser ? this.state.users[this.state.currentUser] : null;
-                if (user && typeof this.fb.updateUser === 'function') {
-                    await this.fb.updateUser(user.id, {
-                        tokenBalance: user.tokenBalance,
-                        lastSyncAt: new Date().toISOString()
-                    });
-                }
-                this._isSyncing = false;
-                return;
-            }
-
-            console.log(`Change It Sync: Found ${unsynced.length} unsynced transactions. Syncing to Cloud...`);
-            let syncedCount = 0;
-            for (const txn of unsynced) {
-                try {
-                    const res = await this.fb.recordTransaction(txn);
-                    if (res && res.success) {
-                        txn.synced = true;
-                        syncedCount++;
-                    }
-                } catch (txnErr) {
-                    console.warn("Could not sync transaction:", txn.id, txnErr);
-                }
-            }
-
-            if (syncedCount > 0) {
+            const session = window.ChangeItAPI?.getSession();
+            if (!session?.userId || !navigator.onLine) return;
+            const balance = await window.ChangeItAPI.user.getBalance(session.userId);
+            if (balance !== undefined && this.state.users[session.userId]) {
+                this.state.users[session.userId].tokenBalance = balance;
                 this.saveState();
-                console.log(`Change It Sync: Successfully synced ${syncedCount} transactions to Cloud ✅`);
+                this.updateCommuterUI();
+                this.updateDriverUI();
             }
         } catch (e) {
-            console.warn("Background sync error:", e);
-        } finally {
-            this._isSyncing = false;
+            console.warn('[ChangeIt] Balance refresh skipped:', e.message);
         }
     }
 
@@ -470,18 +413,9 @@ class ChangeItApp {
         if (zigEl) zigEl.textContent = this.formatZIG(bal);
         if (nameEl) nameEl.textContent = user.name || 'Commuter';
 
-        // REAL-TIME LISTENER
-        if (!this.balanceListener && this.fb && typeof this.fb.listenToUser === 'function') {
-            this.balanceListener = this.fb.listenToUser(user.id, (updatedData) => {
-                if (updatedData && updatedData.tokenBalance !== undefined) {
-                    const newBal = Number(updatedData.tokenBalance) || 0;
-                    this.state.users[this.state.currentUser].tokenBalance = newBal;
-                    if (balEl) balEl.textContent = newBal.toFixed(2);
-                    if (zarEl) zarEl.textContent = this.formatZAR(newBal);
-                    if (zigEl) zigEl.textContent = this.formatZIG(newBal);
-                    console.log("Balance Updated from Cloud:", newBal);
-                }
-            });
+        // Poll balance from production API every 30 seconds
+        if (!this._balancePollInterval) {
+            this._balancePollInterval = setInterval(() => this._refreshBalanceFromServer(), 30000);
         }
 
         if (listEl) {
@@ -548,10 +482,12 @@ class ChangeItApp {
     }
 
     logout() {
-        if (typeof this.balanceListener === 'function') {
-            this.balanceListener();
-            this.balanceListener = null;
+        if (this._balancePollInterval) {
+            clearInterval(this._balancePollInterval);
+            this._balancePollInterval = null;
         }
+        // Clear server session
+        if (window.ChangeItAPI) window.ChangeItAPI.auth.logout();
         this.state.currentUser = null;
         this.state.sessionStart = null;
         this.saveState();
@@ -566,25 +502,6 @@ class ChangeItApp {
         } catch (e) {
             console.warn("Error saving local state:", e);
         }
-        // Background cloud sync for current user
-        if (this.fb && typeof this.fb.updateUser === 'function' && this.state.currentUser && this.state.users[this.state.currentUser]) {
-            this.fb.updateUser(this.state.currentUser, {
-                tokenBalance: this.state.users[this.state.currentUser].tokenBalance,
-                lastActive: new Date().toISOString()
-            }).catch(e => console.warn("Cloud balance sync note:", e));
-        }
-    }
-
-    // Mock Firebase for offline/local testing
-    createMockFirebase() {
-        return {
-            createUser: () => Promise.resolve(true),
-            getUser: () => Promise.resolve(null),
-            updateUser: () => Promise.resolve(true),
-            listenToUser: () => () => { }, // Return unsubscribe function
-            createTransaction: () => Promise.resolve(true),
-            getTransactions: () => Promise.resolve([])
-        };
     }
 
     generateId(prefix) {
@@ -1140,112 +1057,94 @@ class ChangeItApp {
 
         this.showToast('Connecting to Change It servers...');
 
-        const userId = this.generateId('USR');
-
-        // Create user
-        const newUser = {
-            id: userId,
-            phone: phone,
-            name: driverDetails?.name || (role === 'driver' ? 'Driver' : 'Commuter'),
-            pinHash: this.hashPin(loginPin),
-            txnPinHash: this.hashPin(txnPin),
-            tokenBalance: 5.00, // Welcome bonus
-            role: role,
-            verified: true,
-            failedAttempts: 0,
-            lockedUntil: null,
-            createdAt: new Date().toISOString()
-        };
-
-        // Ensure Firebase auth is ready
         try {
-            if (window.paywegaFirebaseReady) {
-                await window.paywegaFirebaseReady;
-            }
-            if (this.fb && this.fb.isMock !== false && window.FirebaseManager) {
-                this.fb = new window.FirebaseManager();
-            }
-        } catch (e) {
-            console.warn('Firebase readiness check note:', e);
-        }
+            // Call production API
+            const name = driverDetails?.name || (role === 'driver' ? 'Driver' : 'Commuter');
+            const result = await window.ChangeItAPI.auth.register({
+                phone,
+                name,
+                pin: loginPin,
+                txnPin,
+                role,
+                driverDetails: role === 'driver' ? {
+                    nationalId: driverDetails.nationalId,
+                    driverLicense: driverDetails.driverLicense,
+                    regNumber: driverDetails.regNumber,
+                    vehicleType: driverDetails.vehicleType,
+                    registrationCode: driverDetails.registrationCode || 'BETA-001'
+                } : null
+            });
 
-        // SAVE TO CLOUD FIRST (ensures user exists in live Firestore)
-        let cloudSuccess = false;
-        try {
-            cloudSuccess = await this.fb.createUser(newUser);
-        } catch (cloudErr) {
-            console.error('Registration cloud error:', cloudErr);
-        }
+            // Build local state from server response
+            const userId = result.userId;
+            const newUser = {
+                id: userId,
+                phone: phone,
+                name: result.name || name,
+                pinHash: this.hashPin(loginPin), // Keep for offline PIN check
+                txnPinHash: this.hashPin(txnPin),
+                tokenBalance: result.tokenBalance || 5.00,
+                role: result.role || role,
+                verified: true,
+                failedAttempts: 0,
+                lockedUntil: null,
+                createdAt: new Date().toISOString(),
+                synced: true
+            };
 
-        if (!cloudSuccess) {
-            console.warn('Firestore database did not respond or is pending setup. Proceeding with offline local profile.');
-            this.showToast('Note: Cloud DB pending setup. Saved locally; will sync once database is online.', 4000);
-            newUser.synced = false;
-        } else {
-            console.log('User registered in Cloud DB ✅', userId);
-            newUser.synced = true;
-            this.showToast('Registered with Change It Cloud ✅', 2000);
-        }
-        this.state.users[userId] = newUser;
+            this.state.users[userId] = newUser;
 
-        // Welcome bonus transaction
-        this.state.transactions.push({
-            id: this.generateId('TXN'),
-            type: 'bonus',
-            userId: userId,
-            fromUserId: 'SYSTEM',
-            toUserId: userId,
-            amount: 5.00,
-            tokens: 5.00,
-            description: 'Welcome Bonus 🎉',
-            timestamp: new Date().toISOString(),
-            status: 'completed',
-            synced: true
-        });
-
-        // If driver, create driver and vehicle records
-        if (role === 'driver' && driverDetails) {
-            const driverId = this.generateId('DRV');
-            const vehicleId = this.generateId('VH');
-
-            const driverObj = {
+            // Welcome bonus transaction (local display)
+            this.state.transactions.push({
+                id: this.generateId('TXN'),
+                type: 'bonus',
                 userId: userId,
-                driverId: driverId,
-                vehicleId: vehicleId,
-                nationalId: driverDetails.nationalId,
-                driverLicense: driverDetails.driverLicense,
-                tokensEarned: 0
-            };
+                fromUserId: 'SYSTEM',
+                toUserId: userId,
+                amount: 5.00,
+                tokens: 5.00,
+                description: 'Welcome Bonus 🎉',
+                timestamp: new Date().toISOString(),
+                status: 'completed',
+                synced: true
+            });
 
-            const vehicleObj = {
-                id: vehicleId,
-                regNumber: driverDetails.regNumber,
-                vehicleType: driverDetails.vehicleType,
-                ownerId: userId,
-                qrCode: `changeit://pay/vehicle/${vehicleId}`
-            };
+            // If driver, store vehicle data from server
+            if (result.vehicleId && result.driverId) {
+                const driverId = result.driverId;
+                const vehicleId = result.vehicleId;
 
-            this.state.drivers[driverId] = driverObj;
-            this.state.vehicles[vehicleId] = vehicleObj;
+                this.state.drivers[driverId] = {
+                    userId: userId,
+                    driverId: driverId,
+                    vehicleId: vehicleId,
+                    nationalId: driverDetails?.nationalId || '',
+                    driverLicense: driverDetails?.driverLicense || '',
+                    tokensEarned: 0
+                };
 
-            if (typeof this.fb.registerDriver === 'function') {
-                try {
-                    await this.fb.registerDriver(driverObj, vehicleObj);
-                    console.log('Driver & Vehicle registered in Cloud DB ✅');
-                } catch (e) {
-                    console.warn('Driver cloud register warning:', e);
-                }
+                this.state.vehicles[vehicleId] = {
+                    id: vehicleId,
+                    regNumber: driverDetails?.regNumber || '',
+                    vehicleType: driverDetails?.vehicleType || 'kombi',
+                    ownerId: userId,
+                    qrSecret: result.qrSecret || null, // For offline HMAC signing
+                    qrCode: `changeit://pay/vehicle/${vehicleId}`
+                };
             }
+
+            this.state.currentUser = userId;
+            this.state.sessionStart = Date.now();
+            this.saveState();
+
+            this.showSuccessScreen('Account Created!', 'You received 5 tokens as a welcome bonus.', () => {
+                this.routeToDashboard(role);
+            });
+
+        } catch (err) {
+            console.error('Registration error:', err);
+            this.showToast(`Registration failed: ${err.message}`, 4000);
         }
-
-        // Log in locally
-        this.state.currentUser = userId;
-        this.state.sessionStart = Date.now();
-        this.saveState();
-
-        this.showSuccessScreen('Account Created!', 'You received 5 tokens as a welcome bonus.', () => {
-            this.routeToDashboard(role);
-        });
     }
 
     renderPinLogin(user) {
@@ -1286,8 +1185,9 @@ class ChangeItApp {
         });
     }
 
-    verifyLoginPin(user, pin, inputs) {
-        if (this.hashPin(pin) !== user.pinHash) {
+    async verifyLoginPin(user, pin, inputs) {
+        // First try local PIN check (works offline)
+        if (user.pinHash && this.hashPin(pin) !== user.pinHash) {
             user.failedAttempts = (user.failedAttempts || 0) + 1;
 
             if (user.failedAttempts >= 3) {
@@ -1304,6 +1204,24 @@ class ChangeItApp {
             inputs.forEach(i => i.value = '');
             inputs[0].focus();
             return;
+        }
+
+        // If online, also authenticate with server to refresh session token
+        if (navigator.onLine && window.ChangeItAPI) {
+            try {
+                const result = await window.ChangeItAPI.auth.login({ phone: user.phone, pin });
+                // Update local balance from server
+                if (result.tokenBalance !== undefined && this.state.users[user.id]) {
+                    this.state.users[user.id].tokenBalance = result.tokenBalance;
+                }
+                // Store vehicle QR secret if driver
+                if (result.qrSecret && result.vehicleId) {
+                    const vehicle = Object.values(this.state.vehicles).find(v => v.id === result.vehicleId);
+                    if (vehicle) vehicle.qrSecret = result.qrSecret;
+                }
+            } catch (serverErr) {
+                console.warn('[ChangeIt] Server login skipped (offline fallback):', serverErr.message);
+            }
         }
 
         // Success
@@ -1564,7 +1482,44 @@ class ChangeItApp {
             return;
         }
 
-        // 1. User QR Code: Scanned to give change or transfer tokens directly
+        console.log('[QR Scan] Raw data:', qrData);
+
+        // 1. NEW SIGNED FORMAT: changeit://pay?v=vehicleId&a=amount&t=timestamp&sig=hmac&qrid=xxx
+        const signedMatch = qrData.match(/changeit:\/\/pay\?(.+)/);
+        if (signedMatch) {
+            const params = new URLSearchParams(signedMatch[1]);
+            const vehicleId = params.get('v');
+            const amount = parseFloat(params.get('a'));
+            const timestamp = params.get('t');
+            const sig = params.get('sig');
+            const qrId = params.get('qrid');
+
+            if (!vehicleId || !amount) {
+                this.showToast('Malformed QR code');
+                return;
+            }
+
+            // Find vehicle locally (may not be on this device — that's OK, server will verify)
+            const vehicle = this.state.vehicles[vehicleId];
+            const driver = vehicle ? Object.values(this.state.drivers).find(d => d.vehicleId === vehicleId) : null;
+
+            // Build a synthetic vehicle/driver object for the payment modal if not found locally
+            const vehicleProxy = vehicle || { id: vehicleId, regNumber: '???', ownerId: null };
+            const driverProxy = driver || { combiNickname: 'Combi', route: 'Local' };
+
+            // Pass HMAC signature through to _sendTransaction so the server verifies it
+            vehicleProxy._hmacSig = sig || null;
+            vehicleProxy._hmacTimestamp = timestamp || null;
+
+            if (amount && amount > 0) {
+                this.showFixedFareConfirmation(vehicleProxy, driverProxy, amount, this.state.users[this.state.currentUser]);
+            } else {
+                this.showPaymentModal(vehicleProxy, driverProxy, null, null);
+            }
+            return;
+        }
+
+        // 2. User QR Code: changeit://pay/user/userId
         const userMatch = qrData.match(/(?:changeit|paywega):\/\/pay\/user\/([^?]+)/);
         if (userMatch) {
             const recipientUserId = userMatch[1];
@@ -1574,41 +1529,20 @@ class ChangeItApp {
             return;
         }
 
-        // 2. Vehicle / Transport Fare QR Code
+        // 3. LEGACY Vehicle QR: changeit://pay/vehicle/VH-xxx?fare=0.50&qrid=xxx
         const match = qrData.match(/(?:changeit|paywega):\/\/pay\/vehicle\/([^?]+)(\?fare=([^&]+))?(&qrid=(.+))?/);
-
         if (match) {
             const vehicleId = match[1];
             const fareFromQR = match[3] ? parseFloat(match[3]) : null;
-            const qrId = match[5] || null;
             const vehicle = this.state.vehicles[vehicleId];
-
-            if (vehicle) {
-                const driver = Object.values(this.state.drivers).find(d => d.vehicleId === vehicleId);
-
-                // Verify QR code (Online with Graceful Offline Fallback)
-                if (qrId && this.fb && typeof this.fb.verifyAndUseQR === 'function') {
-                    this.fb.verifyAndUseQR(qrId, this.state.currentUser).then(result => {
-                        if (result && result.valid) {
-                            this.showPaymentModal(vehicle, driver, fareFromQR, qrId);
-                        } else {
-                            // Fallback to offline wallet if network/Firestore is unavailable
-                            console.warn("Online QR check note, continuing in offline mode:", result?.error);
-                            this.showPaymentModal(vehicle, driver, fareFromQR, qrId);
-                        }
-                    }).catch(e => {
-                        console.log("Offline mode: proceeding with local wallet payment:", e);
-                        this.showPaymentModal(vehicle, driver, fareFromQR, qrId);
-                    });
-                } else {
-                    this.showPaymentModal(vehicle, driver, fareFromQR, null);
-                }
-            } else {
-                this.showToast('Vehicle not found');
-            }
-        } else {
-            this.showToast('Invalid QR code');
+            const driver = vehicle ? Object.values(this.state.drivers).find(d => d.vehicleId === vehicleId) : null;
+            const vehicleProxy = vehicle || { id: vehicleId, regNumber: '???', ownerId: null };
+            const driverProxy = driver || { combiNickname: 'Combi', route: 'Local' };
+            this.showPaymentModal(vehicleProxy, driverProxy, fareFromQR, null);
+            return;
         }
+
+        this.showToast('Unrecognised QR code');
     }
 
     // ============================
@@ -1876,17 +1810,21 @@ class ChangeItApp {
             driver.tokensEarned = parseFloat(((driver.tokensEarned || 0) + amount).toFixed(2));
         }
 
-        // Credit all Bossbaby driver records in state
+        // Credit all matching driver records in local state
         Object.values(this.state.drivers).forEach(d => {
-            if (d && (d.combiNickname === 'Bossbaby' || d.vehicleId === vehicle?.id || d.driverId === driver?.driverId)) {
+            if (d && (d.vehicleId === vehicle?.id || d.driverId === driver?.driverId)) {
                 d.tokensEarned = parseFloat(((d.tokensEarned || 0) + amount).toFixed(2));
             }
         });
 
         // Add to local transaction history
-        txnData.id = 'TXN-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        const txnId = 'TXN-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        txnData.id = txnId;
         txnData.synced = false;
         txnData.status = 'completed';
+        // Carry HMAC fields from QR payload (signed QR format)
+        txnData.hmacSignature = vehicle?._hmacSig || null;
+        txnData.deviceCreatedAt = vehicle?._hmacTimestamp || new Date().toISOString();
         this.state.transactions.unshift(txnData);
 
         // Save local state
@@ -1895,8 +1833,32 @@ class ChangeItApp {
         // Show instant success screen
         this.showPaymentSuccess(amount, nickname);
 
-        // 2. Background Cloud Sync (Non-blocking queue sync)
-        this.syncPendingTransactions();
+        // 2. Background: attempt live API fare recording (non-blocking)
+        if (navigator.onLine && window.ChangeItAPI) {
+            window.ChangeItAPI.transactions.recordFare({
+                vehicleId: vehicle.id,
+                amount: amount,
+                hmacSignature: txnData.hmacSignature,
+                txnId: txnId,
+                deviceCreatedAt: txnData.deviceCreatedAt
+            }).then(result => {
+                // Mark synced and update balance from server
+                const localTxn = this.state.transactions.find(t => t.id === txnId);
+                if (localTxn) localTxn.synced = true;
+                if (result?.newBalance !== undefined && this.state.users[user.id]) {
+                    this.state.users[user.id].tokenBalance = result.newBalance;
+                }
+                this.saveState();
+                this.updateCommuterUI();
+                console.log(`[ChangeIt] Fare recorded on server ✅ TXN: ${txnId}`);
+            }).catch(err => {
+                console.warn('[ChangeIt] Fare sync queued (offline):', err.message);
+                // Queue for offline sync
+                this.syncPendingTransactions();
+            });
+        } else {
+            this.syncPendingTransactions();
+        }
     }
 
     showPaymentSuccess(amount, nickname) {
@@ -2047,24 +2009,76 @@ class ChangeItApp {
             });
         });
 
-        confirmBtn.addEventListener('click', () => {
-            const tokens = selectedUSD * (1 - this.PURCHASE_FEE);
-            user.tokenBalance += tokens;
+        // Payment reference input (shown after amount selected)
+        let paymentRefInputHtml = '';
+        calcEl.addEventListener('click', () => {}); // placeholder
 
-            this.state.transactions.push({
-                id: this.generateId('TXN'),
-                type: 'topup',
-                userId: user.id,
-                tokens: tokens,
-                description: 'EcoCash Top-up',
-                timestamp: new Date().toISOString(),
-                status: 'completed'
-            });
+        confirmBtn.addEventListener('click', async () => {
+            // Step 1: If no ref entered yet, show the reference input
+            if (!modal._refStage) {
+                modal._refStage = true;
+                const tokens = selectedUSD * (1 - this.PURCHASE_FEE);
+                calcEl.innerHTML = `
+                    <p style="margin-bottom:10px;">Send <strong>$${selectedUSD}</strong> via your preferred method, then enter the reference below:</p>
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        <select id="pay-method" style="padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#f8fafc;font-size:0.9rem;">
+                            <option value="ecocash">📱 EcoCash</option>
+                            <option value="innbucks">🏦 InnBucks</option>
+                            <option value="onemoney">💳 OneMoney</option>
+                            <option value="cash">💵 Cash (in-person)</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <input type="text" id="pay-ref" placeholder="Transaction reference / receipt no." style="padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#f8fafc;font-size:0.9rem;">
+                    </div>
+                    <small style="color:#64748b;margin-top:8px;display:block;">You'll receive ${tokens.toFixed(2)} tokens once verified (≤1 hour)</small>
+                `;
+                confirmBtn.textContent = 'Submit Request';
+                return;
+            }
 
-            this.saveState();
-            modal.remove();
-            this.showToast(`Added ${tokens.toFixed(2)} tokens!`);
-            this.updateCommuterUI();
+            // Step 2: Submit to backend
+            const payRef = modal.querySelector('#pay-ref')?.value?.trim();
+            const payMethod = modal.querySelector('#pay-method')?.value || 'other';
+
+            if (!payRef || payRef.length < 3) {
+                this.showToast('Please enter a valid payment reference');
+                return;
+            }
+
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Submitting...';
+
+            try {
+                if (navigator.onLine && window.ChangeItAPI?.topup) {
+                    const result = await window.ChangeItAPI.topup.requestTopup({
+                        amount: selectedUSD,
+                        paymentRef: payRef,
+                        paymentMethod: payMethod
+                    });
+                    modal.remove();
+                    this.showToast(`Top-up request submitted! Ref: ${payRef}. Tokens arrive within 1 hour.`);
+                } else {
+                    // Offline: queue it locally
+                    this.state.transactions.unshift({
+                        id: this.generateId('TOP'),
+                        type: 'topup',
+                        userId: user.id,
+                        amount: selectedUSD,
+                        paymentRef: payRef,
+                        description: `Top-up request $${selectedUSD} via ${payMethod} | Ref: ${payRef}`,
+                        timestamp: new Date().toISOString(),
+                        status: 'pending',
+                        synced: false
+                    });
+                    this.saveState();
+                    modal.remove();
+                    this.showToast('Offline: request saved. Will submit when online.');
+                }
+            } catch (err) {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Submit Request';
+                this.showToast(`Failed: ${err.message}`);
+            }
         });
 
         modal.querySelector('.btn-close-modal').addEventListener('click', () => modal.remove());
@@ -2314,9 +2328,10 @@ class ChangeItApp {
         modal.querySelector('.btn-cancel').addEventListener('click', () => modal.remove());
     }
 
-    showQRWithFare(vehicle, driver, fareAmount) {
+    async showQRWithFare(vehicle, driver, fareAmount) {
         // Generate unique QR ID for tracking
         const qrId = this.generateQRId();
+        const timestamp = new Date().toISOString();
 
         // Log QR to registry for accountability
         this.logQRCode(qrId, 'vehicle_fare', {
@@ -2336,12 +2351,12 @@ class ChangeItApp {
                     <i class="fas fa-times btn-close-modal"></i>
                 </div>
                 <div class="modal-body">
-                    <div class="combi-title">"${driver.combiNickname}"</div>
+                    <div class="combi-title">"${driver.combiNickname || vehicle.regNumber}"</div>
                     <div class="fare-amount-display">${fareAmount} tokens</div>
-                    <div id="vehicle-qr-code" class="qr-display"></div>
+                    <div id="vehicle-qr-code" class="qr-display"><div style="padding:20px;color:#64748b;"><i class="fas fa-spinner fa-spin"></i> Generating secure QR...</div></div>
                     <p>Passenger scans to pay <strong>${fareAmount}</strong> tokens</p>
-                    <small>${vehicle.regNumber} • ${driver.route}</small>
-                    <div class="qr-id-display"><small>QR ID: ${qrId}</small></div>
+                    <small>${vehicle.regNumber} • ${driver.route || 'Local Route'}</small>
+                    <div class="qr-id-display"><small id="qr-sig-label">Generating HMAC signature...</small></div>
                     <button class="btn-change-fare">Change Fare</button>
                     <button class="btn-qr-history"><i class="fas fa-history"></i> QR History</button>
                 </div>
@@ -2350,9 +2365,30 @@ class ChangeItApp {
 
         this.root.appendChild(modal);
 
-        // Generate QR with unique ID encoded
-        const qrData = `changeit://pay/vehicle/${vehicle.id}?fare=${fareAmount}&qrid=${qrId}`;
-        new QRCode(modal.querySelector('#vehicle-qr-code'), {
+        // Build HMAC-signed QR payload (same format as worker verifies)
+        let qrData;
+        if (vehicle.qrSecret && window.ChangeItCrypto) {
+            try {
+                const sigData = `${vehicle.id}:${fareAmount}:${timestamp}`;
+                const sig = await window.ChangeItCrypto.sign(sigData, vehicle.qrSecret);
+                // Format: changeit://pay?v=vehicleId&a=amount&t=timestamp&sig=hmac
+                qrData = `changeit://pay?v=${vehicle.id}&a=${fareAmount}&t=${encodeURIComponent(timestamp)}&sig=${sig}&qrid=${qrId}`;
+                const sigLabel = modal.querySelector('#qr-sig-label');
+                if (sigLabel) sigLabel.textContent = `🔐 HMAC Signed • QR: ${qrId}`;
+            } catch (e) {
+                console.warn('[QR] HMAC sign failed, falling back to unsigned:', e);
+                qrData = `changeit://pay/vehicle/${vehicle.id}?fare=${fareAmount}&qrid=${qrId}`;
+            }
+        } else {
+            // Fallback for offline/no secret — unsigned
+            qrData = `changeit://pay/vehicle/${vehicle.id}?fare=${fareAmount}&qrid=${qrId}`;
+            const sigLabel = modal.querySelector('#qr-sig-label');
+            if (sigLabel) sigLabel.textContent = `⚠️ Unsigned (offline mode) • QR: ${qrId}`;
+        }
+
+        const qrContainer = modal.querySelector('#vehicle-qr-code');
+        qrContainer.innerHTML = '';
+        new QRCode(qrContainer, {
             text: qrData,
             width: 250,
             height: 250,
@@ -2362,7 +2398,7 @@ class ChangeItApp {
         modal.querySelector('.btn-close-modal').addEventListener('click', () => modal.remove());
         modal.querySelector('.btn-change-fare').addEventListener('click', () => {
             modal.remove();
-            this.showVehicleQR(); // Go back to fare selection
+            this.showVehicleQR();
         });
         modal.querySelector('.btn-qr-history').addEventListener('click', () => {
             modal.remove();

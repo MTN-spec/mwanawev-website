@@ -379,10 +379,9 @@
         </div>
     </template>
 
-    <!-- Load Firebase before the app so cloud mode is available at startup. -->
-    <script type="module" src="firebase-config.js?v=20260129"></script>
-    <script type="module" src="firebase-helper.js?v=20260129"></script>
-    <script type="module" src="app.js?v=20260129"></script>
+    <!-- Production API Client (replaces Firebase) -->
+    <script src="api-client.js?v=20260911"></script>
+    <script type="module" src="app.js?v=20260911"></script>
 </body>
 
 </html>

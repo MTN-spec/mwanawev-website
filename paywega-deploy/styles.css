@@ -93,12 +93,17 @@ header {
     height: 100px;
 }
 
-.logo {
+.logo,
+.logo-img,
+header img {
     height: 70px;
+    max-height: 70px;
     width: auto;
+    max-width: 250px;
     object-fit: contain;
     mix-blend-mode: normal;
     border-radius: 8px;
+    display: block;
 }
 
 .dot {

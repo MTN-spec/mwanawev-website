@@ -1534,9 +1534,9 @@ class ChangeItApp {
         let scanListener = null;
         const stopScan = async () => {
             if (scanListener) {
-                try { await scanListener.remove(); } catch (e) {}
+                try { await scanListener.remove(); } catch (e) { }
             }
-            try { await BarcodeScanner.stopScan(); } catch (e) {}
+            try { await BarcodeScanner.stopScan(); } catch (e) { }
             document.body.classList.remove('scanner-active');
             overlay.remove();
         };
