@@ -11,11 +11,21 @@
         content="MTNSPEC, Paywega, Zimbabwe Transport, Digital Payments, Cashless Kombi, Tap to Pay">
     <meta name="author" content="MTNSPEC">
     <link rel="icon" type="image/png" href="logo.png">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20260913">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        header img.logo, .logo-img, .logo {
+            height: 70px !important;
+            max-height: 70px !important;
+            width: auto !important;
+            max-width: 250px !important;
+            object-fit: contain !important;
+            display: block !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -25,7 +35,9 @@
 
     <header id="navbar">
         <div class="container nav-container">
-            <img src="logo.png?v=concept1" alt="MTNSPEC" class="logo">
+            <a href="index.html">
+                <img src="logo.png?v=concept1" alt="MTNSPEC" class="logo" style="height: 70px !important; max-height: 70px !important; width: auto !important; object-fit: contain !important;">
+            </a>
             <nav>
                 <ul>
                     <li><a href="#hero">Home</a></li>
