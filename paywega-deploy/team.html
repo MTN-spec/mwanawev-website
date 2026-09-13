@@ -7,14 +7,25 @@
     <title>MTNSPEC | Revolutionizing Transport</title>
     <meta name="description"
         content="MTNSPEC: Transforming Zimbabwe's public transport sector with Paywega for seamless peer-to-peer payments.">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <link rel="icon" type="image/png" href="logo.png">
-    <link rel="stylesheet" href="styles.css?v=20260913">
+    <link rel="stylesheet" href="styles.css?v=20260913_fix2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        header img.logo, .logo-img, .logo {
+        header {
+            overflow: hidden !important;
+            max-height: 100px !important;
+        }
+        .nav-container, .navbar {
+            overflow: hidden !important;
+            max-height: 100px !important;
+        }
+        header img.logo, .logo-img, .logo, .logo img, header img {
             height: 70px !important;
             max-height: 70px !important;
             width: auto !important;
@@ -30,13 +41,13 @@
     <header id="navbar">
         <div class="container nav-container">
             <a href="index.html">
-                <img src="logo.png?v=concept1" alt="MTNSPEC Logo" class="logo" style="height: 70px !important; max-height: 70px !important; width: auto !important; object-fit: contain !important;">
+                <img src="logo.png?v=concept2" alt="MTNSPEC Logo" class="logo" style="height: 70px !important; max-height: 70px !important; width: auto !important; object-fit: contain !important;">
             </a>
             <nav>
                 <ul>
                     <li><a href="index.html">Home</a></li>
                     <li><a href="index.html#about">About</a></li>
-                    <li><a href="team.html" class="active">Team</a></li>
+                    <li><a href="team.html?v=2" class="active">Team</a></li>
                     <li><a href="login.html"><i class="fas fa-lock"></i> Team Login</a></li>
                     <li><a href="index.html#paywega" class="btn-nav">Paywega</a></li>
                 </ul>
@@ -155,7 +166,7 @@
                         communities.</p>
                 </div>
             </div>
-        </div>
+    </section>
         </div>
 
         <!-- Team Modal -->

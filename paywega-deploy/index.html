@@ -7,16 +7,28 @@
     <title>MTNSPEC | Revolutionizing Transport</title>
     <meta name="description"
         content="MTNSPEC: Transforming Zimbabwe's public transport sector with Paywega for seamless peer-to-peer payments.">
-    <meta name="keywords" content="MTNSPEC, Paywega, Zimbabwe Transport, Digital Payments, Cashless Kombi, Tap to Pay">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="keywords"
+        content="MTNSPEC, Paywega, Zimbabwe Transport, Digital Payments, Cashless Kombi, Tap to Pay">
     <meta name="author" content="MTNSPEC">
     <link rel="icon" type="image/png" href="logo.png">
-    <link rel="stylesheet" href="styles.css?v=20260913">
+    <link rel="stylesheet" href="styles.css?v=20260913_fix2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        header img.logo, .logo-img, .logo {
+        header {
+            overflow: hidden !important;
+            max-height: 100px !important;
+        }
+        .nav-container, .navbar {
+            overflow: hidden !important;
+            max-height: 100px !important;
+        }
+        header img.logo, .logo-img, .logo, .logo img, header img {
             height: 70px !important;
             max-height: 70px !important;
             width: auto !important;
@@ -29,21 +41,21 @@
 
 <body>
     <div id="loader">
-        <img src="logo.png?v=concept1" alt="MTNSPEC Loading..." class="loader-logo">
+        <img src="logo.png?v=concept2" alt="MTNSPEC Loading..." class="loader-logo">
     </div>
 
     <header id="navbar">
         <div class="container nav-container">
             <a href="index.html">
-                <img src="logo.png?v=concept1" alt="MTNSPEC" class="logo" style="height: 70px !important; max-height: 70px !important; width: auto !important; object-fit: contain !important;">
+                <img src="logo.png?v=concept2" alt="MTNSPEC" class="logo" style="height: 70px !important; max-height: 70px !important; width: auto !important; object-fit: contain !important;">
             </a>
             <nav>
                 <ul>
                     <li><a href="#hero">Home</a></li>
                     <li><a href="#about">About</a></li>
-                    <li><a href="team.html">Team</a></li>
+                    <li><a href="team.html?v=2">Team</a></li>
                     <li><a href="login.html"><i class="fas fa-lock"></i> Team Login</a></li>
-                    <li><a href="#paywega" class="btn-nav">Changeit</a></li>
+                    <li><a href="#paywega" class="btn-nav">Paywega</a></li>
                 </ul>
             </nav>
             <div class="mobile-toggle">
@@ -73,7 +85,7 @@
             </h2>
             <p class="animate-up delay-1">Solving the "change" crisis with seamless digital solutions.</p>
             <div class="hero-btns animate-up delay-2">
-                <a href="#paywega" class="btn btn-primary">Discover Changeit</a>
+                <a href="#paywega" class="btn btn-primary">Discover Paywega</a>
                 <a href="#about" class="btn btn-secondary">Learn More</a>
                 <button id="play-narrative" class="btn btn-secondary">
                     <i class="fas fa-bullhorn"></i> Our Mission
@@ -126,9 +138,9 @@
 
         <div class="container paywega-container">
             <div class="paywega-text">
-                <h3>Changeit <span class="tag">Coming Soon</span></h3>
+                <h3>Paywega <span class="tag">Coming Soon</span></h3>
                 <h2>No Change? No Problem.</h2>
-                <p>Changeit is our flagship payment system designed to eliminate the "no change" hassle in combis and
+                <p>Paywega is our flagship payment system designed to eliminate the "no change" hassle in combis and
                     buses. Use your phone to perform instant peer transactions.</p>
 
 
@@ -144,7 +156,7 @@
                 <div class="phone-mockup static-preview">
                     <!-- Static Image of the App UI -->
                     <div class="screen static-screen">
-                        <div class="app-header">Changeit</div>
+                        <div class="app-header">Paywega</div>
                         <div class="balance">
                             <span>Balance</span>
                             <h3>$15.50</h3>
@@ -189,7 +201,8 @@
             <div class="contact-grid">
                 <div class="contact-method">
                     <h3>WhatsApp</h3>
-                    <a href="https://wa.me/qr/MB6UARERVV34N1" target="_blank" class="btn btn-whatsapp">
+                    <a href="https://wa.me/qr/MB6UARERVV34N1"
+                        target="_blank" class="btn btn-whatsapp">
                         <i class="fab fa-whatsapp"></i> Chat Now
                     </a>
                     <div class="qr-container">
@@ -206,24 +219,22 @@
                     <div style="margin-bottom: 20px;">
                         <i class="fas fa-phone-volume"
                             style="font-size: 4rem; color: var(--secondary-color); margin-bottom: 15px; display: block;"></i>
-                        <h4 style="margin-bottom: 5px; color: var(--dark-bg); font-size: 1.2rem;">Takunda Nigel Mhandu
-                        </h4>
+                        <h4 style="margin-bottom: 5px; color: var(--dark-bg); font-size: 1.2rem;">Takunda Nigel Mhandu</h4>
                         <p style="color: #666;">Chief Technology Officer</p>
                     </div>
                     <a href="tel:+263779770395" class="btn btn-primary"
                         style="border-radius: 50px; padding: 12px 30px; display: inline-flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-phone-alt"></i> +263 775834355
+                        <i class="fas fa-phone-alt"></i> +263 77 977 0395
                     </a>
                 </div>
 
                 <div class="contact-method">
                     <h3>Email Us</h3>
                     <p style="margin-bottom: 8px;">Connect directly via email:</p>
-                    <a href="mailto:admin@mtnspec.co.zw"
-                        style="display: inline-block; font-weight: 600; color: var(--primary-color); margin-bottom: 15px; font-size: 1.05rem;">
-                        <i class="fas fa-envelope"></i> [EMAIL_ADDRESS]
+                    <a href="mailto:mhandutakunda@gmail.com" style="display: inline-block; font-weight: 600; color: var(--primary-color); margin-bottom: 15px; font-size: 1.05rem;">
+                        <i class="fas fa-envelope"></i> mhandutakunda@gmail.com
                     </a>
-                    <form id="email-form" action="mailto:[EMAIL_ADDRESS]" method="post" enctype="text/plain">
+                    <form id="email-form" action="mailto:mhandutakunda@gmail.com" method="post" enctype="text/plain">
                         <div class="form-group">
                             <input type="email" name="Email" placeholder="Your Email Address" required>
                         </div>
@@ -241,9 +252,9 @@
 
     <footer>
         <div class="container footer-content">
-            <p class="address" style="margin-bottom: 10px;"><i class="fas fa-map-marker-alt"></i> J17 Nil Zvishavane,
-                , Zvishavane</p>
-            <p>&copy; 2026 MTNSPEC. All Rights Reserved.</p>
+            <p class="address" style="margin-bottom: 10px;"><i class="fas fa-map-marker-alt"></i> 3620 Mutiti Road,
+                Rusike Park, Marondera</p>
+            <p>&copy; 2025 MTNSPEC. All Rights Reserved.</p>
             <div class="socials">
                 <a href="https://www.facebook.com/share/1KLp1VtHU9/" target="_blank" title="Follow us on Facebook"><i
                         class="fab fa-facebook-f"></i></a>

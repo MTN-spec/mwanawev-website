@@ -84,26 +84,33 @@ header {
     top: 0;
     z-index: 1000;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    overflow: hidden !important;
+    max-height: 100px !important;
 }
 
-.nav-container {
+.nav-container, .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     height: 100px;
+    max-height: 100px !important;
+    overflow: hidden !important;
 }
 
 .logo,
 .logo-img,
-header img {
-    height: 70px;
-    max-height: 70px;
-    width: auto;
-    max-width: 250px;
-    object-fit: contain;
+header img,
+.logo img,
+header .logo,
+header .logo-img {
+    height: 70px !important;
+    max-height: 70px !important;
+    width: auto !important;
+    max-width: 250px !important;
+    object-fit: contain !important;
     mix-blend-mode: normal;
     border-radius: 8px;
-    display: block;
+    display: block !important;
 }
 
 .dot {
