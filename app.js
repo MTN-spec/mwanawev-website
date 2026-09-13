@@ -156,11 +156,11 @@ class ChangeItApp {
             }
         });
 
-        // ALWAYS ensure demo vehicles exist (needed for cross-device scanning)
-        this.ensureDemoVehicles();
-
-        // ALWAYS ensure test accounts exist (for beta testing)
-        this.ensureTestAccounts();
+        // In debug mode only, optional sample test accounts
+        if (window.CHANGEIT_DEBUG) {
+            this.ensureDemoVehicles();
+            this.ensureTestAccounts();
+        }
 
         // Background cloud hydration
         if (this.fb && typeof this.fb.getUser === 'function' && this.state.currentUser) {
@@ -575,27 +575,17 @@ class ChangeItApp {
     }
 
     validatePhone(phone) {
-        // TEMPORARILY DISABLED FOR TESTING - always return true
-        console.log('Phone validation bypassed for testing. Input:', phone);
-        return true;
+        if (!phone) return false;
+        const cleaned = phone.replace(/[\s\-\(\)]/g, '');
+        // Zimbabwe mobile numbers: 9 digits starting with 71, 73, 77, 78 (or general 9-digit starting with 7)
+        return /^(\+?263|0)?7\d{8}$/.test(cleaned) || /^\+?\d{9,15}$/.test(cleaned);
     }
 
     formatPhone(phone) {
-        let cleaned = phone.replace(/[\s\-]/g, '');
-
-        // Remove leading 0 if present
-        if (cleaned.startsWith('0')) {
-            cleaned = cleaned.substring(1);
-        }
-
-        // Remove 263 prefix if present (with or without +)
-        if (cleaned.startsWith('+263')) {
-            cleaned = cleaned.substring(4);
-        } else if (cleaned.startsWith('263')) {
-            cleaned = cleaned.substring(3);
-        }
-
-        // Now we should have 9 digits starting with 7
+        let cleaned = phone.replace(/[\s\-\(\)]/g, '');
+        if (cleaned.startsWith('+263')) return cleaned;
+        if (cleaned.startsWith('263')) return '+' + cleaned;
+        if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
         return '+263' + cleaned;
     }
 
@@ -721,73 +711,105 @@ class ChangeItApp {
         const title = mode === 'register' ? 'Create Account' : 'Login';
         this.root.querySelector('.screen-title').textContent = title;
 
+        const nameGroup = this.root.querySelector('#name-input-group');
+        const heading = this.root.querySelector('#phone-entry-heading');
+        const subheading = this.root.querySelector('#phone-entry-subheading');
+
+        if (mode === 'login') {
+            if (nameGroup) nameGroup.style.display = 'none';
+            if (heading) heading.textContent = 'Welcome Back!';
+            if (subheading) subheading.textContent = 'Enter your registered mobile number to login';
+        } else {
+            if (nameGroup) nameGroup.style.display = 'block';
+            if (heading) heading.textContent = 'Create Your Account';
+            if (subheading) subheading.textContent = 'Enter your full name and phone number';
+        }
+
         this.root.querySelector('.btn-back').addEventListener('click', () => this.renderWelcome());
 
         this.root.querySelector('#phone-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            const phone = this.root.querySelector('#phone-input').value;
+            const phone = this.root.querySelector('#phone-input').value.trim();
 
             if (!this.validatePhone(phone)) {
-                this.showToast('Please enter a valid Zimbabwe phone number');
+                this.showToast('Please enter a valid mobile number (e.g. 077 123 4567)');
                 return;
             }
 
             const formattedPhone = this.formatPhone(phone);
 
             if (mode === 'register') {
-                // Check if already registered
+                const name = (this.root.querySelector('#name-input')?.value || '').trim();
+                if (!name) {
+                    this.showToast('Please enter your full name');
+                    return;
+                }
+                // Check if already in local storage
                 const existing = Object.values(this.state.users).find(u => u.phone === formattedPhone);
                 if (existing) {
-                    this.showToast('This number is already registered. Please login.');
+                    this.showToast('This number is already registered on this device. Please login.');
+                    this.renderPinLogin(existing);
                     return;
                 }
-                this.startRegistration(formattedPhone);
+                this.startRegistration(formattedPhone, name);
             } else {
-                // Login - check if exists
+                // Login - check local state first
                 const user = Object.values(this.state.users).find(u => u.phone === formattedPhone);
-                if (!user) {
-                    this.showToast('Account not found. Please register first.');
-                    return;
+                if (user) {
+                    this.renderPinLogin(user);
+                } else {
+                    // New device or cleared cache: allow login via server PIN verification
+                    this.renderPinLogin({ phone: formattedPhone, isNewDevice: true });
                 }
-                this.renderPinLogin(user);
             }
         });
     }
 
-    startRegistration(phone) {
-        // Generate OTP
-        const otp = this.generateOTP();
-        this.state.pendingOTP = {
-            phone: phone,
-            code: otp,
-            expires: Date.now() + (5 * 60 * 1000), // 5 minutes
-            attempts: 0
-        };
-        this.saveState();
+    async startRegistration(phone, name) {
+        if (!navigator.onLine) {
+            this.showToast('Internet connection required to receive your SMS verification code.');
+            return;
+        }
 
-        // In production, send real SMS here
-        console.log(`[DEMO] OTP for ${phone}: ${otp}`);
+        this.renderOTPVerification(phone, name);
 
-        this.renderOTPVerification(phone, otp);
+        try {
+            if (!window.paywegaPhoneAuth) {
+                throw new Error('Verification service is initializing. Please tap Resend in a few seconds.');
+            }
+            await window.paywegaPhoneAuth.sendVerificationCode(phone);
+            const statusBadge = this.root.querySelector('#otp-status-badge');
+            if (statusBadge) {
+                statusBadge.innerHTML = '<i class="fas fa-check-circle" style="color: #22c55e;"></i> SMS sent! Enter the 6-digit code below.';
+                statusBadge.style.background = 'rgba(34, 197, 94, 0.1)';
+                statusBadge.style.color = '#15803d';
+            }
+            this.showToast('Verification code dispatched to your phone via SMS!');
+        } catch (err) {
+            console.error('Carrier SMS Dispatch Error:', err);
+            const statusBadge = this.root.querySelector('#otp-status-badge');
+            if (statusBadge) {
+                statusBadge.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> ${err.message || 'Failed to dispatch SMS'}`;
+                statusBadge.style.background = 'rgba(239, 68, 68, 0.1)';
+                statusBadge.style.color = '#b91c1c';
+            }
+            this.showToast(`SMS delivery notice: ${err.message || 'Please check network and try again'}`, 6000);
+        }
     }
 
-    renderOTPVerification(phone, demoOTP) {
+    renderOTPVerification(phone, name) {
         const tmpl = document.getElementById('tmpl-otp-verify').content.cloneNode(true);
         this.root.innerHTML = '';
         this.root.appendChild(tmpl);
 
         this.root.querySelector('.otp-phone').textContent = phone;
-
-        // Show demo OTP (remove in production!)
-        this.root.querySelector('.demo-otp').textContent = `Demo OTP: ${demoOTP}`;
-
         this.root.querySelector('.btn-back').addEventListener('click', () => this.renderWelcome());
 
         // Auto-focus first input
         const inputs = this.root.querySelectorAll('.otp-input');
-        inputs[0].focus();
+        if (inputs.length > 0) inputs[0].focus();
 
-        // OTP input handling
+        // OTP input handling with auto-advance and backspace
         inputs.forEach((input, index) => {
             input.addEventListener('input', (e) => {
                 if (e.target.value.length === 1 && index < inputs.length - 1) {
@@ -801,81 +823,79 @@ class ChangeItApp {
             });
         });
 
-        this.root.querySelector('#otp-form').addEventListener('submit', (e) => {
+        this.root.querySelector('#otp-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const enteredOTP = Array.from(inputs).map(i => i.value).join('');
 
             if (enteredOTP.length !== 6) {
-                this.showToast('Please enter the 6-digit code');
+                this.showToast('Please enter the complete 6-digit code');
                 return;
             }
 
-            this.verifyOTP(enteredOTP, phone);
+            await this.verifyOTP(enteredOTP, phone, name);
         });
 
-        // Resend OTP
-        this.root.querySelector('.btn-resend').addEventListener('click', () => {
-            this.startRegistration(phone);
-            this.showToast('New code sent!');
+        // Resend OTP with 45s cooldown
+        const resendBtn = this.root.querySelector('.btn-resend');
+        let resendCooldown = 45;
+        resendBtn.style.pointerEvents = 'none';
+        resendBtn.style.opacity = '0.6';
+        resendBtn.textContent = `Resend in ${resendCooldown}s`;
+
+        const countdown = setInterval(() => {
+            resendCooldown--;
+            if (resendCooldown <= 0) {
+                clearInterval(countdown);
+                resendBtn.style.pointerEvents = 'auto';
+                resendBtn.style.opacity = '1';
+                resendBtn.textContent = 'Resend Code';
+            } else {
+                resendBtn.textContent = `Resend in ${resendCooldown}s`;
+            }
+        }, 1000);
+
+        resendBtn.addEventListener('click', () => {
+            if (resendCooldown <= 0) {
+                this.startRegistration(phone, name);
+            }
         });
     }
 
-    verifyOTP(enteredOTP, phone) {
-        const pending = this.state.pendingOTP;
-
-        if (!pending || pending.phone !== phone) {
-            this.showToast('Session expired. Please try again.');
-            this.renderWelcome();
-            return;
+    async verifyOTP(enteredOTP, phone, name) {
+        this.showToast('Verifying code with carrier...');
+        try {
+            if (!window.paywegaPhoneAuth) {
+                throw new Error('Verification service not ready');
+            }
+            await window.paywegaPhoneAuth.verifyCode(enteredOTP);
+            this.showToast('Phone number verified! ✅');
+            this.renderRoleSelection(phone, name);
+        } catch (err) {
+            console.error('Code verification error:', err);
+            this.showToast(err.message || 'Incorrect verification code. Please check SMS.');
         }
-
-        if (Date.now() > pending.expires) {
-            this.showToast('Code expired. Please request a new one.');
-            return;
-        }
-
-        pending.attempts++;
-
-        if (pending.attempts > 3) {
-            this.showToast('Too many attempts. Please request a new code.');
-            this.state.pendingOTP = null;
-            this.saveState();
-            this.renderWelcome();
-            return;
-        }
-
-        if (enteredOTP !== pending.code) {
-            this.showToast('Incorrect code. Please try again.');
-            this.saveState();
-            return;
-        }
-
-        // Success - proceed to role selection
-        this.state.pendingOTP = null;
-        this.saveState();
-        this.renderRoleSelection(phone);
     }
 
-    renderRoleSelection(phone) {
+    renderRoleSelection(phone, name) {
         const tmpl = document.getElementById('tmpl-role-select').content.cloneNode(true);
         this.root.innerHTML = '';
         this.root.appendChild(tmpl);
 
         this.root.querySelector('.btn-role-commuter').addEventListener('click', () => {
-            this.renderCreatePin(phone, 'commuter');
+            this.renderCreatePin(phone, 'commuter', { name });
         });
 
         this.root.querySelector('.btn-role-driver').addEventListener('click', () => {
-            this.renderDriverDetails(phone);
+            this.renderDriverDetails(phone, { name });
         });
     }
 
-    renderDriverDetails(phone) {
+    renderDriverDetails(phone, driverDetails = {}) {
         const tmpl = document.getElementById('tmpl-driver-details').content.cloneNode(true);
         this.root.innerHTML = '';
         this.root.appendChild(tmpl);
 
-        this.root.querySelector('.btn-back').addEventListener('click', () => this.renderRoleSelection(phone));
+        this.root.querySelector('.btn-back').addEventListener('click', () => this.renderRoleSelection(phone, driverDetails.name || ''));
 
         this.root.querySelector('#driver-details-form').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -884,6 +904,7 @@ class ChangeItApp {
             const driverLicense = this.root.querySelector('#driver-license').value.trim();
             const regNumber = this.root.querySelector('#vehicle-reg').value.trim().toUpperCase();
             const vehicleType = this.root.querySelector('#vehicle-type').value;
+            const registrationCode = (this.root.querySelector('#driver-code')?.value || 'BETA-001').trim().toUpperCase();
 
             // Validate National ID
             if (!nationalId) {
@@ -928,10 +949,12 @@ class ChangeItApp {
 
             // All validations passed - proceed with registration
             this.renderCreatePin(phone, 'driver', {
+                ...driverDetails,
                 nationalId,
                 driverLicense,
                 regNumber,
-                vehicleType
+                vehicleType,
+                registrationCode
             });
         });
     }
@@ -1186,7 +1209,73 @@ class ChangeItApp {
     }
 
     async verifyLoginPin(user, pin, inputs) {
-        // First try local PIN check (works offline)
+        // Multi-device or new device login (account not yet in local storage on this phone)
+        if (user.isNewDevice) {
+            if (!navigator.onLine) {
+                this.showToast('First-time login on this device requires an internet connection.');
+                inputs.forEach(i => i.value = '');
+                inputs[0].focus();
+                return;
+            }
+
+            this.showToast('Authenticating with Change It servers...');
+            try {
+                if (!window.ChangeItAPI) {
+                    throw new Error('API client not available');
+                }
+                const result = await window.ChangeItAPI.auth.login({ phone: user.phone, pin });
+                const userId = result.userId;
+                const newUser = {
+                    id: userId,
+                    phone: user.phone,
+                    name: result.name || (result.role === 'driver' ? 'Driver' : 'Commuter'),
+                    pinHash: this.hashPin(pin),
+                    txnPinHash: this.hashPin(pin),
+                    tokenBalance: result.tokenBalance !== undefined ? result.tokenBalance : 5.00,
+                    role: result.role || 'commuter',
+                    verified: true,
+                    failedAttempts: 0,
+                    lockedUntil: null,
+                    createdAt: new Date().toISOString(),
+                    synced: true
+                };
+
+                this.state.users[userId] = newUser;
+
+                if (result.vehicleId && result.driverId) {
+                    this.state.drivers[result.driverId] = {
+                        userId,
+                        driverId: result.driverId,
+                        vehicleId: result.vehicleId,
+                        tokensEarned: 0
+                    };
+                    this.state.vehicles[result.vehicleId] = {
+                        id: result.vehicleId,
+                        regNumber: result.regNumber || '',
+                        vehicleType: result.vehicleType || 'kombi',
+                        ownerId: userId,
+                        qrSecret: result.qrSecret || null,
+                        qrCode: `changeit://pay/vehicle/${result.vehicleId}`
+                    };
+                }
+
+                this.state.currentUser = userId;
+                this.state.sessionStart = Date.now();
+                this.saveState();
+                this.showToast('Logged in successfully! ✅');
+                this.routeToDashboard(newUser.role);
+                return;
+            } catch (err) {
+                console.error('Login error:', err);
+                this.showToast(err.message || 'Incorrect PIN or account not found');
+                inputs.forEach(i => i.value = '');
+                inputs[0].focus();
+                return;
+            }
+        }
+
+        // Returning user on existing device:
+        // First verify local PIN hash (works 100% offline!)
         if (user.pinHash && this.hashPin(pin) !== user.pinHash) {
             user.failedAttempts = (user.failedAttempts || 0) + 1;
 
@@ -1194,33 +1283,33 @@ class ChangeItApp {
                 user.lockedUntil = Date.now() + (15 * 60 * 1000); // Lock for 15 min
                 user.failedAttempts = 0;
                 this.saveState();
-                this.showToast('Account locked for 15 minutes due to failed attempts.');
+                this.showToast('Account locked for 15 minutes due to multiple failed attempts.');
                 this.renderWelcome();
                 return;
             }
 
             this.saveState();
-            this.showToast(`Incorrect PIN. ${3 - user.failedAttempts} attempts remaining.`);
+            this.showToast(`Incorrect PIN. ${3 - user.failedAttempts} attempt(s) remaining.`);
             inputs.forEach(i => i.value = '');
             inputs[0].focus();
             return;
         }
 
-        // If online, also authenticate with server to refresh session token
+        // If online, also authenticate with Cloudflare server in background to sync balance & session
         if (navigator.onLine && window.ChangeItAPI) {
             try {
                 const result = await window.ChangeItAPI.auth.login({ phone: user.phone, pin });
-                // Update local balance from server
+                // Update balance from server
                 if (result.tokenBalance !== undefined && this.state.users[user.id]) {
                     this.state.users[user.id].tokenBalance = result.tokenBalance;
                 }
-                // Store vehicle QR secret if driver
+                // Update driver QR secret
                 if (result.qrSecret && result.vehicleId) {
                     const vehicle = Object.values(this.state.vehicles).find(v => v.id === result.vehicleId);
                     if (vehicle) vehicle.qrSecret = result.qrSecret;
                 }
             } catch (serverErr) {
-                console.warn('[ChangeIt] Server login skipped (offline fallback):', serverErr.message);
+                console.warn('[ChangeIt] Server login sync skipped (operating offline):', serverErr.message);
             }
         }
 

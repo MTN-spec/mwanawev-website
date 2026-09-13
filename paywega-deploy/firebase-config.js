@@ -6,7 +6,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, signInAnonymously, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyC6tru7K2Ij0e8sn9H6chPx-LXsBeIg978",
@@ -26,6 +26,52 @@ try {
     app = initializeApp(firebaseConfig);
     db = getFirestore(app);
     auth = getAuth(app);
+
+    // Expose Phone Auth for genuine carrier SMS verification (Option B)
+    window.paywegaPhoneAuth = {
+        setupRecaptcha: (containerId = 'recaptcha-container') => {
+            if (!auth) throw new Error("Firebase Auth is not ready yet.");
+            if (window.recaptchaVerifier) {
+                return window.recaptchaVerifier;
+            }
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+                'size': 'invisible',
+                'callback': () => {
+                    console.log("reCAPTCHA solved for Phone Auth ✅");
+                },
+                'expired-callback': () => {
+                    console.warn("reCAPTCHA expired, resetting...");
+                    if (window.recaptchaVerifier) {
+                        try { window.recaptchaVerifier.clear(); } catch(e) {}
+                        window.recaptchaVerifier = null;
+                    }
+                }
+            });
+            return window.recaptchaVerifier;
+        },
+        sendVerificationCode: async (phoneNumber) => {
+            if (!auth) throw new Error("Authentication service is initializing. Please try again.");
+            try {
+                const verifier = window.paywegaPhoneAuth.setupRecaptcha('recaptcha-container');
+                const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, verifier);
+                window.paywegaConfirmationResult = confirmationResult;
+                return confirmationResult;
+            } catch (error) {
+                if (window.recaptchaVerifier) {
+                    try { window.recaptchaVerifier.clear(); } catch(e) {}
+                    window.recaptchaVerifier = null;
+                }
+                throw error;
+            }
+        },
+        verifyCode: async (code) => {
+            if (!window.paywegaConfirmationResult) {
+                throw new Error("No pending verification request found. Please request a new code.");
+            }
+            const userCredential = await window.paywegaConfirmationResult.confirm(code);
+            return userCredential.user;
+        }
+    };
 
     // REQUIRED: Firestore security rules require an authenticated Firebase user.
     // This promise resolves or warns gracefully so offline operations continue.
@@ -54,7 +100,7 @@ try {
     window.paywegaDb = db;
     window.paywegaAuth = auth;
 
-    console.log("Firebase Initialized Successfully ✅");
+    console.log("Firebase & Phone Auth Initialized Successfully ✅");
 } catch (e) {
     console.error("Firebase Initialization Failed - check firebase-config.js keys", e);
     // Provide a no-op promise so app.js doesn't crash on await
