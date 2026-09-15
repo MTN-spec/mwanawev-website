@@ -801,13 +801,17 @@ class ChangeItApp {
             this.showToast('Verification code dispatched to your phone via SMS!');
         } catch (err) {
             console.error('Carrier SMS Dispatch Error:', err);
+            let errMsg = err.message || 'Failed to dispatch SMS';
+            if (err.code === 'auth/operation-not-allowed' || (err.message && err.message.includes('operation-not-allowed'))) {
+                errMsg = 'Phone Authentication is currently disabled in your Firebase Console (mwanawevtech). Go to console.firebase.google.com -> Authentication -> Sign-in method -> Enable Phone.';
+            }
             const statusBadge = this.root.querySelector('#otp-status-badge');
             if (statusBadge) {
-                statusBadge.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> ${err.message || 'Failed to dispatch SMS'}`;
+                statusBadge.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> ${errMsg}`;
                 statusBadge.style.background = 'rgba(239, 68, 68, 0.1)';
                 statusBadge.style.color = '#b91c1c';
             }
-            this.showToast(`SMS delivery notice: ${err.message || 'Please check network and try again'}`, 6000);
+            this.showToast(`SMS delivery notice: ${errMsg}`, 8000);
         }
     }
 
