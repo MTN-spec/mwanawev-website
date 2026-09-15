@@ -110,6 +110,20 @@ class ChangeItApp {
         if (this.state.currentUser) {
             const user = this.state.users[this.state.currentUser];
             if (user) {
+                // Validate against live cloud Firestore if online
+                if (navigator.onLine && window.ChangeItAPI && typeof window.ChangeItAPI.user?.get === 'function') {
+                    window.ChangeItAPI.user.get(user.id).then(cloudUser => {
+                        if (!cloudUser) {
+                            console.warn('[ChangeIt] Cloud user document not found in Firestore. Clearing stale local session.');
+                            this.logout();
+                        } else {
+                            this.routeToDashboard(user.role);
+                        }
+                    }).catch(() => {
+                        this.routeToDashboard(user.role);
+                    });
+                    return;
+                }
                 this.routeToDashboard(user.role);
                 return;
             }
@@ -717,8 +731,8 @@ class ChangeItApp {
 
         if (mode === 'login') {
             if (nameGroup) nameGroup.style.display = 'none';
-            if (heading) heading.textContent = 'Welcome Back!';
-            if (subheading) subheading.textContent = 'Enter your registered mobile number to login';
+            if (heading) heading.textContent = 'Sign In to ChangeIt';
+            if (subheading) subheading.textContent = 'Enter your registered mobile phone number';
         } else {
             if (nameGroup) nameGroup.style.display = 'block';
             if (heading) heading.textContent = 'Create Your Account';
