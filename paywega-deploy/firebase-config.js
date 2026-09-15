@@ -34,6 +34,12 @@ try {
             if (window.recaptchaVerifier) {
                 return window.recaptchaVerifier;
             }
+            let container = document.getElementById(containerId);
+            if (!container) {
+                container = document.createElement('div');
+                container.id = containerId;
+                document.body.appendChild(container);
+            }
             window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
                 'size': 'invisible',
                 'callback': () => {

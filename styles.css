@@ -534,7 +534,7 @@ nav a.btn-nav:hover {
     }
 }
 
-#paywega {
+#changeit, #paywega {
     padding: 100px 0;
     background: var(--dark-bg);
     color: white;
@@ -612,15 +612,15 @@ nav a.btn-nav:hover {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
-/* Paywega Container */
-.paywega-container {
+/* ChangeIt / Paywega Container */
+.changeit-container, .paywega-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 50px;
     align-items: center;
 }
 
-.paywega-text .tag {
+.changeit-text .tag, .paywega-text .tag {
     background: var(--accent-color);
     color: var(--dark-text);
     padding: 5px 10px;
@@ -631,7 +631,7 @@ nav a.btn-nav:hover {
     margin-left: 10px;
 }
 
-.paywega-text h2 {
+.changeit-text h2, .paywega-text h2 {
     font-size: 3rem;
     margin: 20px 0;
     background: linear-gradient(to right, #fff, #aaa);

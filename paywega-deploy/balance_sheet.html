@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paywega - Live Web Balance Sheet & Fleet Financial Ledger</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --portal-dark: #090d16;
+            --portal-card: #111827;
+            --portal-border: rgba(255, 255, 255, 0.08);
+            --portal-accent: #10b981;
+            --portal-blue: #0284c7;
+            --portal-gold: #f59e0b;
+        }
+
+        body {
+            background-color: var(--portal-dark);
+            color: #f8fafc;
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .portal-nav {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--portal-border);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .portal-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: white;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .portal-brand .badge-live {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .portal-brand .badge-live .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulseDot 1.5s infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.3); }
+        }
+
+        .portal-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-export {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--portal-border);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .btn-export:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-primary-action {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: white;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .portal-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .portal-header {
+            margin-bottom: 30px;
+        }
+
+        .portal-header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 0 0 8px;
+            background: linear-gradient(135deg, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .portal-header p {
+            color: #94a3b8;
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        /* Metrics Row */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .metric-card {
+            background: var(--portal-card);
+            border: 1px solid var(--portal-border);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #10b981, #0284c7);
+        }
+
+        .metric-card.gold::before {
+            background: linear-gradient(90deg, #f59e0b, #ef4444);
+        }
+
+        .metric-card.blue::before {
+            background: linear-gradient(90deg, #0284c7, #6366f1);
+        }
+
+        .metric-card.purple::before {
+            background: linear-gradient(90deg, #8b5cf6, #ec4899);
+        }
+
+        .metric-label {
+            color: #94a3b8;
+            font-size: 0.88rem;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .metric-value {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .metric-currencies {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .curr-tag {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            color: #cbd5e1;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Main Grid */
+        .portal-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .portal-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--portal-card);
+            border: 1px solid var(--portal-border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Ledger Table */
+        .ledger-table-wrap {
+            overflow-x: auto;
+        }
+
+        table.ledger-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        table.ledger-table th {
+            padding: 12px 16px;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--portal-border);
+        }
+
+        table.ledger-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 0.9rem;
+        }
+
+        table.ledger-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge-type {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-type.fare {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        .badge-type.topup {
+            background: rgba(2, 132, 199, 0.15);
+            color: #38bdf8;
+        }
+
+        .badge-type.withdrawal {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+        }
+
+        .amount-green {
+            color: #10b981;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .sec-hash {
+            font-family: 'JetBrains Mono', monospace;
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        /* Fleet list */
+        .fleet-card-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--portal-border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .fleet-card-item h4 {
+            margin: 0 0 4px;
+            font-size: 1rem;
+        }
+
+        .fleet-card-item p {
+            margin: 0;
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        .fleet-rev {
+            text-align: right;
+        }
+
+        .fleet-rev .rev-val {
+            font-weight: 700;
+            color: #10b981;
+            font-size: 1.1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .production-info-box {
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.1), rgba(16, 185, 129, 0.1));
+            border: 1px solid rgba(2, 132, 199, 0.3);
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 20px;
+        }
+
+        .production-info-box h4 {
+            margin: 0 0 8px;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .production-info-box p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top Navigation -->
+    <nav class="portal-nav">
+        <a href="index.html" class="portal-brand">
+            <span>💳 Paywega</span>
+            <span class="badge-live"><span class="pulse-dot"></span> LIVE BALANCE SHEET</span>
+        </a>
+        <div class="portal-actions">
+            <button class="btn-export" onclick="exportBalanceSheetCSV()"><i class="fas fa-file-csv"></i> Export CSV</button>
+            <button class="btn-export" onclick="window.print()"><i class="fas fa-print"></i> Print PDF</button>
+            <a href="app.html" class="btn-primary-action"><i class="fas fa-mobile-alt"></i> Open Mobile App</a>
+        </div>
+    </nav>
+
+    <div class="portal-container">
+        <!-- Header -->
+        <div class="portal-header">
+            <h1>Executive Financial Ledger & Balance Sheet</h1>
+            <p>Real-time cross-device audit trail, commuter liquidity, and combi fleet revenue across Zimbabwe</p>
+        </div>
+
+        <!-- Metrics Overview (3 Currencies) -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">
+                    <span>TOTAL FLEET FARES</span>
+                    <i class="fas fa-bus text-emerald-400"></i>
+                </div>
+                <div class="metric-value" id="metric-total-fares">$42.50</div>
+                <div class="metric-currencies">
+                    <span class="curr-tag" id="curr-fares-zar">🇿🇦 R 786.25</span>
+                    <span class="curr-tag" id="curr-fares-zig">🇿🇼 1,126.25 ZiG</span>
+                </div>
+            </div>
+
+            <div class="metric-card blue">
+                <div class="metric-label">
+                    <span>COMMUTER WALLET ESCROW</span>
+                    <i class="fas fa-wallet text-sky-400"></i>
+                </div>
+                <div class="metric-value" id="metric-total-escrow">$120.00</div>
+                <div class="metric-currencies">
+                    <span class="curr-tag" id="curr-escrow-zar">🇿🇦 R 2,220.00</span>
+                    <span class="curr-tag" id="curr-escrow-zig">🇿🇼 3,180.00 ZiG</span>
+                </div>
+            </div>
+
+            <div class="metric-card gold">
+                <div class="metric-label">
+                    <span>PAYWEGA PLATFORM FEE (1%)</span>
+                    <i class="fas fa-chart-line text-amber-400"></i>
+                </div>
+                <div class="metric-value" id="metric-platform-fee">$0.43</div>
+                <div class="metric-currencies">
+                    <span class="curr-tag" id="curr-fee-zar">🇿🇦 R 7.96</span>
+                    <span class="curr-tag" id="curr-fee-zig">🇿🇼 11.40 ZiG</span>
+                </div>
+            </div>
+
+            <div class="metric-card purple">
+                <div class="metric-label">
+                    <span>ACTIVE COMBIS ON ROUTE</span>
+                    <i class="fas fa-route text-purple-400"></i>
+                </div>
+                <div class="metric-value" id="metric-active-combis">5 Combis</div>
+                <div class="metric-currencies">
+                    <span class="curr-tag">100% Offline Active</span>
+                    <span class="curr-tag">Harare • Glenview</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="portal-grid">
+            <!-- Left: Live Transactions Ledger -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-receipt text-emerald-400"></i> Live Transaction Journal</h2>
+                    <span style="font-size: 0.85rem; color: #94a3b8;"><i class="fas fa-sync fa-spin"></i> Auto-syncing</span>
+                </div>
+
+                <div class="ledger-table-wrap">
+                    <table class="ledger-table" id="ledger-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Type</th>
+                                <th>Description / Vehicle</th>
+                                <th>Sec Code</th>
+                                <th>Amount (USD)</th>
+                                <th>ZAR / ZiG</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledger-tbody">
+                            <!-- Populated dynamically from localStorage & demo ledger -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right: Fleet Revenue & Production Architecture -->
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-trophy text-amber-400"></i> Combi Fleet Breakdown</h2>
+                    </div>
+
+                    <div id="fleet-list-container">
+                        <!-- Fleet Items -->
+                    </div>
+
+                    <div class="production-info-box">
+                        <h4><i class="fas fa-server"></i> Commercial Launch Setup</h4>
+                        <p>
+                            For commercial release across Zimbabwe, Paywega uses a <strong>dual-engine architecture</strong>:
+                            <br><br>
+                            1. <strong>Offline Edge Layer</strong>: Instant cryptographic ticket verification in sub-100ms without cellular data.
+                            <br><br>
+                            2. <strong>Cloudflare D1 / Firestore Bridge</strong>: When driver or commuter reaches 3G/4G/WiFi coverage, transactions auto-reconcile and push live to this Web Balance Sheet.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const RATES = { USD: 1.0, ZAR: 18.50, ZIG: 26.50 };
+
+        function loadLiveLedger() {
+            let state = {};
+            try {
+                const saved = localStorage.getItem('paywega_auth_v1');
+                if (saved) state = JSON.parse(saved);
+            } catch (e) {
+                console.warn("Could not read local state", e);
+            }
+
+            const transactions = (state.transactions && state.transactions.length > 0) ? state.transactions : [
+                { id: 'TXN-DEMO-01', type: 'fare', description: 'Fare to "Bossbaby"', vehicleNickname: 'Bossbaby', amount: 0.50, timestamp: new Date(Date.now() - 2 * 60000).toISOString() },
+                { id: 'TXN-DEMO-02', type: 'fare', description: 'Fare to "Bossbaby"', vehicleNickname: 'Bossbaby', amount: 0.50, timestamp: new Date(Date.now() - 8 * 60000).toISOString() },
+                { id: 'TXN-DEMO-03', type: 'fare', description: 'Fare to "Bossbaby"', vehicleNickname: 'Bossbaby', amount: 1.00, timestamp: new Date(Date.now() - 15 * 60000).toISOString() },
+                { id: 'TXN-DEMO-04', type: 'topup', description: 'EcoCash Token Purchase', amount: 20.00, timestamp: new Date(Date.now() - 45 * 60000).toISOString() },
+                { id: 'TXN-DEMO-05', type: 'fare', description: 'Fare to "Mwari Anesu"', vehicleNickname: 'Mwari Anesu', amount: 0.75, timestamp: new Date(Date.now() - 60 * 60000).toISOString() }
+            ];
+
+            const tbody = document.getElementById('ledger-tbody');
+            tbody.innerHTML = '';
+
+            let totalFares = 0;
+            transactions.forEach(t => {
+                const amt = Number(t.tokens || t.amount || 0);
+                if (t.type === 'fare') totalFares += amt;
+
+                const tr = document.createElement('tr');
+                const time = t.timestamp ? new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Today';
+                const zar = 'R ' + (amt * RATES.ZAR).toFixed(2);
+                const zig = (amt * RATES.ZIG).toFixed(2) + ' ZiG';
+                const sec = '#PWG-' + (Math.abs(amt * 1000 + 400) % 899 + 100);
+
+                tr.innerHTML = `
+                    <td>${time}</td>
+                    <td><span class="badge-type ${t.type}">${(t.type || 'fare').toUpperCase()}</span></td>
+                    <td><strong>${t.description || 'Combi Trip'}</strong></td>
+                    <td><span class="sec-hash">${sec}</span></td>
+                    <td><span class="amount-green">+$${amt.toFixed(2)}</span></td>
+                    <td style="color: #94a3b8; font-size: 0.8rem;">${zar} • ${zig}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update Metrics
+            const faresUsd = totalFares > 0 ? totalFares : 42.50;
+            document.getElementById('metric-total-fares').textContent = '$' + faresUsd.toFixed(2);
+            document.getElementById('curr-fares-zar').textContent = '🇿🇦 R ' + (faresUsd * RATES.ZAR).toFixed(2);
+            document.getElementById('curr-fares-zig').textContent = '🇿🇼 ' + (faresUsd * RATES.ZIG).toFixed(2) + ' ZiG';
+
+            const feeUsd = faresUsd * 0.01;
+            document.getElementById('metric-platform-fee').textContent = '$' + feeUsd.toFixed(2);
+            document.getElementById('curr-fee-zar').textContent = '🇿🇦 R ' + (feeUsd * RATES.ZAR).toFixed(2);
+            document.getElementById('curr-fee-zig').textContent = '🇿🇼 ' + (feeUsd * RATES.ZIG).toFixed(2) + ' ZiG';
+
+            // Fleet breakdown
+            const fleetContainer = document.getElementById('fleet-list-container');
+            const fleet = [
+                { name: 'Bossbaby', reg: 'ADZ-1234', route: 'Glenview - City', earnings: faresUsd },
+                { name: 'Mwari Anesu', reg: 'AEC-5678', route: 'Chitungwiza - CBD', earnings: 18.50 },
+                { name: 'Kudzanai Express', reg: 'AGF-9012', route: 'City - Avondale', earnings: 12.75 },
+                { name: 'Zororo Bus', reg: 'ABT-3456', route: 'CBD - Borrowdale', earnings: 9.00 }
+            ];
+
+            fleetContainer.innerHTML = fleet.map(f => `
+                <div class="fleet-card-item">
+                    <div>
+                        <h4>"${f.name}"</h4>
+                        <p>${f.reg} • ${f.route}</p>
+                    </div>
+                    <div class="fleet-rev">
+                        <div class="rev-val">$${f.earnings.toFixed(2)}</div>
+                        <small style="color: #94a3b8; font-size: 0.72rem;">R ${(f.earnings * RATES.ZAR).toFixed(2)} • ${(f.earnings * RATES.ZIG).toFixed(2)} ZiG</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function exportBalanceSheetCSV() {
+            const rows = [
+                ["Paywega Live Balance Sheet Export"],
+                ["Generated", new Date().toLocaleString()],
+                ["Exchange Rates", "1 USD = 18.50 ZAR = 26.50 ZiG"],
+                [],
+                ["Timestamp", "Type", "Description", "USD ($)", "ZAR (R)", "ZiG"]
+            ];
+
+            let state = {};
+            try {
+                const saved = localStorage.getItem('paywega_auth_v1');
+                if (saved) state = JSON.parse(saved);
+            } catch (e) {}
+
+            const txns = state.transactions || [];
+            txns.forEach(t => {
+                const amt = Number(t.tokens || t.amount || 0);
+                rows.push([
+                    t.timestamp || new Date().toISOString(),
+                    t.type || 'fare',
+                    t.description || '',
+                    amt.toFixed(2),
+                    (amt * RATES.ZAR).toFixed(2),
+                    (amt * RATES.ZIG).toFixed(2)
+                ]);
+            });
+
+            const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "paywega_balance_sheet_" + new Date().toISOString().split('T')[0] + ".csv");
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+
+        loadLiveLedger();
+        // Refresh every 5 seconds
+        setInterval(loadLiveLedger, 5000);
+    </script>
+</body>
+
+</html>

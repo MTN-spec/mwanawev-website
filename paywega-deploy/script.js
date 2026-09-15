@@ -186,7 +186,7 @@ function initNarrative() {
         usingAudioFile = false; // 404 Not Found, use TTS
     });
 
-    const text = "In Zimbabwe, the shortage of small change is a daily struggle. Commuters lose money, and operators lose time. Enter Paywega. We are digitizing public transport payments to ensure every cent counts. No more disputes, no more delays. Just seamless, secure travel.";
+    const text = "In Zimbabwe, the shortage of small change is a daily struggle. Commuters lose money, and operators lose time. Enter Change It. We are digitizing public transport payments to ensure every cent counts. No more disputes, no more delays. Just seamless, secure travel.";
 
     let synthesis = window.speechSynthesis;
     let utterance = new SpeechSynthesisUtterance(text);
