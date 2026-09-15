@@ -29,44 +29,59 @@ try {
 
     // Expose Phone Auth for genuine carrier SMS verification (Option B)
     window.paywegaPhoneAuth = {
+        resetRecaptcha: (containerId = 'recaptcha-container') => {
+            if (window.recaptchaVerifier) {
+                try { window.recaptchaVerifier.clear(); } catch(e) {}
+                window.recaptchaVerifier = null;
+            }
+            let container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = '';
+            }
+        },
         setupRecaptcha: (containerId = 'recaptcha-container') => {
             if (!auth) throw new Error("Firebase Auth is not ready yet.");
-            if (window.recaptchaVerifier) {
-                return window.recaptchaVerifier;
-            }
             let container = document.getElementById(containerId);
             if (!container) {
                 container = document.createElement('div');
                 container.id = containerId;
                 document.body.appendChild(container);
             }
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
-                'size': 'invisible',
-                'callback': () => {
-                    console.log("reCAPTCHA solved for Phone Auth ✅");
-                },
-                'expired-callback': () => {
-                    console.warn("reCAPTCHA expired, resetting...");
-                    if (window.recaptchaVerifier) {
-                        try { window.recaptchaVerifier.clear(); } catch(e) {}
-                        window.recaptchaVerifier = null;
+            if (window.recaptchaVerifier) {
+                return window.recaptchaVerifier;
+            }
+            container.innerHTML = '';
+            try {
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+                    'size': 'invisible',
+                    'callback': () => {
+                        console.log("reCAPTCHA solved for Phone Auth ✅");
+                    },
+                    'expired-callback': () => {
+                        console.warn("reCAPTCHA expired, resetting...");
+                        window.paywegaPhoneAuth.resetRecaptcha(containerId);
                     }
-                }
-            });
+                });
+            } catch (err) {
+                console.warn("reCAPTCHA creation error, resetting and retrying:", err);
+                window.paywegaPhoneAuth.resetRecaptcha(containerId);
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+                    'size': 'invisible',
+                    'callback': () => console.log("reCAPTCHA solved for Phone Auth ✅")
+                });
+            }
             return window.recaptchaVerifier;
         },
         sendVerificationCode: async (phoneNumber) => {
             if (!auth) throw new Error("Authentication service is initializing. Please try again.");
+            window.paywegaPhoneAuth.resetRecaptcha('recaptcha-container');
             try {
                 const verifier = window.paywegaPhoneAuth.setupRecaptcha('recaptcha-container');
                 const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, verifier);
                 window.paywegaConfirmationResult = confirmationResult;
                 return confirmationResult;
             } catch (error) {
-                if (window.recaptchaVerifier) {
-                    try { window.recaptchaVerifier.clear(); } catch(e) {}
-                    window.recaptchaVerifier = null;
-                }
+                window.paywegaPhoneAuth.resetRecaptcha('recaptcha-container');
                 throw error;
             }
         },
