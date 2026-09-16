@@ -65,25 +65,31 @@ const AuthAPI = {
      * Register a new user or driver
      */
     async register({ phone, name, pin, txnPin, role, driverDetails }) {
+        const apiRole = (role === 'commuter' || role === 'passenger') ? 'passenger' : role;
         const data = await apiCall('/api/auth/register', {
             method: 'POST',
-            body: JSON.stringify({ phone, name, pin, txnPin, role, driverDetails })
+            body: JSON.stringify({ phone, name, pin, txnPin, role: apiRole, driverDetails })
         });
+
+        const userRole = (data.role === 'passenger' || data.role === 'commuter') ? 'commuter' : (data.role || role);
 
         // Save session locally
         saveSession({
             userId: data.userId,
-            name: data.name,
-            role: data.role,
+            name: data.name || name,
+            role: userRole,
             sessionToken: data.sessionToken,
-            tokenBalance: data.tokenBalance,
+            tokenBalance: data.tokenBalance || 5.00,
             vehicleId: data.vehicleId || null,
             vehicleReg: null,
             qrSecret: data.qrSecret || null,
             driverId: data.driverId || null
         });
 
-        return data;
+        return {
+            ...data,
+            role: userRole
+        };
     },
 
     /**
