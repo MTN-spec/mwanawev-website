@@ -880,7 +880,7 @@ class ChangeItApp {
     }
 
     async verifyOTP(enteredOTP, phone, name) {
-        this.showToast('Verifying code with carrier...');
+        this.showToast('Verifying code with Firebase...');
         try {
             if (!window.paywegaPhoneAuth) {
                 throw new Error('Verification service not ready');
@@ -889,8 +889,8 @@ class ChangeItApp {
             this.showToast('Phone number verified! ✅');
             this.renderRoleSelection(phone, name);
         } catch (err) {
-            console.error('Code verification error:', err);
-            this.showToast(err.message || 'Incorrect verification code. Please check SMS.');
+            console.error('Firebase code verification error:', err);
+            this.showToast(err.message || 'Incorrect verification code. Please check your SMS and try again.');
         }
     }
 
