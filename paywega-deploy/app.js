@@ -88,6 +88,17 @@ class ChangeItApp {
             const unsynced = (this.state.transactions || []).filter(t => t && t.synced === false);
             if (!unsynced.length) return;
 
+            if (window.ChangeItAPI && this.state.currentUser) {
+                const sess = window.ChangeItAPI.getSession() || {};
+                const u = this.state.users[this.state.currentUser];
+                if (!sess.userId && u?.id) {
+                    sess.userId = u.id;
+                    sess.name = u.name;
+                    sess.role = u.role;
+                    window.ChangeItAPI.saveSession(sess);
+                }
+            }
+
             console.log(`[ChangeIt] Syncing ${unsynced.length} pending transactions to D1 database...`);
 
             for (const txn of unsynced) {
@@ -1174,14 +1185,20 @@ class ChangeItApp {
                     } : null
                 });
             } catch (apiErr) {
-                console.warn('[ChangeIt] API registration notice, activating local/cloud sync user:', apiErr);
-                const userId = this.generateId('USR');
-                result = {
-                    userId,
-                    name,
-                    role: role === 'commuter' ? 'commuter' : role,
-                    tokenBalance: 5.00
-                };
+                console.warn('[ChangeIt] API registration notice:', apiErr);
+                if (apiErr.message && (apiErr.message.includes('already registered') || apiErr.message.includes('409'))) {
+                    try {
+                        result = await window.ChangeItAPI.auth.login({ phone, pin: loginPin });
+                        this.showToast('Existing Change It account synchronized! ✅');
+                    } catch (loginErr) {
+                        this.showToast('This phone is already registered. Please log in with your PIN.', 4000);
+                        this.renderWelcome();
+                        return;
+                    }
+                } else {
+                    this.showToast('Registration notice: ' + (apiErr.message || 'Please check connection'), 4000);
+                    return;
+                }
             }
 
             // Build local state from server response
@@ -2382,6 +2399,16 @@ class ChangeItApp {
                     this.updateCommuterUI();
 
                     // Immediately submit P2P transfer to Cloudflare D1 Backend
+                    if (window.ChangeItAPI) {
+                        const sess = window.ChangeItAPI.getSession() || {};
+                        if (!sess.userId && user.id) {
+                            sess.userId = user.id;
+                            sess.name = user.name;
+                            sess.role = user.role;
+                            window.ChangeItAPI.saveSession(sess);
+                        }
+                    }
+
                     if (navigator.onLine && window.ChangeItAPI?.transactions) {
                         window.ChangeItAPI.transactions.recordChange({
                             toUserId: txnRecord.toUserId || null,

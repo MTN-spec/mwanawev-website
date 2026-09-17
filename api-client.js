@@ -32,6 +32,7 @@ async function apiCall(path, options = {}) {
     const headers = {
         'Content-Type': 'application/json',
         ...(session?.sessionToken ? { 'Authorization': `Bearer ${session.sessionToken}` } : {}),
+        ...(session?.userId ? { 'X-User-Id': session.userId } : {}),
         ...(options.headers || {})
     };
 
