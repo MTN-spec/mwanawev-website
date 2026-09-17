@@ -31,7 +31,7 @@ class ChangeItApp {
 
         // Production API Client (replaces Firebase)
         this.api = window.ChangeItAPI;
-        this.syncEngine = new (window.ChangeItSyncEngine || class { startAutoSync(){} async sync(){ return {synced:0}; } async pendingCount(){ return 0; } })();
+        this.syncEngine = new (window.ChangeItSyncEngine || class { startAutoSync() { } async sync() { return { synced: 0 }; } async pendingCount() { return 0; } })();
         this._isSyncing = false;
 
         this.state = this.getDefaultState();
@@ -72,6 +72,62 @@ class ChangeItApp {
                     this._refreshBalanceFromServer();
                 }
             });
+        }
+
+        // Sync any pending transactions (including P2P transfers & kombi fares)
+        this.syncPendingTransactions();
+        window.addEventListener('online', () => this.syncPendingTransactions());
+    }
+
+    // Sync any pending unsynced transactions directly to Cloudflare D1 backend
+    async syncPendingTransactions() {
+        if (!navigator.onLine || this._isSyncing || !window.ChangeItAPI?.transactions) return;
+        this._isSyncing = true;
+
+        try {
+            const unsynced = (this.state.transactions || []).filter(t => t && t.synced === false);
+            if (!unsynced.length) return;
+
+            console.log(`[ChangeIt] Syncing ${unsynced.length} pending transactions to D1 database...`);
+
+            for (const txn of unsynced) {
+                try {
+                    if (txn.type === 'transfer' || txn.type === 'change') {
+                        const res = await window.ChangeItAPI.transactions.recordChange({
+                            toUserId: txn.toUserId || null,
+                            toPhone: txn.toPhone || null,
+                            amount: txn.amount,
+                            txnId: txn.id,
+                            deviceCreatedAt: txn.timestamp
+                        });
+                        txn.synced = true;
+                        if (res?.newBalance !== undefined && this.state.currentUser && this.state.users[this.state.currentUser]) {
+                            this.state.users[this.state.currentUser].tokenBalance = res.newBalance;
+                        }
+                    } else if (txn.type === 'fare' && txn.vehicleId) {
+                        const res = await window.ChangeItAPI.transactions.recordFare({
+                            vehicleId: txn.vehicleId,
+                            amount: txn.amount,
+                            hmacSignature: txn.hmacSignature,
+                            txnId: txn.id,
+                            deviceCreatedAt: txn.deviceCreatedAt || txn.timestamp
+                        });
+                        txn.synced = true;
+                        if (res?.newBalance !== undefined && this.state.currentUser && this.state.users[this.state.currentUser]) {
+                            this.state.users[this.state.currentUser].tokenBalance = res.newBalance;
+                        }
+                    }
+                } catch (singleErr) {
+                    console.warn(`[ChangeIt] Sync failed for transaction ${txn.id}:`, singleErr.message);
+                }
+            }
+            this.saveState();
+            this.updateCommuterUI();
+            this.updateDriverUI();
+        } catch (e) {
+            console.warn('[ChangeIt] syncPendingTransactions error:', e);
+        } finally {
+            this._isSyncing = false;
         }
     }
 
@@ -2130,7 +2186,7 @@ class ChangeItApp {
 
         // Payment reference input (shown after amount selected)
         let paymentRefInputHtml = '';
-        calcEl.addEventListener('click', () => {}); // placeholder
+        calcEl.addEventListener('click', () => { }); // placeholder
 
         confirmBtn.addEventListener('click', async () => {
             // Step 1: If no ref entered yet, show the reference input
@@ -2300,7 +2356,7 @@ class ChangeItApp {
                     const txnId = this.generateId('TXN');
                     const txnRecord = {
                         id: txnId,
-                        type: 'transfer',
+                        type: 'change',
                         userId: user.id,
                         fromUserId: user.id,
                         toPhone: phone,
@@ -2322,9 +2378,32 @@ class ChangeItApp {
                     this.state.transactions.unshift(txnRecord);
                     this.saveState();
                     modal.remove();
-                    this.showToast(`Sent ${amount} tokens to ${phone}`);
+                    this.showToast(`Sent $${amount.toFixed(2)} to ${phone}`);
                     this.updateCommuterUI();
-                    this.syncPendingTransactions();
+
+                    // Immediately submit P2P transfer to Cloudflare D1 Backend
+                    if (navigator.onLine && window.ChangeItAPI?.transactions) {
+                        window.ChangeItAPI.transactions.recordChange({
+                            toUserId: txnRecord.toUserId || null,
+                            toPhone: phone,
+                            amount: amount,
+                            txnId: txnId,
+                            deviceCreatedAt: txnRecord.timestamp
+                        }).then(result => {
+                            txnRecord.synced = true;
+                            if (result?.newBalance !== undefined && this.state.users[user.id]) {
+                                this.state.users[user.id].tokenBalance = result.newBalance;
+                            }
+                            this.saveState();
+                            this.updateCommuterUI();
+                            console.log(`[ChangeIt] P2P Transfer recorded on D1 database ✅ TXN: ${txnId}`);
+                        }).catch(err => {
+                            console.warn('[ChangeIt] P2P Transfer queued for sync:', err.message);
+                            this.syncPendingTransactions();
+                        });
+                    } else {
+                        this.syncPendingTransactions();
+                    }
                 }
             });
             input.addEventListener('keydown', (e) => {

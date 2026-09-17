@@ -149,10 +149,10 @@ const TransactionsAPI = {
     /**
      * Record a change transfer (user-to-user)
      */
-    async recordChange({ toUserId, amount, txnId, deviceCreatedAt }) {
+    async recordChange({ toUserId, toPhone, amount, txnId, deviceCreatedAt }) {
         return apiCall('/api/transactions/change', {
             method: 'POST',
-            body: JSON.stringify({ toUserId, amount, txnId, deviceCreatedAt })
+            body: JSON.stringify({ toUserId, toPhone, amount, txnId, deviceCreatedAt })
         });
     },
 
