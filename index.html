@@ -1,272 +1,1042 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MTNSPEC | Revolutionizing Transport</title>
+    <title>MTN-SPEC | Geospatial Intelligence, Applied AI & FinTech Infrastructure</title>
     <meta name="description"
-        content="MTNSPEC: Transforming Zimbabwe's public transport sector with Change It for seamless peer-to-peer payments.">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
+        content="MTN-SPEC (Pvt) Ltd builds sovereign geospatial intelligence, AI climate-resilience, mineral exploration, and digital payment infrastructure for Zimbabwe and Africa â€” home of AgriShield, Change It, and The National Mineral Intelligence Hub.">
     <meta name="keywords"
-        content="MTNSPEC, Change It, ChangeIt, Zimbabwe Transport, Digital Payments, Cashless Kombi, Tap to Pay">
-    <meta name="author" content="MTNSPEC">
-    <link rel="icon" type="image/png" href="logo.png">
-    <link rel="stylesheet" href="styles.css?v=20260913_fix2">
+        content="MTN-SPEC, MTNSPEC, AgriShield, agrishield.co.zw, Change It, changeit.co.zw, National Mineral Intelligence Hub, nationalmineralintelligencehub.co.zw, GIS Zimbabwe, Remote Sensing, FinTech Zimbabwe, Takunda Nigel Mhandu">
+    <meta name="author" content="MTN-SPEC (Pvt) Ltd">
+    <link rel="icon" type="image/png" href="logo.png?v=concept2">
+
+    <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        header {
-            overflow: hidden !important;
-            max-height: 100px !important;
-        }
-        .nav-container, .navbar {
-            overflow: hidden !important;
-            max-height: 100px !important;
-        }
-        header img.logo, .logo-img, .logo, .logo img, header img {
-            height: 70px !important;
-            max-height: 70px !important;
-            width: auto !important;
-            max-width: 250px !important;
-            object-fit: contain !important;
-            display: block !important;
-        }
-    </style>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="corporate.css?v=20261031">
 </head>
 
 <body>
-    <div id="loader">
-        <img src="logo.png?v=concept2" alt="MTNSPEC Loading..." class="loader-logo">
+    <!-- Top Ecosystem Ribbon -->
+    <div class="top-ribbon">
+        <div class="container ribbon-inner">
+            <div class="ribbon-status">
+                <span class="pulse-dot"></span>
+                <span><strong>MTN-SPEC Digital Ecosystem</strong> â€” Sovereign AI, Earth Observation &amp; FinTech Rails Live Across Zimbabwe</span>
+            </div>
+            <div class="ribbon-domains">
+                <a href="https://agrishield.co.zw" target="_blank" rel="noopener"><i class="fas fa-seedling"></i> agrishield.co.zw â†—</a>
+                <a href="changeit.html"><i class="fas fa-qrcode"></i> Change It Portal â†—</a>
+                <a href="https://nationalmineralintelligencehub.co.zw" target="_blank" rel="noopener"><i class="fas fa-satellite"></i> nationalmineralintelligencehub.co.zw â†—</a>
+            </div>
+        </div>
     </div>
 
+    <!-- Sticky Glassmorphic Navigation -->
     <header id="navbar">
         <div class="container nav-container">
-            <a href="index.html">
-                <img src="logo.png?v=concept2" alt="MTNSPEC" class="logo" style="height: 70px !important; max-height: 70px !important; width: auto !important; object-fit: contain !important;">
+            <a href="#hero" class="brand-link" aria-label="MTN-SPEC Home">
+                <div class="logo-frame">
+                    <img src="logo.png?v=concept2" alt="MTN-SPEC Emblem">
+                </div>
+                <div class="brand-text">
+                    <span class="brand-name">MTN-SPEC</span>
+                    <span class="brand-sub">Spatial â€¢ AI â€¢ FinTech</span>
+                </div>
             </a>
+
             <nav>
-                <ul>
-                    <li><a href="#hero">Home</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="team.html?v=2">Team</a></li>
-                    <li><a href="login.html"><i class="fas fa-lock"></i> Team Login</a></li>
-                    <li><a href="#changeit" class="btn-nav">Change It</a></li>
+                <ul class="nav-links" id="nav-menu">
+                    <li><a href="#hero" class="active">Home</a></li>
+                    <li><a href="#mission">Mission</a></li>
+                    <li><a href="#platforms">Ecosystem</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#technology">Architecture</a></li>
+                    <li><a href="#leadership">Leadership</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="login.html"><i class="fas fa-lock" style="font-size:0.8rem;color:var(--accent-gold);"></i> Team Login</a></li>
                 </ul>
             </nav>
-            <div class="mobile-toggle">
-                <i class="fas fa-bars"></i>
+
+            <div class="nav-cta-group">
+                <a href="login.html" class="btn btn-team-login btn-sm-nav"><i class="fas fa-lock"></i> Team Login</a>
+                <a href="#contact" class="btn btn-blue-fade btn-sm-nav">Partner With Us</a>
+                <button class="mobile-toggle" id="mobile-toggle" aria-label="Toggle Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
         </div>
     </header>
 
+    <!-- Hero Section -->
     <section id="hero">
-        <video autoplay muted loop playsinline class="hero-video" poster="hero_transport.png">
-            <source src="hero_video.mp4" type="video/mp4">
-        </video>
-        <audio id="bg-audio" loop>
-            <source src="transport_ambience.mp3" type="audio/mpeg">
-        </audio>
+        <canvas id="orbital-canvas"></canvas>
+        <div class="hero-glow-orb orb-1"></div>
+        <div class="hero-glow-orb orb-2"></div>
 
-        <button id="audio-toggle" class="btn-audio" aria-label="Toggle Sound">
-            <i class="fas fa-volume-mute"></i>
-        </button>
+        <div class="container hero-grid">
+            <div class="hero-copy">
+                <div class="eyebrow-badge">
+                    <i class="fas fa-globe-africa"></i> Indigenous Deep-Tech Enterprise â€¢ Built for Africa
+                </div>
 
-        <div class="hero-overlay"></div>
-        <div class="container hero-content">
-            <h2 class="animate-up">The Future of <br>
-                <span class="typing-container">
-                    <span class="typing-text">Zimbabwean Transport</span>
-                </span>
-            </h2>
-            <p class="animate-up delay-1">Solving the "change" crisis with seamless digital solutions.</p>
-            <div class="hero-btns animate-up delay-2">
-                <a href="#changeit" class="btn btn-primary">Discover Change It</a>
-                <a href="#about" class="btn btn-secondary">Learn More</a>
-                <button id="play-narrative" class="btn btn-secondary">
-                    <i class="fas fa-bullhorn"></i> Our Mission
-                </button>
+                <h1 class="hero-title">
+                    Engineering Intelligent Systems for <br>
+                    <span class="gradient-blue-text typing-wrapper" id="typing-sector">Climate-Resilient Agriculture</span>
+                </h1>
+
+                <p class="hero-mission">
+                    <strong>MTN-SPEC (Pvt) Ltd</strong> unites planetary-scale <strong>Satellite Earth Observation</strong>,
+                    <strong>Applied Machine Learning</strong>, and <strong>Instant Digital Payment Rails</strong> under one
+                    roofâ€”solving structural economic challenges across agriculture, public mobility, and mineral exploration.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="#platforms" class="btn btn-blue-fade">
+                        <i class="fas fa-layer-group"></i> Explore Flagship Platforms
+                    </a>
+                    <a href="#services" class="btn btn-glass">
+                        <i class="fas fa-briefcase"></i> Enterprise Services
+                    </a>
+                </div>
+
+                <div class="ecosystem-mini-strip">
+                    <span class="mini-strip-label">Flagship Ventures Under MTN-SPEC</span>
+                    <div class="domain-pills">
+                        <a href="#platform-agrishield" class="domain-pill">
+                            <i class="fas fa-shield-halved"></i> agrishield.co.zw
+                        </a>
+                        <a href="#platform-changeit" class="domain-pill">
+                            <i class="fas fa-bolt"></i> changeit.co.zw
+                        </a>
+                        <a href="#platform-nmih" class="domain-pill">
+                            <i class="fas fa-gem"></i> nationalmineralintelligencehub.co.zw
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Interactive Command Hub Card -->
+            <div class="hero-command-card">
+                <div class="cmd-header">
+                    <div class="cmd-title-group">
+                        <div class="cmd-logo-badge">
+                            <img src="logo.png?v=concept2" alt="MTN-SPEC">
+                        </div>
+                        <div>
+                            <h3>MTN-SPEC Command Core</h3>
+                            <span>mtnspec.co.zw â€¢ Multi-Sector Telemetry</span>
+                        </div>
+                    </div>
+                    <span class="cmd-live-tag">â— Active</span>
+                </div>
+
+                <div class="venture-nodes">
+                    <a href="#platform-agrishield" class="v-node">
+                        <div class="v-node-left">
+                            <div class="v-icon"><i class="fas fa-cloud-sun-rain"></i></div>
+                            <div>
+                                <h4>AgriShield GDSS</h4>
+                                <p>agrishield.co.zw</p>
+                            </div>
+                        </div>
+                        <div class="v-metric">
+                            <strong>12+ Indices</strong>
+                            <small>AI Drought &amp; Payouts</small>
+                        </div>
+                    </a>
+
+                    <a href="#platform-changeit" class="v-node">
+                        <div class="v-node-left">
+                            <div class="v-icon"><i class="fas fa-mobile-screen-button"></i></div>
+                            <div>
+                                <h4>Change It FinTech</h4>
+                                <p>changeit.co.zw</p>
+                            </div>
+                        </div>
+                        <div class="v-metric">
+                            <strong>HMAC QR</strong>
+                            <small>Instant P2P Transit</small>
+                        </div>
+                    </a>
+
+                    <a href="#platform-nmih" class="v-node">
+                        <div class="v-node-left">
+                            <div class="v-icon"><i class="fas fa-satellite-dish"></i></div>
+                            <div>
+                                <h4>Mineral Intelligence Hub</h4>
+                                <p>nationalmineralintelligencehub.co.zw</p>
+                            </div>
+                        </div>
+                        <div class="v-metric">
+                            <strong>10mâ€“20m</strong>
+                            <small>Sentinel-2 Prospecting</small>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="cmd-metrics-footer">
+                    <div class="cmd-stat">
+                        <strong>3</strong>
+                        <span>Flagship SaaS Ventures</span>
+                    </div>
+                    <div class="cmd-stat">
+                        <strong>25+ Yrs</strong>
+                        <span>Climate ML Training</span>
+                    </div>
+                    <div class="cmd-stat">
+                        <strong>99.4%</strong>
+                        <span>QR Settlement Fidelity</span>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section id="about">
+    <!-- Live Multi-Venture Telemetry Ticker -->
+    <div class="live-ticker-bar" aria-label="Live Ecosystem Updates">
+        <div class="ticker-track">
+            <div class="ticker-entry"><span class="ticker-tag">AGRISHIELD</span><i class="fas fa-satellite"></i> Sentinel-2 + CHIRPS SPI &amp; FLDAS Soil Moisture pipelines active across agro-ecological zones</div>
+            <div class="ticker-entry"><span class="ticker-tag">CHANGE IT</span><i class="fas fa-qrcode"></i> Zero-friction HMAC QR commuter micro-payments eliminating cash change shortages</div>
+            <div class="ticker-entry"><span class="ticker-tag">MINERAL HUB</span><i class="fas fa-mountain-sun"></i> Iron Oxide, Hydrothermal Clay &amp; Gossan spectral targeting live across Great Dyke &amp; Midlands</div>
+            <div class="ticker-entry"><span class="ticker-tag">ENTERPRISE</span><i class="fas fa-code-branch"></i> Custom GIS, Drone LiDAR, PostGIS &amp; EcoCash FinTech API engineering by MTN-SPEC</div>
+            <!-- Seamless Duplicate -->
+            <div class="ticker-entry"><span class="ticker-tag">AGRISHIELD</span><i class="fas fa-satellite"></i> Sentinel-2 + CHIRPS SPI &amp; FLDAS Soil Moisture pipelines active across agro-ecological zones</div>
+            <div class="ticker-entry"><span class="ticker-tag">CHANGE IT</span><i class="fas fa-qrcode"></i> Zero-friction HMAC QR commuter micro-payments eliminating cash change shortages</div>
+            <div class="ticker-entry"><span class="ticker-tag">MINERAL HUB</span><i class="fas fa-mountain-sun"></i> Iron Oxide, Hydrothermal Clay &amp; Gossan spectral targeting live across Great Dyke &amp; Midlands</div>
+            <div class="ticker-entry"><span class="ticker-tag">ENTERPRISE</span><i class="fas fa-code-branch"></i> Custom GIS, Drone LiDAR, PostGIS &amp; EcoCash FinTech API engineering by MTN-SPEC</div>
+        </div>
+    </div>
+
+    <!-- Mission, Vision & Strategic Mandate -->
+    <section id="mission" class="section-pad">
         <div class="container">
+            <div class="section-head reveal">
+                <span class="section-kicker">Our Mandate &amp; Purpose</span>
+                <h2>Harnessing Local Innovation for <span class="gradient-blue-text">Inclusive Development</span></h2>
+                <p>
+                    We founded MTN-SPEC on a single conviction: frontier technologies like orbital remote sensing,
+                    predictive machine learning, and cryptographic digital payments shouldn't be locked behind
+                    multi-million-dollar corporate licensesâ€”they should empower every farmer, commuter, miner, and enterprise in Africa.
+                </p>
+            </div>
 
-            <div class="about-grid">
-                <div class="card tilt-card">
-                    <i class="fas fa-bus"></i>
-                    <h4>Public Transport</h4>
-                    <p>Improving efficiency and reliability for every commuter hitting the road.</p>
+            <div class="mission-banner reveal">
+                <div class="mission-banner-grid">
+                    <div>
+                        <span class="mission-quote-label">// THE MTN-SPEC CORPORATE MISSION</span>
+                        <h3>Democratizing Spatial Intelligence, Applied AI &amp; Digital Financial Inclusion Across Africa's Backbone Sectors.</h3>
+                        <p>
+                            Built in Zimbabwe for Zimbabwe and the broader African continent, MTN-SPEC bridges planetary
+                            data science and everyday grassroots realityâ€”de-risking smallholder harvests against drought,
+                            eradicating public transit cash crises, and replacing hazardous blind mining with orbital precision.
+                        </p>
+                    </div>
+                    <div class="mission-stats-box">
+                        <div class="m-stat-card">
+                            <strong>10m</strong>
+                            <span>Orbital Spatial Resolution</span>
+                        </div>
+                        <div class="m-stat-card">
+                            <strong>&lt;4ms</strong>
+                            <span>Cached Telemetry Latency</span>
+                        </div>
+                        <div class="m-stat-card">
+                            <strong>100%</strong>
+                            <span>Homegrown Engineering</span>
+                        </div>
+                        <div class="m-stat-card">
+                            <strong>2030</strong>
+                            <span>National Vision Aligned</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="card tilt-card">
-                    <i class="fas fa-mobile-alt"></i>
-                    <h4>Digital Solutions</h4>
-                    <p>Leveraging technology to solve everyday problems like cash shortages.</p>
+            </div>
+
+            <div class="pillars-grid">
+                <div class="pillar-card reveal">
+                    <div class="pillar-icon"><i class="fas fa-eye"></i></div>
+                    <h4>Our Vision</h4>
+                    <p>
+                        To stand as Africa's premier engine of inclusive deep-tech innovationâ€”where satellite intelligence,
+                        predictive AI, and seamless digital finance drive sustainability, economic dignity, and global competitiveness.
+                    </p>
                 </div>
-                <div class="card tilt-card">
-                    <i class="fas fa-users"></i>
-                    <h4>Community First</h4>
-                    <p>Built by Zimbabweans, for Zimbabweans. We listen to your feedback.</p>
+
+                <div class="pillar-card reveal">
+                    <div class="pillar-icon"><i class="fas fa-compass-drafting"></i></div>
+                    <h4>Security First, Simplicity Always</h4>
+                    <p>
+                        Complex planetary raster math, Random Forest ensembles, and SHA-256 / HMAC cryptographic rails underneath;
+                        intuitive, low-bandwidth mobile and web experiences on topâ€”accessible even on rural 3G connections.
+                    </p>
+                </div>
+
+                <div class="pillar-card reveal">
+                    <div class="pillar-icon"><i class="fas fa-people-group"></i></div>
+                    <h4>Economic Formalization &amp; Youth Dignity</h4>
+                    <p>
+                        From STEM youth earning mobile income via GPS geological ground-truthing to unbanked farmers and
+                        commuters gaining auditable digital trails, every MTN-SPEC platform unlocks measurable social impact.
+                    </p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="changeit">
-        <!-- Live Ticker -->
-        <div class="ticker-wrap">
-            <div class="ticker">
-                <div class="ticker-item"><i class="fas fa-check-circle"></i> Payment processed: City-CBD Route</div>
-                <div class="ti7cker-item"><i class="fas fa-check-circle"></i> Partner payout initiated successfully
-                </div>
-                <div class="ticker-item"><i class="fas fa-check-circle"></i> 150+ Secure Transactions in last hour</div>
-                <div class="ticker-item"><i class="fas fa-check-circle"></i> New Route Added: Avondale</div>
-                <div class="ticker-item"><i class="fas fa-check-circle"></i> Commuter trip verified: Msasa</div>
-                <!-- Duplicate for smooth seamless loop -->
-                <div class="ticker-item"><i class="fas fa-check-circle"></i> Payment processed: City-CBD Route</div>
-                <div class="ticker-item"><i class="fas fa-check-circle"></i> Partner payout initiated successfully</div>
-                <div class="ticker-item"><i class="fas fa-check-circle"></i> 150+ Secure Transactions in last hour</div>
-                <div class="ticker-item"><i class="fas fa-check-circle"></i> New Route Added: Avondale</div>
-                <div class="ticker-item"><i class="fas fa-check-circle"></i> Commuter trip verified: Msasa</div>
+    <!-- Flagship Platforms Ecosystem -->
+    <section id="platforms" class="section-pad">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-kicker">Flagship Ventures &amp; Platforms</span>
+                <h2>Three Sovereign Platforms. <span class="gradient-blue-text">One Unified Engine.</span></h2>
+                <p>
+                    Explore the production platforms engineered and operated under the MTN-SPEC umbrellaâ€”each solving a
+                    critical national challenge across agriculture, financial mobility, and mineral value chains.
+                </p>
             </div>
-        </div>
 
-        <div class="container paywega-container">
-            <div class="paywega-text">
-                <h3>Change It <span class="tag">Live App</span></h3>
-                <h2>No Change? No Problem.</h2>
-                <p>Change It is our flagship payment system designed to eliminate the "no change" hassle in combis and
-                    buses. Use your phone to perform instant peer transactions.</p>
-
-
-
-                <ul class="features-list">
-                    <li><i class="fas fa-check-circle"></i> Instant peer-to-peer transfers</li>
-                    <li><i class="fas fa-check-circle"></i> Works on all major networks</li>
-                    <li><i class="fas fa-check-circle"></i> Secure and transparent</li>
-                </ul>
+            <div class="platform-tabs reveal" role="tablist" aria-label="Filter Platforms">
+                <button class="p-tab active" data-filter="all"><i class="fas fa-grip"></i> All Platforms (3)</button>
+                <button class="p-tab" data-filter="agrishield"><i class="fas fa-seedling"></i> AgriShield</button>
+                <button class="p-tab" data-filter="changeit"><i class="fas fa-qrcode"></i> Change It</button>
+                <button class="p-tab" data-filter="nmih"><i class="fas fa-gem"></i> Mineral Intelligence Hub</button>
             </div>
-            <div class="paywega-visual">
-                <!-- Visual representation or abstract phone UI -->
-                <div class="phone-mockup static-preview">
-                    <!-- Static Image of the App UI -->
-                    <div class="screen static-screen">
-                        <div class="app-header">Change It</div>
-                        <div class="balance">
-                            <span>Balance</span>
-                            <h3>$15.50</h3>
+
+            <div class="platforms-stack">
+                <!-- 1. AGRISHIELD -->
+                <article class="platform-showcase reveal" id="platform-agrishield" data-platform="agrishield">
+                    <div class="platform-info">
+                        <div class="platform-meta">
+                            <span class="platform-badge"><i class="fas fa-wheat-awn"></i> Climate &amp; AgriTech</span>
+                            <a href="https://agrishield.co.zw" target="_blank" rel="noopener" class="platform-domain-chip">
+                                <i class="fas fa-link"></i> agrishield.co.zw
+                            </a>
                         </div>
-                        <div class="actions">
-                            <div class="btn-action">Pay</div>
-                            <div class="btn-action">Receive</div>
+
+                        <h3>AgriShield â€” AI Drought Forecasting, Crop GDSS &amp; Parametric Insurance</h3>
+                        <p class="lead-desc">
+                            An AI-driven Geospatial Decision Support System (GDSS) and parametric risk engine protecting
+                            farmers, agribusinesses, and insurers from El NiÃ±o-induced climate shocks before total crop failure occurs.
+                        </p>
+
+                        <div class="capability-list">
+                            <div class="capability-item">
+                                <i class="fas fa-circle-check"></i>
+                                <span><strong>12+ Multi-Sensor Indices:</strong> FLDAS Soil Moisture (SMI), CHIRPS Rainfall (SPI), MODIS &amp; Sentinel-2 VCI, NDVI, NDRE &amp; VHI.</span>
+                            </div>
+                            <div class="capability-item">
+                                <i class="fas fa-circle-check"></i>
+                                <span><strong>Random Forest ML Forecasting:</strong> Calibrated on 25-year longitudinal datasets (2000â€“2025) for early chlorophyll &amp; moisture stress detection.</span>
+                            </div>
+                            <div class="capability-item">
+                                <i class="fas fa-circle-check"></i>
+                                <span><strong>Parametric Insurance Triggers:</strong> Automated, tamper-proof satellite deficit thresholds enabling immediate farmer payouts.</span>
+                            </div>
+                            <div class="capability-item">
+                                <i class="fas fa-circle-check"></i>
+                                <span><strong>Parcel-Level PostGIS Tracking:</strong> Field boundary telemetry for maize, small grains, wheat, and tobacco estates.</span>
+                            </div>
                         </div>
-                        <div class="transactions">
-                            <div class="trans-item">
-                                <span>City - CBD</span>
-                                <span>-$0.50</span>
+
+                        <div class="platform-tech-tags">
+                            <span class="tech-chip">Sentinel-2 &amp; Landsat-9</span>
+                            <span class="tech-chip">Google Earth Engine</span>
+                            <span class="tech-chip">Random Forest ML</span>
+                            <span class="tech-chip">FastAPI &amp; PostGIS</span>
+                            <span class="tech-chip">Parametric Triggers</span>
+                        </div>
+
+                        <div class="platform-cta-row">
+                            <a href="https://agrishield.co.zw" target="_blank" rel="noopener" class="btn btn-blue-fade">
+                                Launch agrishield.co.zw <i class="fas fa-arrow-up-right-from-square"></i>
+                            </a>
+                            <a href="#contact" class="btn btn-glass" data-Prefill="AgriShield Partnership & Crop Telemetry">
+                                Request Estate / Insurer Demo
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Interactive AgriShield Live Console -->
+                    <div class="platform-interactive">
+                        <div class="console-card">
+                            <div class="console-topbar">
+                                <div class="win-dots"><span></span><span></span><span></span></div>
+                                <span class="console-url">https://agrishield.co.zw/telemetry</span>
+                            </div>
+
+                            <div class="agri-zone-selector" aria-label="Select Agro-Region">
+                                <button class="zone-btn active" data-zone="marondera">Marondera (Region II)</button>
+                                <button class="zone-btn" data-zone="midlands">Zvishavane (Region IV)</button>
+                                <button class="zone-btn" data-zone="binga">Binga (Region V)</button>
+                            </div>
+
+                            <div class="agri-telemetry-grid">
+                                <div class="agri-stat-box">
+                                    <small>NDVI Vigour</small>
+                                    <strong id="agri-ndvi">0.74</strong>
+                                </div>
+                                <div class="agri-stat-box">
+                                    <small>CHIRPS SPI</small>
+                                    <strong id="agri-spi">+0.62</strong>
+                                </div>
+                                <div class="agri-stat-box">
+                                    <small>VCI Health</small>
+                                    <strong id="agri-vci">82%</strong>
+                                </div>
+                            </div>
+
+                            <div class="agri-bars">
+                                <div>
+                                    <div class="bar-row-label">
+                                        <span>FLDAS Root-Zone Soil Moisture (SMI)</span>
+                                        <span id="agri-smi-label">76% Optimal</span>
+                                    </div>
+                                    <div class="bar-track">
+                                        <div class="bar-fill" id="agri-smi-bar" style="width: 76%;"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="bar-row-label">
+                                        <span>ML Yield Resilience Confidence</span>
+                                        <span id="agri-ml-label">91% High</span>
+                                    </div>
+                                    <div class="bar-track">
+                                        <div class="bar-fill" id="agri-ml-bar" style="width: 91%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="insurance-status-banner" id="agri-payout-banner">
+                                <span><i class="fas fa-shield-halved"></i> <strong>Parametric Policy:</strong> Active Monitoring</span>
+                                <span id="agri-trigger-pill" style="font-family: var(--font-mono); font-weight: 700; color: #34d399;">NO DEFICIT</span>
                             </div>
                         </div>
                     </div>
+                </article>
+
+                <!-- 2. CHANGE IT -->
+                <article class="platform-showcase reverse reveal" id="platform-changeit" data-platform="changeit">
+                    <div class="platform-info">
+                        <div class="platform-meta">
+                            <span class="platform-badge"><i class="fas fa-bus-simple"></i> FinTech &amp; Smart Mobility</span>
+                            <a href="changeit.html" class="platform-domain-chip">
+                                <i class="fas fa-bolt"></i> Live on mtnspec.co.zw/changeit â€¢ changeit.co.zw
+                            </a>
+                        </div>
+
+                        <h3>Change It â€” Cashless Public Transit &amp; Instant P2P Digital Change</h3>
+                        <p class="lead-desc">
+                            Engineered to permanently solve Zimbabwe's everyday "no change" denomination crisis in
+                            commuter omnibuses (combis), buses, and high-frequency merchants through instant cryptographic mobile transfers.
+                        </p>
+
+                        <div class="capability-list">
+                            <div class="capability-item">
+                                <i class="fas fa-circle-check"></i>
+                                <span><strong>HMAC QR Tap &amp; Scan:</strong> Sub-second encrypted QR fare checkout between passengers, conductors, and drivers.</span>
+                            </div>
+                            <div class="capability-item">
+                                <i class="fas fa-circle-check"></i>
+                                <span><strong>Digital Change Wallet:</strong> Multi-network token balances turning loose physical change into spendable digital value.</span>
+                            </div>
+                            <div class="capability-item">
+                                <i class="fas fa-circle-check"></i>
+                                <span><strong>Master Ops Fleet Portal:</strong> Centralized route telemetry, driver onboarding, account controls, and live transaction ledgers.</span>
+                            </div>
+                            <div class="capability-item">
+                                <i class="fas fa-circle-check"></i>
+                                <span><strong>Rush-Hour Resilience:</strong> Lightweight architecture built for peak terminus concurrency across Harare, Bulawayo &amp; Marondera.</span>
+                            </div>
+                        </div>
+
+                        <div class="platform-tech-tags">
+                            <span class="tech-chip">HMAC-SHA256 QR</span>
+                            <span class="tech-chip">P2P Micro-Ledger</span>
+                            <span class="tech-chip">Master Ops Telemetry</span>
+                            <span class="tech-chip">Cross-Network Wallet</span>
+                        </div>
+
+                        <div class="platform-cta-row">
+                            <a href="changeit.html" class="btn btn-blue-fade">
+                                Open Change It Portal <i class="fas fa-arrow-right"></i>
+                            </a>
+                            <a href="app.html" class="btn btn-glass">
+                                <i class="fas fa-mobile-screen-button"></i> Launch Transit Web App
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Change It Phone Simulator -->
+                    <div class="platform-interactive">
+                        <div class="changeit-phone-wrap">
+                            <div class="ci-app-top">
+                                <strong><i class="fas fa-bolt" style="color: var(--accent-gold);"></i> Change It</strong>
+                                <span class="ci-badge">HMAC Verified</span>
+                            </div>
+
+                            <div class="ci-wallet-card">
+                                <span>Commuter Token Balance</span>
+                                <h4 id="ci-balance">$15.50</h4>
+                                <div class="ci-wallet-meta">
+                                    <span>ID: ZW-MTN-8841</span>
+                                    <span>Instant P2P Active</span>
+                                </div>
+                            </div>
+
+                            <button class="ci-sim-btn" id="ci-pay-btn" type="button">
+                                <i class="fas fa-qrcode"></i> Simulate $0.50 Combi QR Fare
+                            </button>
+
+                            <div class="ci-ledger" id="ci-ledger-list">
+                                <div class="ci-tx">
+                                    <span>City CBD â†’ Avondale</span>
+                                    <span class="amt">-$0.50</span>
+                                </div>
+                                <div class="ci-tx">
+                                    <span>Digital Change Received</span>
+                                    <span class="amt" style="color: #34d399;">+$1.50</span>
+                                </div>
+                                <div class="ci-tx">
+                                    <span>Msasa Route Express</span>
+                                    <span class="amt">-$0.50</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- 3. NATIONAL MINERAL INTELLIGENCE HUB -->
+                <article class="platform-showcase reveal" id="platform-nmih" data-platform="nmih">
+                    <div class="platform-info">
+                        <div class="platform-meta">
+                            <span class="platform-badge"><i class="fas fa-satellite"></i> Smart Mining &amp; Geo-AI</span>
+                            <a href="https://nationalmineralintelligencehub.co.zw" target="_blank" rel="noopener" class="platform-domain-chip">
+                                <i class="fas fa-link"></i> nationalmineralintelligencehub.co.zw
+                            </a>
+                        </div>
+
+                        <h3>The National Mineral Intelligence Hub â€” Orbital Prospecting &amp; ASM Formalization</h3>
+                        <p class="lead-desc">
+                            An indigenous cloud-native mineral intelligence ecosystem replacing costly, environmentally destructive
+                            "blind digging" with 10mâ€“20m Copernicus Sentinel-2 spectral targeting, live bullion telemetry, and youth STEM ground-truthing.
+                        </p>
+
+                        <div class="capability-list">
+                            <div class="capability-item">
+                                <i class="fas fa-circle-check"></i>
+                                <span><strong>5 Spectral Alteration Pipelines:</strong> Automated Iron Oxide, Hydrothermal Clay (SWIR), Ferrous Silicate, Gossan &amp; NDVI suppression ratios.</span>
+                            </div>
+                            <div class="capability-item">
+                                <i class="fas fa-circle-check"></i>
+                                <span><strong>Live Bullion &amp; Base Metal Feeds:</strong> Transparent Gold, Platinum, Palladium &amp; Copper spot tickers ending predatory pricing.</span>
+                            </div>
+                            <div class="capability-item">
+                                <i class="fas fa-circle-check"></i>
+                                <span><strong>Youth STEM Gig Marketplace:</strong> Paid GPS-geotagged outcrop &amp; strike/dip field verification for geoscience graduates.</span>
+                            </div>
+                            <div class="capability-item">
+                                <i class="fas fa-circle-check"></i>
+                                <span><strong>EcoCash QR &amp; Akello Academy:</strong> Instant P2P mobile money settlement plus integrated mining safety &amp; ESG compliance training.</span>
+                            </div>
+                        </div>
+
+                        <div class="platform-tech-tags">
+                            <span class="tech-chip">Sentinel-2 L2A SWIR</span>
+                            <span class="tech-chip">GEE Planetary Compute</span>
+                            <span class="tech-chip">EcoCash Gateway API</span>
+                            <span class="tech-chip">Akello LMS Engine</span>
+                            <span class="tech-chip">Great Dyke Validated</span>
+                        </div>
+
+                        <div class="platform-cta-row">
+                            <a href="https://nationalmineralintelligencehub.co.zw" target="_blank" rel="noopener" class="btn btn-blue-fade">
+                                Launch Mineral Hub <i class="fas fa-arrow-up-right-from-square"></i>
+                            </a>
+                            <a href="#contact" class="btn btn-glass" data-Prefill="Mineral Exploration & Smart Mining GIS">
+                                Commission Concession Scan
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Spectral Mineral Console -->
+                    <div class="platform-interactive">
+                        <div class="console-card">
+                            <div class="console-topbar">
+                                <div class="win-dots"><span></span><span></span><span></span></div>
+                                <span class="console-url">nationalmineralintelligencehub.co.zw</span>
+                            </div>
+
+                            <div class="spectral-controls" aria-label="Select Spectral Ratio">
+                                <button class="spec-btn active" data-layer="iron">Iron Oxide (B4/B2)</button>
+                                <button class="spec-btn" data-layer="clay">Hydrothermal Clay (B11/B12)</button>
+                                <button class="spec-btn" data-layer="gossan">Gossan Cap</button>
+                            </div>
+
+                            <div class="spectral-map-box" id="spectral-viewport">
+                                <div class="map-grid-overlay"></div>
+                                <span class="map-coord-pill" id="spec-coords">ZVISHAVANE PILOT â€¢ 20.32Â°S, 30.06Â°E â€¢ 20m RES</span>
+                                <div class="map-formula-bar">
+                                    <span id="spec-target-desc">Hematite / Goethite Sulfide Cap Halo Detected</span>
+                                    <strong id="spec-score" style="color: var(--accent-gold); font-family: var(--font-mono);">94.2% Match</strong>
+                                </div>
+                            </div>
+
+                            <div class="commodity-mini-grid">
+                                <div class="metal-price-pill">
+                                    <span>Gold (XAU/oz)</span>
+                                    <strong>LIVE FEED â—</strong>
+                                </div>
+                                <div class="metal-price-pill">
+                                    <span>Platinum (PGM)</span>
+                                    <strong>LIVE FEED â—</strong>
+                                </div>
+                                <div class="metal-price-pill">
+                                    <span>Field Gig Escrow</span>
+                                    <strong style="color: #38bdf8;">EcoCash QR</strong>
+                                </div>
+                                <div class="metal-price-pill">
+                                    <span>ESG NDVI Audit</span>
+                                    <strong style="color: #34d399;">Compliant</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Company Services Section -->
+    <section id="services" class="section-pad">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-kicker">What We Offer As A Company</span>
+                <h2>MTN-SPEC Enterprise Services &amp; Custom Engineering</h2>
+                <p>
+                    Beyond our three flagship SaaS platforms, MTN-SPEC partners with government ministries, mining houses,
+                    agribusinesses, financial institutions, and NGOs to architect bespoke geospatial, AI, and FinTech solutions.
+                </p>
+            </div>
+
+            <div class="services-grid">
+                <!-- Service 1 -->
+                <div class="service-card reveal">
+                    <div class="srv-icon"><i class="fas fa-earth-africa"></i></div>
+                    <h3>Earth Observation &amp; GIS Consulting</h3>
+                    <p>
+                        End-to-end satellite remote sensing pipelines, multi-criteria land suitability modeling, catchment
+                        hydrology, and environmental disturbance auditing without costly desktop licensing barriers.
+                    </p>
+                    <ul class="srv-deliverables">
+                        <li><i class="fas fa-check"></i> Google Earth Engine (GEE) Cloud Automation</li>
+                        <li><i class="fas fa-check"></i> Sentinel-2, Landsat-9, MODIS &amp; PRISMA Hyperspectral</li>
+                        <li><i class="fas fa-check"></i> Environmental Impact &amp; Land-Use Masterplans</li>
+                    </ul>
                 </div>
 
-                <div class="download-btns">
-                    <a href="app.html" target="_blank" class="btn-store">
-                        <i class="fab fa-google-play"></i>
-                        <div>
-                            <small>GET IT ON</small>
-                            <span>Google Play</span>
-                        </div>
-                    </a>
-                    <a href="app.html" target="_blank" class="btn-store btn-direct">
-                        <i class="fas fa-mobile-alt"></i>
-                        <div>
-                            <small>TRY DEMO</small>
-                            <span>Open Web App</span>
-                        </div>
-                    </a>
+                <!-- Service 2 -->
+                <div class="service-card reveal">
+                    <div class="srv-icon"><i class="fas fa-helmet-safety"></i></div>
+                    <h3>Smart Mining, Geological GIS &amp; LiDAR Survey</h3>
+                    <p>
+                        Precision mineral prospectivity mapping, structural lineament &amp; fracture modeling, underground
+                        pillar reclamation analytics, and high-accuracy UAV/Drone LiDAR &amp; GNSS surveying.
+                    </p>
+                    <ul class="srv-deliverables">
+                        <li><i class="fas fa-check"></i> Multispectral Alteration &amp; Lithological Mapping</li>
+                        <li><i class="fas fa-check"></i> Drone Photogrammetry, DEMs &amp; Trimble GNSS GCPs</li>
+                        <li><i class="fas fa-check"></i> Illegal Mining Hotspot &amp; ESG Rehabilitation Tracking</li>
+                    </ul>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="service-card reveal">
+                    <div class="srv-icon"><i class="fas fa-tractor"></i></div>
+                    <h3>AgriTech GDSS &amp; Parametric Insurance Tech</h3>
+                    <p>
+                        Custom crop health telemetry and automated climate risk engines tailored for seed producers,
+                        contract farming schemes (maize, wheat, tobacco, small grains), and agricultural underwriters.
+                    </p>
+                    <ul class="srv-deliverables">
+                        <li><i class="fas fa-check"></i> Parcel-Level NDVI/NDRE Chlorophyll Stress Alerts</li>
+                        <li><i class="fas fa-check"></i> Automated Drought Index Payout Triggers</li>
+                        <li><i class="fas fa-check"></i> IoT Soil Moisture Probe &amp; SMAP Integration</li>
+                    </ul>
+                </div>
+
+                <!-- Service 4 -->
+                <div class="service-card reveal">
+                    <div class="srv-icon"><i class="fas fa-wallet"></i></div>
+                    <h3>FinTech, Mobile Money &amp; QR Payment Systems</h3>
+                    <p>
+                        Secure, high-concurrency digital wallet architectures, peer-to-peer micro-payment rails, and
+                        automated mobile money billing gateways built for African telecommunications ecosystems.
+                    </p>
+                    <ul class="srv-deliverables">
+                        <li><i class="fas fa-check"></i> EcoCash API &amp; Multi-Network Payment Integration</li>
+                        <li><i class="fas fa-check"></i> Cryptographic HMAC QR Merchant &amp; Transit Checkout</li>
+                        <li><i class="fas fa-check"></i> Automated Escrow, SMS &amp; Digital Receipt Ledgers</li>
+                    </ul>
+                </div>
+
+                <!-- Service 5 -->
+                <div class="service-card reveal">
+                    <div class="srv-icon"><i class="fas fa-brain"></i></div>
+                    <h3>Applied AI, Machine Learning &amp; Computer Vision</h3>
+                    <p>
+                        Production predictive modeling and computer vision pipelines transforming raw satellite, drone,
+                        and operational datasets into actionable executive forecasts and anomaly alerts.
+                    </p>
+                    <ul class="srv-deliverables">
+                        <li><i class="fas fa-check"></i> Random Forest &amp; Neural Time-Series Forecasting</li>
+                        <li><i class="fas fa-check"></i> Deep Learning Spatial Object &amp; Disturbance Detection</li>
+                        <li><i class="fas fa-check"></i> Automated Market &amp; Telemetry Scraping Engines</li>
+                    </ul>
+                </div>
+
+                <!-- Service 6 -->
+                <div class="service-card reveal">
+                    <div class="srv-icon"><i class="fas fa-server"></i></div>
+                    <h3>Full-Stack Spatial SaaS &amp; Cloud Platforms</h3>
+                    <p>
+                        Rapid architecture, containerization, and deployment of secure enterprise web portals, interactive
+                        spatial dashboards, and REST APIs compliant with national data protection regulations.
+                    </p>
+                    <ul class="srv-deliverables">
+                        <li><i class="fas fa-check"></i> Python (FastAPI, Streamlit), React &amp; Leaflet/Folium</li>
+                        <li><i class="fas fa-check"></i> PostgreSQL / PostGIS Enterprise Spatial Databases</li>
+                        <li><i class="fas fa-check"></i> POTRAZ Cyber &amp; Data Protection Act [Cap 12:07] Aligned</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="feedback">
-        <div class="container feedback-content">
-            <h2>We Want To Hear From You</h2>
-            <p>Your suggestions drive our improvements. Connect directly with our department heads via WhatsApp.</p>
-            <div class="contact-grid">
-                <div class="contact-method">
-                    <h3>WhatsApp</h3>
-                    <a href="https://wa.me/qr/MB6UARERVV34N1"
-                        target="_blank" class="btn btn-whatsapp">
-                        <i class="fab fa-whatsapp"></i> Chat Now
-                    </a>
-                    <div class="qr-container">
-                        <p>Or scan to chat:</p>
-                        <div class="qr-box">
-                            <!-- User's QR Code -->
-                            <img src="whatsapp_qr.jpeg?v=2" alt="WhatsApp QR Code" class="qr-image">
+    <!-- Technology Stack & National Recognition -->
+    <section id="technology" class="section-pad">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-kicker">Engineering Maturity</span>
+                <h2>Production-Grade <span class="gradient-blue-text">Technical Architecture</span></h2>
+                <p>
+                    Every MTN-SPEC platform is engineered in-house on modern, cloud-native, open-standards infrastructureâ€”eliminating
+                    prohibitive foreign licensing costs while delivering enterprise security and sub-second performance.
+                </p>
+            </div>
+
+            <div class="tech-matrix">
+                <div class="tech-stack-box reveal">
+                    <h4><i class="fas fa-satellite"></i> Spatial &amp; EO Core</h4>
+                    <ul>
+                        <li>Google Earth Engine (GEE API)</li>
+                        <li>Copernicus Sentinel-2 &amp; Landsat-9</li>
+                        <li>MODIS, CHIRPS, FLDAS &amp; SMAP</li>
+                        <li>PostGIS, QGIS, ArcGIS Pro &amp; LiDAR</li>
+                    </ul>
+                </div>
+
+                <div class="tech-stack-box reveal">
+                    <h4><i class="fas fa-microchip"></i> AI &amp; Data Science</h4>
+                    <ul>
+                        <li>Scikit-Learn Random Forests</li>
+                        <li>Deep Learning Computer Vision</li>
+                        <li>Vectorized NumPy Spectral Pipelines</li>
+                        <li>Longitudinal Climate Modeling</li>
+                    </ul>
+                </div>
+
+                <div class="tech-stack-box reveal">
+                    <h4><i class="fas fa-shield-halved"></i> FinTech &amp; Security</h4>
+                    <ul>
+                        <li>EcoCash Payment Gateway API</li>
+                        <li>HMAC-SHA256 Dynamic QR Codes</li>
+                        <li>Salted SHA-256 &amp; RBAC Controls</li>
+                        <li>Zero-Trust Secrets Isolation</li>
+                    </ul>
+                </div>
+
+                <div class="tech-stack-box reveal">
+                    <h4><i class="fas fa-cloud"></i> Full-Stack &amp; Cloud</h4>
+                    <ul>
+                        <li>Python (FastAPI, Pydantic, Streamlit)</li>
+                        <li>JavaScript ES6+, React &amp; Leaflet.js</li>
+                        <li>Docker Containerization &amp; CI/CD</li>
+                        <li>Low-Bandwidth 3G/4G Optimization</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="recognition-strip reveal">
+                <div class="rec-item">
+                    <span>2026 Official Showcase</span>
+                    <h5>POTRAZ Innovation Expo</h5>
+                    <p>Exhibited Smart Mining (Mineral Hub) &amp; Climate AgriTech (AgriShield) in Bulawayo.</p>
+                </div>
+                <div class="rec-item">
+                    <span>2026 National Exhibition</span>
+                    <h5>ZITF Innovation Hub</h5>
+                    <p>Showcased AgriShield automated parametric crop insurance &amp; drought resilience.</p>
+                </div>
+                <div class="rec-item">
+                    <span>Hackathon Pedigree</span>
+                    <h5>Econet E-Novate &amp; SeedCo</h5>
+                    <p>Award-recognized geospatial SaaS &amp; GDSS architectures built for national scale.</p>
+                </div>
+                <div class="rec-item">
+                    <span>International Footprint</span>
+                    <h5>BRICS+ Innovation Track</h5>
+                    <p>Collaborative geospatial &amp; AI innovation recognized on regional innovation stages.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Leadership & Team -->
+    <section id="leadership" class="section-pad">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-kicker">Leadership &amp; Innovators</span>
+                <h2>Driven by <span class="gradient-blue-text">Indigenous Engineering Excellence</span></h2>
+                <p>
+                    A multidisciplinary Zimbabwean leadership and technical team uniting geospatial science, fintech
+                    systems engineering, on-the-ground strategy, and machine learning research.
+                </p>
+            </div>
+
+            <div class="founder-spotlight reveal">
+                <div class="founder-monogram">
+                    MTN
+                    <small>ARCHITECT</small>
+                </div>
+                <div class="founder-details">
+                    <span class="role-pill">Lead Innovator â€¢ CTO &amp; Chief Systems Architect</span>
+                    <h3>Takunda Nigel Mhandu</h3>
+                    <p>
+                        Geospatial &amp; Software Engineer (BSc Hons Geospatial Sciences &amp; Remote Sensing, NUST Bulawayo).
+                        Spearheads system architecture across the MTN-SPEC ecosystemâ€”engineering planetary Google Earth Engine
+                        pipelines, FastAPI &amp; PostGIS spatial backends, Random Forest predictive triggers, and cryptographic
+                        QR &amp; mobile money settlement systems across <strong>AgriShield</strong>, <strong>Change It</strong>,
+                        and <strong>The National Mineral Intelligence Hub</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="exec-grid">
+                <div class="exec-card reveal">
+                    <h4>Tinashe Hunda</h4>
+                    <div class="exec-role">Executive Leadership â€¢ Mobility &amp; FinTech</div>
+                    <p>Driving commercial vision, commuter ecosystem partnerships, and financial inclusion strategy across urban transit corridors.</p>
+                </div>
+                <div class="exec-card reveal">
+                    <h4>Thabani Singwango</h4>
+                    <div class="exec-role">Chief Geospatial Officer</div>
+                    <p>Leading user-centric spatial workflows, mineral exploration UX, and field validation intelligence.</p>
+                </div>
+                <div class="exec-card reveal">
+                    <h4>Kwanele E. Manungo</h4>
+                    <div class="exec-role">Chief Director â€” Strategy &amp; Operations</div>
+                    <p>Bridging digital platforms with real-world operator associations, field logistics, and enterprise deployment.</p>
+                </div>
+                <div class="exec-card reveal">
+                    <h4>Nyasha Eric Shenje</h4>
+                    <div class="exec-role">Lead Software Developer</div>
+                    <p>Engineering high-reliability mobile interfaces, database performance, and seamless payment gateway integrations.</p>
+                </div>
+                <div class="exec-card reveal">
+                    <h4>Nkosimusi Nyoni</h4>
+                    <div class="exec-role">Chief Marketing &amp; Growth Officer</div>
+                    <p>Building trusted community adoption, institutional partnerships, and nationwide brand storytelling.</p>
+                </div>
+                <div class="exec-card reveal">
+                    <h4>Godfrey Munkuli</h4>
+                    <div class="exec-role">Chief Communications Officer</div>
+                    <p>Leading stakeholder engagement, client support feedback loops, and community onboarding.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact & Partnership Hub -->
+    <section id="contact" class="section-pad">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-kicker">Connect With MTN-SPEC</span>
+                <h2>Deploy With Us or <span class="gradient-blue-text">Partner Across Our Ecosystem</span></h2>
+                <p>
+                    Whether you're a government agency, mining syndicate, insurer, agribusiness, transport operator, or
+                    investorâ€”connect directly with MTN-SPEC leadership today.
+                </p>
+            </div>
+
+            <div class="contact-layout">
+                <div class="contact-channels reveal">
+                    <div class="channel-card">
+                        <div class="channel-icon"><i class="fas fa-phone-volume"></i></div>
+                        <div>
+                            <h4>Direct Executive Line</h4>
+                            <p>Takunda Nigel Mhandu â€” CTO &amp; Systems Architect</p>
+                            <a href="tel:+263779770395" class="channel-link">
+                                <i class="fas fa-phone"></i> +263 77 977 0395
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="channel-card">
+                        <div class="channel-icon"><i class="fas fa-envelope-open-text"></i></div>
+                        <div>
+                            <h4>Corporate &amp; Technical Inquiries</h4>
+                            <p>Proposals, platform demos, API integrations &amp; consulting</p>
+                            <a href="mailto:mhandutakunda@gmail.com" class="channel-link">
+                                <i class="fas fa-at"></i> mhandutakunda@gmail.com
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="channel-card">
+                        <div class="channel-icon"><i class="fas fa-location-dot"></i></div>
+                        <div>
+                            <h4>Operational Footprint</h4>
+                            <p>3620 Mutiti Road, Rusike Park, Marondera â€¢ Harare â€¢ Bulawayo, Zimbabwe</p>
+                            <span class="channel-link"><i class="fas fa-globe"></i> mtnspec.co.zw</span>
+                        </div>
+                    </div>
+
+                    <div class="whatsapp-qr-panel">
+                        <div class="qr-frame">
+                            <img src="whatsapp_qr.jpeg?v=2" alt="MTN-SPEC Official WhatsApp QR Code">
+                        </div>
+                        <div>
+                            <h4>Instant WhatsApp Desk</h4>
+                            <p style="font-size: 0.88rem; color: var(--text-Silver); margin-top: 4px;">
+                                Scan our official QR code or tap below to chat directly with our engineering &amp; operations desk.
+                            </p>
+                            <a href="https://wa.me/qr/MB6UARERVV34N1" target="_blank" rel="noopener" class="btn-wa">
+                                <i class="fab fa-whatsapp"></i> Chat on WhatsApp
+                            </a>
                         </div>
                     </div>
                 </div>
 
-                <div class="contact-method">
-                    <h3>Direct Call</h3>
-                    <div style="margin-bottom: 20px;">
-                        <i class="fas fa-phone-volume"
-                            style="font-size: 4rem; color: var(--secondary-color); margin-bottom: 15px; display: block;"></i>
-                        <h4 style="margin-bottom: 5px; color: var(--dark-bg); font-size: 1.2rem;">Takunda Nigel Mhandu</h4>
-                        <p style="color: #666;">Chief Technology Officer</p>
-                    </div>
-                    <a href="tel:+263779770395" class="btn btn-primary"
-                        style="border-radius: 50px; padding: 12px 30px; display: inline-flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-phone-alt"></i> +263 77 977 0395
-                    </a>
-                </div>
+                <!-- Interactive Project / Partnership Brief Form -->
+                <div class="inquiry-form-card reveal">
+                    <h3>Start a Conversation</h3>
+                    <p>Select a platform or enterprise service below and send your brief directly to our team.</p>
 
-                <div class="contact-method">
-                    <h3>Email Us</h3>
-                    <p style="margin-bottom: 8px;">Connect directly via email:</p>
-                    <a href="mailto:mhandutakunda@gmail.com" style="display: inline-block; font-weight: 600; color: var(--primary-color); margin-bottom: 15px; font-size: 1.05rem;">
-                        <i class="fas fa-envelope"></i> mhandutakunda@gmail.com
-                    </a>
-                    <form id="email-form" action="mailto:mhandutakunda@gmail.com" method="post" enctype="text/plain">
-                        <div class="form-group">
-                            <input type="email" name="Email" placeholder="Your Email Address" required>
+                    <form id="corporate-inquiry-form">
+                        <div class="form-row-2">
+                            <div class="field-group">
+                                <label for="inq-name">Full Name / Organization</label>
+                                <input type="text" id="inq-name" name="name" placeholder="e.g. Jane Moyo / SeedHouse ZW" required>
+                            </div>
+                            <div class="field-group">
+                                <label for="inq-email">Email or Phone Number</label>
+                                <input type="text" id="inq-email" name="contact" placeholder="you@organization.co.zw" required>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <textarea name="Message" placeholder="Your Message / Feedback" rows="4" required></textarea>
+
+                        <div class="field-group">
+                            <label for="inq-service">Platform or Service of Interest</label>
+                            <select id="inq-service" name="service">
+                                <option value="AgriShield Partnership & Crop Telemetry">AgriShield (agrishield.co.zw) â€” Drought AI &amp; Parametric Insurance</option>
+                                <option value="Change It Fleet & Merchant Integration">Change It (changeit.co.zw) â€” Cashless Transit &amp; P2P Payments</option>
+                                <option value="Mineral Exploration & Smart Mining GIS">National Mineral Intelligence Hub â€” Orbital Prospecting &amp; Smart Mining</option>
+                                <option value="Custom GIS, Remote Sensing & LiDAR Survey">Enterprise GIS, Earth Observation &amp; Drone LiDAR Consulting</option>
+                                <option value="Custom FinTech, AI or Full-Stack Software">Custom Full-Stack Software, AI/ML &amp; EcoCash API Engineering</option>
+                                <option value="Investment & Strategic Partnership">Investment, Grant &amp; Institutional Partnership</option>
+                            </select>
                         </div>
-                        <button type="submit" class="btn btn-primary">Send Email</button>
+
+                        <div class="field-group">
+                            <label for="inq-message">Project Scope or Inquiry</label>
+                            <textarea id="inq-message" name="message" rows="4"
+                                placeholder="Tell us about your project goals, target region, or partnership interest..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-blue-fade" style="width: 100%;">
+                            <i class="fas fa-paper-plane"></i> Dispatch Inquiry to MTN-SPEC
+                        </button>
+                        <p class="form-feedback-msg" id="form-feedback">
+                            <i class="fas fa-circle-check"></i> Opening your email client with your structured brief addressed to MTN-SPEC...
+                        </p>
                     </form>
                 </div>
             </div>
-
-            <p class="small-text">Direct line to Department Head</p>
         </div>
     </section>
 
+    <!-- Footer -->
     <footer>
-        <div class="container footer-content">
-            <p class="address" style="margin-bottom: 10px;"><i class="fas fa-map-marker-alt"></i> 3620 Mutiti Road,
-                Rusike Park, Marondera</p>
-            <p>&copy; 2025 MTNSPEC. All Rights Reserved.</p>
-            <div class="socials">
-                <a href="https://www.facebook.com/share/1KLp1VtHU9/" target="_blank" title="Follow us on Facebook"><i
-                        class="fab fa-facebook-f"></i></a>
-                <a href="https://www.instagram.com/mwanawevtech" target="_blank" title="Follow us on Instagram"><i
-                        class="fab fa-instagram"></i></a>
-                <a href="https://wa.me/qr/MB6UARERVV34N1" target="_blank" title="Chat on WhatsApp"><i
-                        class="fab fa-whatsapp"></i></a>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="brand-link" style="margin-bottom: 16px;">
+                        <div class="logo-frame">
+                            <img src="logo.png?v=concept2" alt="MTN-SPEC Logo">
+                        </div>
+                        <div class="brand-text">
+                            <span class="brand-name">MTN-SPEC</span>
+                            <span class="brand-sub">MTNSPEC (Pvt) Ltd</span>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 340px;">
+                        Indigenous Zimbabwean deep-tech company building geospatial intelligence, AI climate-resilience,
+                        smart mining, and inclusive digital payment systems for Africa.
+                    </p>
+                    <div class="footer-socials">
+                        <a href="https://wa.me/qr/MB6UARERVV34N1" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://github.com/MTN-spec/MTN---Spec-" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                        <a href="https://www.facebook.com/share/1KLp1VtHU9/" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/mwanawevtech" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Flagship Ecosystem</h4>
+                    <ul>
+                        <li><a href="https://agrishield.co.zw" target="_blank" rel="noopener">AgriShield (agrishield.co.zw)</a></li>
+                        <li><a href="changeit.html">Change It Portal &amp; App</a></li>
+                        <li><a href="https://nationalmineralintelligencehub.co.zw" target="_blank" rel="noopener">Mineral Intelligence Hub</a></li>
+                        <li><a href="login.html"><i class="fas fa-lock"></i> Team Login (Master Ops)</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Enterprise Services</h4>
+                    <ul>
+                        <li><a href="#services">Satellite EO &amp; GIS Consulting</a></li>
+                        <li><a href="#services">Smart Mining &amp; Drone LiDAR</a></li>
+                        <li><a href="#services">Crop GDSS &amp; Parametric Tech</a></li>
+                        <li><a href="#services">FinTech &amp; EcoCash QR Systems</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Headquarters</h4>
+                    <ul>
+                        <li><a href="#contact">3620 Mutiti Rd, Rusike Park, Marondera</a></li>
+                        <li><a href="tel:+263779770395">+263 77 977 0395</a></li>
+                        <li><a href="mailto:mhandutakunda@gmail.com">mhandutakunda@gmail.com</a></li>
+                        <li><a href="#mission">Vision 2030 &amp; Data Act Compliant</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <span>&copy; 2026 MTN-SPEC (Pvt) Ltd. All Rights Reserved.</span>
+                <span>Engineered in Zimbabwe â€¢ Scaling Across Africa</span>
             </div>
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="corporate.js?v=20261031"></script>
 </body>
 
 </html>
+

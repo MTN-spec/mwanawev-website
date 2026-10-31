@@ -1,6 +1,5 @@
-const CACHE_NAME = 'changeit-v2-20260915';
+const CACHE_NAME = 'mtnspec-v3-20261031';
 const urlsToCache = [
-    './',
     './app.html',
     './app.css',
     './app.js',
@@ -28,6 +27,23 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+    // Always use Network-First for HTML pages so mtnspec.co.zw updates immediately
+    if (event.request.mode === 'navigate' || (event.request.headers.get('accept') || '').includes('text/html')) {
+        event.respondWith(
+            fetch(event.request)
+                .then(response => {
+                    if (response && response.status === 200 && response.type === 'basic') {
+                        const clone = response.clone();
+                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                    }
+                    return response;
+                })
+                .catch(() => caches.match(event.request))
+        );
+        return;
+    }
+
+    // Cache-First for static app assets (offline support for Change It PWA)
     event.respondWith(
         caches.match(event.request)
             .then(response => {

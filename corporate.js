@@ -1,0 +1,413 @@
+/* ==========================================================================
+   MTN-SPEC Corporate Website — Interactive Telemetry & UI Engine
+   ========================================================================== */
+
+document.addEventListener('DOMContentLoaded', () => {
+    initNavbarAndScrollSpy();
+    initHeroTypewriter();
+    initOrbitalCanvas();
+    initScrollReveal();
+    initPlatformFilterTabs();
+    initAgriShieldConsole();
+    initChangeItSimulator();
+    initMineralHubConsole();
+    initContactPrefillAndForm();
+});
+
+/* 1. Sticky Navbar, Mobile Menu & Scroll Spy */
+function initNavbarAndScrollSpy() {
+    const navbar = document.getElementById('navbar');
+    const mobileToggle = document.getElementById('mobile-toggle');
+    const navMenu = document.getElementById('nav-menu');
+    const navLinks = document.querySelectorAll('.nav-links a');
+    const sections = document.querySelectorAll('section[id]');
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 30) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+
+        let currentId = 'hero';
+        sections.forEach((sec) => {
+            const top = sec.offsetTop - 140;
+            if (window.scrollY >= top) {
+                currentId = sec.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach((link) => {
+            link.classList.toggle('active', link.getAttribute('href') === `#${currentId}`);
+        });
+    });
+
+    if (mobileToggle && navMenu) {
+        mobileToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('open');
+            const icon = mobileToggle.querySelector('i');
+            if (icon) {
+                icon.className = navMenu.classList.contains('open') ? 'fas fa-xmark' : 'fas fa-bars';
+            }
+        });
+
+        navLinks.forEach((link) => {
+            link.addEventListener('click', () => {
+                navMenu.classList.remove('open');
+                const icon = mobileToggle.querySelector('i');
+                if (icon) icon.className = 'fas fa-bars';
+            });
+        });
+    }
+}
+
+/* 2. Hero Rotating Sector Typewriter */
+function initHeroTypewriter() {
+    const target = document.getElementById('typing-sector');
+    if (!target) return;
+
+    const phrases = [
+        'Climate-Resilient Agriculture',
+        'Cashless Public Mobility',
+        'Orbital Mineral Exploration',
+        'Inclusive Digital Finance'
+    ];
+
+    let phraseIndex = 0;
+    let charIndex = phrases[0].length;
+    let isDeleting = true;
+
+    function tick() {
+        const currentPhrase = phrases[phraseIndex];
+
+        if (isDeleting) {
+            charIndex--;
+            target.textContent = currentPhrase.substring(0, charIndex);
+        } else {
+            charIndex++;
+            target.textContent = currentPhrase.substring(0, charIndex);
+        }
+
+        let delay = isDeleting ? 35 : 65;
+
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            delay = 2400;
+            isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            delay = 320;
+        }
+
+        setTimeout(tick, delay);
+    }
+
+    setTimeout(tick, 2400);
+}
+
+/* 3. Subtle Blue-Fade Orbital & FinTech Network Canvas */
+function initOrbitalCanvas() {
+    const canvas = document.getElementById('orbital-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    let width = 0;
+    let height = 0;
+    let nodes = [];
+
+    function resize() {
+        width = canvas.width = canvas.offsetWidth;
+        height = canvas.height = canvas.offsetHeight;
+        const count = Math.min(52, Math.max(24, Math.floor((width * height) / 24000)));
+        nodes = Array.from({ length: count }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 0.45,
+            vy: (Math.random() - 0.5) * 0.45,
+            r: Math.random() * 2 + 1
+        }));
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, width, height);
+
+        for (let i = 0; i < nodes.length; i++) {
+            const p = nodes[i];
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if (p.x < 0 || p.x > width) p.vx *= -1;
+            if (p.y < 0 || p.y > height) p.vy *= -1;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 212, 255, 0.55)';
+            ctx.fill();
+
+            for (let j = i + 1; j < nodes.length; j++) {
+                const q = nodes[j];
+                const dx = p.x - q.x;
+                const dy = p.y - q.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist < 145) {
+                    const alpha = (1 - dist / 145) * 0.22;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(q.x, q.y);
+                    ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        requestAnimationFrame(draw);
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+    draw();
+}
+
+/* 4. IntersectionObserver Scroll Reveal */
+function initScrollReveal() {
+    const items = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+        items.forEach((el) => el.classList.add('visible'));
+        return;
+    }
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        },
+        { threshold: 0.12 }
+    );
+
+    items.forEach((el) => observer.observe(el));
+}
+
+/* 5. Ecosystem Platform Filter Tabs */
+function initPlatformFilterTabs() {
+    const tabs = document.querySelectorAll('.p-tab');
+    const cards = document.querySelectorAll('.platform-showcase');
+
+    tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+            tabs.forEach((t) => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            const filter = tab.getAttribute('data-filter');
+            cards.forEach((card) => {
+                const match = filter === 'all' || card.getAttribute('data-platform') === filter;
+                card.style.display = match ? 'grid' : 'none';
+            });
+        });
+    });
+}
+
+/* 6. Interactive AgriShield Agro-Zone Console */
+function initAgriShieldConsole() {
+    const zoneData = {
+        marondera: {
+            ndvi: '0.74',
+            spi: '+0.62',
+            vci: '82%',
+            smiPct: 76,
+            smiText: '76% Optimal',
+            mlPct: 91,
+            mlText: '91% High Yield',
+            triggerText: 'NO DEFICIT',
+            triggerColor: '#34d399',
+            bannerBg: 'rgba(16, 185, 129, 0.14)',
+            bannerBorder: 'rgba(16, 185, 129, 0.35)'
+        },
+        midlands: {
+            ndvi: '0.51',
+            spi: '-0.48',
+            vci: '58%',
+            smiPct: 49,
+            smiText: '49% Moderate Watch',
+            mlPct: 74,
+            mlText: '74% Advisory Issued',
+            triggerText: 'WATCH STAGE 1',
+            triggerColor: '#fbbf24',
+            bannerBg: 'rgba(245, 158, 11, 0.14)',
+            bannerBorder: 'rgba(245, 158, 11, 0.38)'
+        },
+        binga: {
+            ndvi: '0.26',
+            spi: '-1.64',
+            vci: '27%',
+            smiPct: 22,
+            smiText: '22% Severe Deficit',
+            mlPct: 95,
+            mlText: '95% Drought Confirmed',
+            triggerText: 'PAYOUT TRIGGERED',
+            triggerColor: '#38bdf8',
+            bannerBg: 'rgba(0, 168, 204, 0.22)',
+            bannerBorder: 'rgba(0, 212, 255, 0.55)'
+        }
+    };
+
+    const buttons = document.querySelectorAll('.zone-btn');
+    buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            buttons.forEach((b) => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const d = zoneData[btn.getAttribute('data-zone')];
+            if (!d) return;
+
+            document.getElementById('agri-ndvi').textContent = d.ndvi;
+            document.getElementById('agri-spi').textContent = d.spi;
+            document.getElementById('agri-vci').textContent = d.vci;
+            document.getElementById('agri-smi-label').textContent = d.smiText;
+            document.getElementById('agri-smi-bar').style.width = `${d.smiPct}%`;
+            document.getElementById('agri-ml-label').textContent = d.mlText;
+            document.getElementById('agri-ml-bar').style.width = `${d.mlPct}%`;
+
+            const pill = document.getElementById('agri-trigger-pill');
+            const banner = document.getElementById('agri-payout-banner');
+            pill.textContent = d.triggerText;
+            pill.style.color = d.triggerColor;
+            banner.style.background = d.bannerBg;
+            banner.style.borderColor = d.bannerBorder;
+        });
+    });
+}
+
+/* 7. Interactive Change It QR Transit Fare Simulator */
+function initChangeItSimulator() {
+    const btn = document.getElementById('ci-pay-btn');
+    const balEl = document.getElementById('ci-balance');
+    const ledger = document.getElementById('ci-ledger-list');
+    if (!btn || !balEl || !ledger) return;
+
+    let balance = 15.5;
+    const routes = [
+        { label: 'Copacabana → Warren Park', amt: -0.5 },
+        { label: 'Bulawayo CBD → NUST Campus', amt: -0.5 },
+        { label: 'Marondera CBD → Rusike Park', amt: -0.5 },
+        { label: 'Vendor P2P Digital Change', amt: +1.0 },
+        { label: 'Market Square → Borrowdale', amt: -0.5 }
+    ];
+    let idx = 0;
+
+    btn.addEventListener('click', () => {
+        const tx = routes[idx % routes.length];
+        idx++;
+        balance = Math.max(2.0, +(balance + tx.amt).toFixed(2));
+        balEl.textContent = `$${balance.toFixed(2)}`;
+
+        const row = document.createElement('div');
+        row.className = 'ci-tx';
+        const isCredit = tx.amt > 0;
+        row.innerHTML = `
+            <span>${tx.label}</span>
+            <span class="amt" style="color: ${isCredit ? '#34d399' : '#38bdf8'};">
+                ${isCredit ? '+' : '-'}$${Math.abs(tx.amt).toFixed(2)}
+            </span>
+        `;
+        ledger.prepend(row);
+        while (ledger.children.length > 3) {
+            ledger.removeChild(ledger.lastElementChild);
+        }
+    });
+}
+
+/* 8. Interactive National Mineral Intelligence Hub Spectral Console */
+function initMineralHubConsole() {
+    const layers = {
+        iron: {
+            coords: 'ZVISHAVANE PILOT • 20.32°S, 30.06°E • B4/B2 RATIO',
+            desc: 'Hematite / Goethite Sulfide Cap Halo Detected',
+            score: '94.2% Match',
+            bg: `radial-gradient(circle at 35% 45%, rgba(0, 229, 255, 0.58) 0%, rgba(0, 86, 179, 0.36) 34%, transparent 62%),
+                 radial-gradient(circle at 72% 58%, rgba(255, 215, 0, 0.48) 0%, rgba(0, 168, 204, 0.3) 28%, transparent 55%),
+                 linear-gradient(135deg, #041226 0%, #09264a 50%, #05162e 100%)`
+        },
+        clay: {
+            coords: 'SHURUGWI GREENSTONE • 19.67°S, 30.00°E • SWIR B11/B12',
+            desc: 'Al-OH Illite / Kaolinite Epithermal Gold Alteration',
+            score: '91.8% Match',
+            bg: `radial-gradient(circle at 62% 40%, rgba(56, 189, 248, 0.62) 0%, rgba(0, 119, 182, 0.4) 36%, transparent 64%),
+                 radial-gradient(circle at 28% 65%, rgba(16, 185, 129, 0.42) 0%, transparent 52%),
+                 linear-gradient(135deg, #04152d 0%, #002b59 55%, #041022 100%)`
+        },
+        gossan: {
+            coords: 'GREAT DYKE CONTACT • 19.95°S, 30.18°E • (B11-B4)/(B11+B4)',
+            desc: 'Oxidized Auriferous & Base-Metal Gossan Vein Cap',
+            score: '96.1% Match',
+            bg: `radial-gradient(circle at 48% 50%, rgba(255, 215, 0, 0.52) 0%, rgba(0, 168, 204, 0.42) 35%, transparent 65%),
+                 linear-gradient(135deg, #061730 0%, #003566 52%, #040e1f 100%)`
+        }
+    };
+
+    const buttons = document.querySelectorAll('.spec-btn');
+    const viewport = document.getElementById('spectral-viewport');
+    const coordsEl = document.getElementById('spec-coords');
+    const descEl = document.getElementById('spec-target-desc');
+    const scoreEl = document.getElementById('spec-score');
+
+    buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            buttons.forEach((b) => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const l = layers[btn.getAttribute('data-layer')];
+            if (!l || !viewport) return;
+
+            viewport.style.background = l.bg;
+            coordsEl.textContent = l.coords;
+            descEl.textContent = l.desc;
+            scoreEl.textContent = l.score;
+        });
+    });
+}
+
+/* 9. Smart Contact Prefill & Mailto Dispatch */
+function initContactPrefillAndForm() {
+    const selectEl = document.getElementById('inq-service');
+    const prefillBtns = document.querySelectorAll('[data-Prefill]');
+
+    prefillBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const val = btn.getAttribute('data-Prefill');
+            if (selectEl && val) {
+                selectEl.value = val;
+            }
+        });
+    });
+
+    const form = document.getElementById('corporate-inquiry-form');
+    const feedback = document.getElementById('form-feedback');
+
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('inq-name').value.trim();
+            const contact = document.getElementById('inq-email').value.trim();
+            const service = document.getElementById('inq-service').value;
+            const message = document.getElementById('inq-message').value.trim();
+
+            const subject = encodeURIComponent(`[MTN-SPEC Website Inquiry] ${service} — ${name}`);
+            const body = encodeURIComponent(
+                `Name / Organization: ${name}\nContact: ${contact}\nInterest: ${service}\n\nProject Brief / Message:\n${message}`
+            );
+
+            if (feedback) {
+                feedback.style.display = 'block';
+            }
+
+            window.location.href = `mailto:mhandutakunda@gmail.com?subject=${subject}&body=${body}`;
+        });
+    }
+}
+
