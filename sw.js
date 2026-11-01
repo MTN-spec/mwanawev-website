@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mtnspec-v6-20261101';
+const CACHE_NAME = 'mtnspec-v-20261101_171656';
 const urlsToCache = [
     './app.html',
     './app.css',
@@ -28,12 +28,16 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
     // Bypass Service Worker interception for streaming video / Range requests
-    if (event.request.headers.has('range') || event.request.url.endsWith('.mp4')) {
+    if (event.request.headers.has('range') || /\.(mp4|webm|ogg|mov)(\?|$)/i.test(event.request.url)) {
         return;
     }
 
-    // Always use Network-First for HTML pages so mtnspec.co.zw updates immediately
-    if (event.request.mode === 'navigate' || (event.request.headers.get('accept') || '').includes('text/html')) {
+    // Always use Network-First for HTML pages and site-config.js so mtnspec.co.zw updates immediately
+    if (
+        event.request.mode === 'navigate' ||
+        (event.request.headers.get('accept') || '').includes('text/html') ||
+        event.request.url.includes('site-config.js')
+    ) {
         event.respondWith(
             fetch(event.request)
                 .then(response => {

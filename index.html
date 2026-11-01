@@ -19,7 +19,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="corporate.css?v=20261101_v5">
+    <link rel="stylesheet" href="corporate.css?v=20261101_171656">
 </head>
 
 <body>
@@ -84,7 +84,7 @@
         <div class="hero-glow-orb orb-1"></div>
         <div class="hero-glow-orb orb-2"></div>
 
-        <div class="container hero-grid">
+        <div class="container hero-grid hero-wide-container">
             <div class="hero-copy">
                 <div class="eyebrow-badge">
                     <i class="fas fa-satellite"></i> Sovereign Spatial Intelligence • Deep Learning • Urban FinTech
@@ -127,7 +127,7 @@
                 </div>
             </div>
 
-            <!-- Right Interactive Platform Explorer Pane -->
+            <!-- Right Interactive Widescreen Media & Platform Theater -->
             <div class="hero-showcase-pane" id="hero-showcase-pane">
                 <div class="showcase-header">
                     <div class="showcase-brand">
@@ -135,11 +135,11 @@
                             <img src="logo.png?v=concept2" alt="MTN-SPEC">
                         </div>
                         <div>
-                            <h3>Flagship Platforms</h3>
-                            <span>Select a system to preview capabilities</span>
+                            <h3>Flagship Systems Showcase</h3>
+                            <span>Interactive live video &amp; field imagery preview</span>
                         </div>
                     </div>
-                    <div class="showcase-dots" aria-hidden="true">
+                    <div class="showcase-dots" id="showcase-venture-dots" aria-hidden="true">
                         <span class="s-dot active" data-idx="0"></span>
                         <span class="s-dot" data-idx="1"></span>
                         <span class="s-dot" data-idx="2"></span>
@@ -147,7 +147,7 @@
                 </div>
 
                 <!-- Interactive Selector Tabs -->
-                <div class="showcase-tabs" role="tablist" aria-label="MTN-SPEC Flagship Systems">
+                <div class="showcase-tabs" id="showcase-tabs" role="tablist" aria-label="MTN-SPEC Flagship Systems">
                     <button type="button" class="showcase-tab active" data-venture="nmih" role="tab" aria-selected="true">
                         <i class="fas fa-gem"></i> Mineral Hub
                     </button>
@@ -159,14 +159,47 @@
                     </button>
                 </div>
 
-                <!-- Dynamic Real-Photo Stage -->
-                <div class="showcase-stage" id="showcase-stage" style="background-image: url('bg/bg-satellite-earth.jpg');">
+                <!-- Widescreen Dynamic Video + Image Theater Stage -->
+                <div class="showcase-stage" id="showcase-stage">
+                    <img id="showcase-media-img" class="showcase-media-layer active" src="bg/bg-satellite-earth.jpg" alt="MTN-SPEC Platform Visual">
+                    <video id="showcase-media-video" class="showcase-media-layer" muted loop playsinline preload="metadata"></video>
                     <div class="showcase-stage-fade"></div>
-                    <span class="showcase-sector-pill" id="showcase-sector">Geospatial Decision Support System</span>
-                    <a href="https://nationalmineralintelligencehub.co.zw" target="_blank" rel="noopener" class="showcase-domain-bar" id="showcase-domain-link">
-                        <span id="showcase-domain-text">nationalmineralintelligencehub.co.zw</span>
-                        <i class="fas fa-arrow-up-right-from-square"></i>
-                    </a>
+
+                    <!-- Stage Top Overlay: Sector Tag + Media Counter & Expand -->
+                    <div class="showcase-stage-top">
+                        <span class="showcase-sector-pill" id="showcase-sector">Geospatial Decision Support System</span>
+                        <div class="showcase-stage-controls">
+                            <span class="showcase-media-badge" id="showcase-media-badge">
+                                <i class="fas fa-image"></i> 1 / 2
+                            </span>
+                            <button type="button" class="showcase-icon-btn" id="showcase-expand-btn" title="Expand Full View" aria-label="Expand Media">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Prev / Next Media Slide Arrows -->
+                    <button type="button" class="showcase-nav-arrow prev" id="showcase-prev-slide" aria-label="Previous visual">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button type="button" class="showcase-nav-arrow next" id="showcase-next-slide" aria-label="Next visual">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+
+                    <!-- Stage Bottom Overlay: Caption + Domain Link -->
+                    <div class="showcase-stage-bottom">
+                        <p class="showcase-slide-caption" id="showcase-slide-caption">
+                            Copernicus Sentinel-2 Orbital Mineral Targeting (10m–20m)
+                        </p>
+                        <div class="showcase-domain-row">
+                            <a href="https://nationalmineralintelligencehub.co.zw" target="_blank" rel="noopener" class="showcase-domain-bar" id="showcase-domain-link">
+                                <span id="showcase-domain-text">nationalmineralintelligencehub.co.zw</span>
+                                <i class="fas fa-arrow-up-right-from-square"></i>
+                            </a>
+                            <div class="showcase-slide-pills" id="showcase-slide-pills"></div>
+                        </div>
+                    </div>
+
                     <div class="showcase-progress-track">
                         <div class="showcase-progress-bar" id="showcase-progress"></div>
                     </div>
@@ -176,7 +209,7 @@
                 <div class="showcase-body" id="showcase-body">
                     <h4 id="showcase-title">The National Mineral Intelligence Hub</h4>
                     <p id="showcase-desc">
-                        Maps Iron Oxide, Hydrothermal Clay, and Gossan mineral alteration zones at 10m–20m Sentinel-2 resolution with GPS field verification.
+                        Maps Iron Oxide, Hydrothermal Clay, and Gossan mineral alteration zones at 10m–20m Sentinel-2 resolution with GPS ground-truthing.
                     </p>
 
                     <div class="showcase-metrics">
@@ -819,18 +852,18 @@
             </div>
 
             <!-- Detailed Profile: Takunda Nigel Mhandu -->
-            <div class="founder-spotlight reveal">
-                <div class="founder-monogram">
+            <div class="founder-spotlight reveal" id="founder-spotlight-box">
+                <div class="founder-monogram" id="founder-avatar-slot">
                     MTN
                     <small>FOUNDER</small>
                 </div>
                 <div class="founder-details">
-                    <span class="role-pill">Founder • Chief Technology Officer &amp; Lead Systems Architect</span>
-                    <h3>Takunda Nigel Mhandu</h3>
-                    <div class="founder-qualification">
+                    <span class="role-pill" id="founder-role-pill">Founder • Chief Technology Officer &amp; Lead Systems Architect</span>
+                    <h3 id="founder-name">Takunda Nigel Mhandu</h3>
+                    <div class="founder-qualification" id="founder-qual">
                         Geospatial &amp; Software Engineer | BSc (Hons) Geospatial Sciences &amp; Remote Sensing — NUST
                     </div>
-                    <p>
+                    <p id="founder-bio">
                         Architects MTN-SPEC's full-stack spatial platforms, cloud Earth observation pipelines, and digital
                         payment infrastructure. Combines Python (FastAPI, Streamlit), JavaScript, and PostgreSQL/PostGIS
                         with Sentinel-2/Landsat-9 spectral processing, drone LiDAR workflows, Random Forest ML triggers,
@@ -847,7 +880,7 @@
             </div>
 
             <!-- Co-Innovators & Specialist Leads -->
-            <div class="exec-grid-two">
+            <div class="exec-grid-two" id="team-members-grid">
                 <div class="exec-card reveal">
                     <div class="exec-avatar-badge">PPC</div>
                     <div>
@@ -1019,7 +1052,28 @@
         </div>
     </footer>
 
-    <script src="corporate.js?v=20261101_v5"></script>
+    <!-- Fullscreen Media Lightbox for Hero Showcase Videos & Images -->
+    <div class="showcase-lightbox" id="showcase-lightbox" aria-hidden="true">
+        <div class="lightbox-backdrop" id="lightbox-backdrop"></div>
+        <div class="lightbox-dialog">
+            <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Close Preview">
+                <i class="fas fa-xmark"></i>
+            </button>
+            <div class="lightbox-media-wrap">
+                <img id="lightbox-img" src="" alt="Expanded Preview" style="display:none;">
+                <video id="lightbox-video" controls autoplay loop playsinline style="display:none;"></video>
+            </div>
+            <div class="lightbox-caption-bar">
+                <span id="lightbox-caption"></span>
+                <a href="#" id="lightbox-open-link" target="_blank" rel="noopener" class="btn-pane-primary">
+                    Open Platform <i class="fas fa-arrow-up-right-from-square"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="site-config.js?v=20261101_171656"></script>
+    <script src="corporate.js?v=20261101_171656"></script>
 </body>
 
 </html>

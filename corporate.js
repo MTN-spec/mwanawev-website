@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initNavbarAndScrollSpy();
     initHeroTypewriter();
     initHeroShowcasePane();
+    initTeamFromConfig();
     initOrbitalCanvas();
     initScrollReveal();
     initPlatformFilterTabs();
@@ -106,68 +107,93 @@ function initHeroTypewriter() {
     setTimeout(tick, 2400);
 }
 
-/* 2b. Hero Interactive Platform Explorer Pane */
+/* 2b. Hero Interactive Widescreen Media & Platform Theater */
 function initHeroShowcasePane() {
     const pane = document.getElementById('hero-showcase-pane');
     if (!pane) return;
 
-    const ventures = [
+    const fallbackVentures = [
         {
             key: 'nmih',
+            tabLabel: 'Mineral Hub',
+            tabIcon: 'fas fa-gem',
             sector: 'Geospatial Decision Support System',
-            photo: "bg/bg-satellite-earth.jpg",
             domainText: 'nationalmineralintelligencehub.co.zw',
             launchHref: 'https://nationalmineralintelligencehub.co.zw',
             external: true,
             detailsHref: '#platform-nmih',
             title: 'The National Mineral Intelligence Hub',
-            desc: 'Maps Iron Oxide, Hydrothermal Clay, and Gossan mineral alteration zones at 10m–20m Sentinel-2 resolution with GPS field verification.',
-            m1Val: '10m–20m',
-            m1Lbl: 'Spatial Scale',
-            m2Val: '5 Ratios',
-            m2Lbl: 'Spectral Bands',
-            m3Val: 'GDSS',
-            m3Lbl: 'Target Mapping'
+            desc: 'Maps Iron Oxide, Hydrothermal Clay, and Gossan mineral alteration zones at 10m–20m Sentinel-2 resolution with GPS ground-truthing.',
+            metrics: [
+                { val: '10m–20m', lbl: 'Spatial Scale' },
+                { val: '5 Ratios', lbl: 'Spectral Bands' },
+                { val: 'GDSS', lbl: 'Target Mapping' }
+            ],
+            media: [
+                { type: 'image', src: 'bg/bg-satellite-earth.jpg', caption: 'Copernicus Sentinel-2 Orbital Mineral Targeting (10m–20m)' }
+            ]
         },
         {
             key: 'agrishield',
-            sector: 'Remote Sensing & Crop Monitoring',
-            photo: "bg/bg-dji-mavic3.jpg",
+            tabLabel: 'AgriShield',
+            tabIcon: 'fas fa-seedling',
+            sector: 'Remote Sensing & Deep-Learning Crop Monitoring',
             domainText: 'agrishield.co.zw',
             launchHref: 'https://agrishield.co.zw',
             external: true,
             detailsHref: '#platform-agrishield',
             title: 'AgriShield Crop & Drought Intelligence',
-            desc: 'Monitors parcel-level crop health, root-zone soil moisture, and drought stress across 12+ satellite indices with automated payouts.',
-            m1Val: '12+ Indices',
-            m1Lbl: 'Multi-Sensor EO',
-            m2Val: '25+ Years',
-            m2Lbl: 'Climate Records',
-            m3Val: 'Parametric',
-            m3Lbl: 'Risk Triggers'
+            desc: 'Monitors parcel-level crop vigour, root-zone soil moisture, and drought stress across 12+ satellite indices with Deep Learning & automated payouts.',
+            metrics: [
+                { val: '12+ Indices', lbl: 'Multi-Sensor EO' },
+                { val: 'Deep Learning', lbl: 'Stress Detection' },
+                { val: 'Parametric', lbl: 'Risk Triggers' }
+            ],
+            media: [
+                { type: 'image', src: 'bg/bg-dji-mavic3.jpg', caption: 'DJI Aerial Survey & Multi-Sensor Crop Health Telemetry' }
+            ]
         },
         {
             key: 'changeit',
+            tabLabel: 'Change It',
+            tabIcon: 'fas fa-qrcode',
             sector: 'Urban Spatial Mobility & FinTech',
-            photo: "bg/bg-cosmos-night-earth.jpg",
             domainText: 'changeit.co.zw • mtnspec.co.zw/changeit',
             launchHref: 'changeit.html',
             external: false,
             detailsHref: '#platform-changeit',
             title: 'Change It Urban Transit & Digital Change',
-            desc: 'Analyzes urban commuter corridors while powering sub-second QR fare micro-payments that permanently end cash change shortages.',
-            m1Val: 'Sub-Second',
-            m1Lbl: 'QR Checkout',
-            m2Val: 'Corridors',
-            m2Lbl: 'Urban Analytics',
-            m3Val: 'Zero Cash',
-            m3Lbl: 'Digital Change'
+            desc: 'Analyzes urban commuter corridors while powering sub-second QR fare micro-payments that permanently eliminate cash change shortages.',
+            metrics: [
+                { val: 'Sub-Second', lbl: 'QR Checkout' },
+                { val: 'Corridors', lbl: 'Urban Analytics' },
+                { val: 'Zero Cash', lbl: 'Digital Change' }
+            ],
+            media: [
+                { type: 'video', src: 'hero_video.mp4', poster: 'hero_transport.png', caption: 'Cashless Urban Mobility & Instant P2P Digital Change' }
+            ]
         }
     ];
+
+    const ventures =
+        window.MTNSPEC_CONFIG &&
+        Array.isArray(window.MTNSPEC_CONFIG.showcaseVentures) &&
+        window.MTNSPEC_CONFIG.showcaseVentures.length > 0
+            ? window.MTNSPEC_CONFIG.showcaseVentures
+            : fallbackVentures;
 
     const tabs = pane.querySelectorAll('.showcase-tab');
     const dots = pane.querySelectorAll('.s-dot');
     const stage = document.getElementById('showcase-stage');
+    const mediaImg = document.getElementById('showcase-media-img');
+    const mediaVideo = document.getElementById('showcase-media-video');
+    const mediaBadge = document.getElementById('showcase-media-badge');
+    const slideCaptionEl = document.getElementById('showcase-slide-caption');
+    const slidePillsEl = document.getElementById('showcase-slide-pills');
+    const prevBtn = document.getElementById('showcase-prev-slide');
+    const nextBtn = document.getElementById('showcase-next-slide');
+    const expandBtn = document.getElementById('showcase-expand-btn');
+
     const body = document.getElementById('showcase-body');
     const sectorEl = document.getElementById('showcase-sector');
     const domainLink = document.getElementById('showcase-domain-link');
@@ -184,33 +210,144 @@ function initHeroShowcasePane() {
     const detailsBtn = document.getElementById('showcase-details-btn');
     const progressEl = document.getElementById('showcase-progress');
 
-    let currentIdx = 0;
+    // Lightbox elements
+    const lightbox = document.getElementById('showcase-lightbox');
+    const lightboxBackdrop = document.getElementById('lightbox-backdrop');
+    const lightboxClose = document.getElementById('lightbox-close');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxVideo = document.getElementById('lightbox-video');
+    const lightboxCaption = document.getElementById('lightbox-caption');
+    const lightboxOpenLink = document.getElementById('lightbox-open-link');
+
+    let currentVentureIdx = 0;
+    let currentSlideIdx = 0;
     let progress = 0;
-    let isPaused = false;
-    const cycleMs = 6500;
+    let isHovered = false;
+    let isLightboxOpen = false;
     const stepMs = 50;
 
-    function selectVenture(index) {
-        currentIdx = (index + ventures.length) % ventures.length;
-        const v = ventures[currentIdx];
+    // Sync custom tab labels if defined in site-config.js
+    tabs.forEach((tab, idx) => {
+        const v = ventures[idx];
+        if (v && v.tabLabel) {
+            const iconClass = v.tabIcon || 'fas fa-layer-group';
+            tab.innerHTML = `<i class="${iconClass}"></i> ${v.tabLabel}`;
+        }
+    });
+
+    function getSlides(v) {
+        if (Array.isArray(v.media) && v.media.length > 0) return v.media;
+        if (v.photo) return [{ type: 'image', src: v.photo, caption: v.title || '' }];
+        return [{ type: 'image', src: 'bg/bg-satellite-earth.jpg', caption: v.title || '' }];
+    }
+
+    function isVideoSlide(slide) {
+        if (!slide) return false;
+        return slide.type === 'video' || /\.(mp4|webm|ogg|mov)(\?|$)/i.test(slide.src || '');
+    }
+
+    function getCycleDuration() {
+        const v = ventures[currentVentureIdx];
+        const slides = getSlides(v);
+        const slide = slides[currentSlideIdx];
+        return isVideoSlide(slide) ? 8000 : 6200;
+    }
+
+    function renderSlide() {
+        const v = ventures[currentVentureIdx];
+        const slides = getSlides(v);
+        currentSlideIdx = ((currentSlideIdx % slides.length) + slides.length) % slides.length;
+        const slide = slides[currentSlideIdx];
+        const videoMode = isVideoSlide(slide);
+
+        if (videoMode && mediaVideo) {
+            if (mediaImg) mediaImg.classList.remove('active');
+            if (mediaVideo.getAttribute('data-active-src') !== slide.src) {
+                mediaVideo.setAttribute('data-active-src', slide.src);
+                mediaVideo.src = slide.src;
+            }
+            if (slide.poster) {
+                mediaVideo.poster = slide.poster;
+            } else {
+                mediaVideo.removeAttribute('poster');
+            }
+            mediaVideo.classList.add('active');
+            mediaVideo.currentTime = 0;
+            const playPromise = mediaVideo.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch(() => {});
+            }
+        } else if (mediaImg) {
+            if (mediaVideo) {
+                mediaVideo.classList.remove('active');
+                try { mediaVideo.pause(); } catch (_) {}
+            }
+            mediaImg.classList.remove('active');
+            mediaImg.src = slide.src;
+            mediaImg.alt = slide.caption || v.title || 'MTN-SPEC Visual';
+            // Trigger subtle smooth crossfade + Ken Burns
+            requestAnimationFrame(() => {
+                mediaImg.classList.add('active');
+            });
+        }
+
+        if (mediaBadge) {
+            const icon = videoMode ? 'fa-circle-play' : 'fa-camera';
+            const prefix = videoMode ? 'Video ' : '';
+            mediaBadge.innerHTML = `<i class="fas ${icon}"></i> ${prefix}${currentSlideIdx + 1} / ${slides.length}`;
+        }
+
+        if (slideCaptionEl) {
+            slideCaptionEl.textContent = slide.caption || v.sector || '';
+        }
+
+        if (slidePillsEl) {
+            slidePillsEl.innerHTML = '';
+            if (slides.length > 1) {
+                slides.forEach((_, idx) => {
+                    const pill = document.createElement('button');
+                    pill.type = 'button';
+                    pill.className = `slide-mini-pill${idx === currentSlideIdx ? ' active' : ''}`;
+                    pill.setAttribute('aria-label', `Show visual ${idx + 1}`);
+                    pill.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        currentSlideIdx = idx;
+                        progress = 0;
+                        if (progressEl) progressEl.style.width = '0%';
+                        renderSlide();
+                    });
+                    slidePillsEl.appendChild(pill);
+                });
+            }
+        }
+
+        if (prevBtn) prevBtn.style.display = slides.length > 1 ? 'flex' : 'none';
+        if (nextBtn) nextBtn.style.display = slides.length > 1 ? 'flex' : 'none';
+    }
+
+    function selectVenture(index, initialSlide = 0) {
+        currentVentureIdx = ((index % ventures.length) + ventures.length) % ventures.length;
+        currentSlideIdx = initialSlide;
+        const v = ventures[currentVentureIdx];
         progress = 0;
         if (progressEl) progressEl.style.width = '0%';
 
         tabs.forEach((t, i) => {
-            const active = i === currentIdx;
+            const active = i === currentVentureIdx;
             t.classList.toggle('active', active);
             t.setAttribute('aria-selected', active ? 'true' : 'false');
         });
-        dots.forEach((d, i) => d.classList.toggle('active', i === currentIdx));
+        dots.forEach((d, i) => d.classList.toggle('active', i === currentVentureIdx));
+
+        renderSlide();
 
         if (body) body.classList.add('switching');
 
         setTimeout(() => {
-            if (stage) stage.style.backgroundImage = `url('${v.photo}')`;
-            if (sectorEl) sectorEl.textContent = v.sector;
-            if (domainText) domainText.textContent = v.domainText;
+            if (sectorEl) sectorEl.textContent = v.sector || '';
+            if (domainText) domainText.textContent = v.domainText || '';
             if (domainLink) {
-                domainLink.href = v.launchHref;
+                domainLink.href = v.launchHref || '#platforms';
                 if (v.external) {
                     domainLink.setAttribute('target', '_blank');
                     domainLink.setAttribute('rel', 'noopener');
@@ -218,17 +355,23 @@ function initHeroShowcasePane() {
                     domainLink.removeAttribute('target');
                 }
             }
-            if (titleEl) titleEl.textContent = v.title;
-            if (descEl) descEl.textContent = v.desc;
-            if (m1Val) m1Val.textContent = v.m1Val;
-            if (m1Lbl) m1Lbl.textContent = v.m1Lbl;
-            if (m2Val) m2Val.textContent = v.m2Val;
-            if (m2Lbl) m2Lbl.textContent = v.m2Lbl;
-            if (m3Val) m3Val.textContent = v.m3Val;
-            if (m3Lbl) m3Lbl.textContent = v.m3Lbl;
+            if (titleEl) titleEl.textContent = v.title || '';
+            if (descEl) descEl.textContent = v.desc || '';
+
+            const metrics = Array.isArray(v.metrics) ? v.metrics : [];
+            const m1 = metrics[0] || { val: v.m1Val || '', lbl: v.m1Lbl || '' };
+            const m2 = metrics[1] || { val: v.m2Val || '', lbl: v.m2Lbl || '' };
+            const m3 = metrics[2] || { val: v.m3Val || '', lbl: v.m3Lbl || '' };
+
+            if (m1Val) m1Val.textContent = m1.val;
+            if (m1Lbl) m1Lbl.textContent = m1.lbl;
+            if (m2Val) m2Val.textContent = m2.val;
+            if (m2Lbl) m2Lbl.textContent = m2.lbl;
+            if (m3Val) m3Val.textContent = m3.val;
+            if (m3Lbl) m3Lbl.textContent = m3.lbl;
 
             if (launchBtn) {
-                launchBtn.href = v.launchHref;
+                launchBtn.href = v.launchHref || '#platforms';
                 if (v.external) {
                     launchBtn.setAttribute('target', '_blank');
                     launchBtn.setAttribute('rel', 'noopener');
@@ -238,31 +381,189 @@ function initHeroShowcasePane() {
                     launchBtn.innerHTML = 'Open Portal <i class="fas fa-arrow-right"></i>';
                 }
             }
-            if (detailsBtn) detailsBtn.href = v.detailsHref;
+            if (detailsBtn) detailsBtn.href = v.detailsHref || '#platforms';
             if (body) body.classList.remove('switching');
-        }, 140);
+        }, 120);
+    }
+
+    function stepSlide(delta) {
+        const v = ventures[currentVentureIdx];
+        const slides = getSlides(v);
+        currentSlideIdx = ((currentSlideIdx + delta) % slides.length + slides.length) % slides.length;
+        progress = 0;
+        if (progressEl) progressEl.style.width = '0%';
+        renderSlide();
+    }
+
+    function openLightbox() {
+        if (!lightbox) return;
+        const v = ventures[currentVentureIdx];
+        const slides = getSlides(v);
+        const slide = slides[currentSlideIdx];
+        const videoMode = isVideoSlide(slide);
+
+        isLightboxOpen = true;
+        lightbox.classList.add('open');
+        lightbox.setAttribute('aria-hidden', 'false');
+
+        if (videoMode && lightboxVideo) {
+            if (lightboxImg) lightboxImg.style.display = 'none';
+            lightboxVideo.style.display = 'block';
+            lightboxVideo.src = slide.src;
+            if (slide.poster) lightboxVideo.poster = slide.poster;
+            lightboxVideo.play().catch(() => {});
+        } else if (lightboxImg) {
+            if (lightboxVideo) {
+                try { lightboxVideo.pause(); } catch (_) {}
+                lightboxVideo.style.display = 'none';
+            }
+            lightboxImg.style.display = 'block';
+            lightboxImg.src = slide.src;
+            lightboxImg.alt = slide.caption || v.title || 'Expanded Preview';
+        }
+
+        if (lightboxCaption) {
+            lightboxCaption.textContent = `${v.title} — ${slide.caption || v.sector}`;
+        }
+        if (lightboxOpenLink) {
+            lightboxOpenLink.href = v.launchHref || '#platforms';
+            if (v.external) {
+                lightboxOpenLink.setAttribute('target', '_blank');
+                lightboxOpenLink.setAttribute('rel', 'noopener');
+            } else {
+                lightboxOpenLink.removeAttribute('target');
+            }
+        }
+    }
+
+    function closeLightbox() {
+        if (!lightbox) return;
+        isLightboxOpen = false;
+        lightbox.classList.remove('open');
+        lightbox.setAttribute('aria-hidden', 'true');
+        if (lightboxVideo) {
+            try { lightboxVideo.pause(); } catch (_) {}
+            lightboxVideo.removeAttribute('src');
+        }
     }
 
     tabs.forEach((tab, idx) => {
-        tab.addEventListener('click', () => selectVenture(idx));
+        tab.addEventListener('click', () => selectVenture(idx, 0));
     });
     dots.forEach((dot, idx) => {
-        dot.addEventListener('click', () => selectVenture(idx));
+        dot.addEventListener('click', () => selectVenture(idx, 0));
     });
 
-    pane.addEventListener('mouseenter', () => { isPaused = true; });
-    pane.addEventListener('mouseleave', () => { isPaused = false; });
+    if (prevBtn) {
+        prevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            stepSlide(-1);
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            stepSlide(1);
+        });
+    }
+    if (expandBtn) {
+        expandBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openLightbox();
+        });
+    }
+    if (stage) {
+        stage.addEventListener('click', (e) => {
+            if (e.target.closest('a, button')) return;
+            openLightbox();
+        });
+    }
+    if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
+    if (lightboxBackdrop) lightboxBackdrop.addEventListener('click', closeLightbox);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isLightboxOpen) closeLightbox();
+    });
+
+    pane.addEventListener('mouseenter', () => { isHovered = true; });
+    pane.addEventListener('mouseleave', () => { isHovered = false; });
+
+    // Initialize first venture & slide immediately
+    selectVenture(0, 0);
 
     setInterval(() => {
-        if (isPaused) return;
+        if (isHovered || isLightboxOpen) return;
+        const cycleMs = getCycleDuration();
         progress += stepMs;
         if (progressEl) {
             progressEl.style.width = `${Math.min(100, (progress / cycleMs) * 100)}%`;
         }
         if (progress >= cycleMs) {
-            selectVenture(currentIdx + 1);
+            const v = ventures[currentVentureIdx];
+            const slides = getSlides(v);
+            if (currentSlideIdx + 1 < slides.length) {
+                currentSlideIdx += 1;
+                progress = 0;
+                if (progressEl) progressEl.style.width = '0%';
+                renderSlide();
+            } else {
+                selectVenture(currentVentureIdx + 1, 0);
+            }
         }
     }, stepMs);
+}
+
+/* 2c. Hydrate Founder & Team Profiles From site-config.js (Supports Custom Photos & Added Members) */
+function initTeamFromConfig() {
+    const cfg = window.MTNSPEC_CONFIG;
+    if (!cfg) return;
+
+    if (cfg.founder) {
+        const f = cfg.founder;
+        const avatarSlot = document.getElementById('founder-avatar-slot');
+        const roleEl = document.getElementById('founder-role-pill');
+        const nameEl = document.getElementById('founder-name');
+        const qualEl = document.getElementById('founder-qual');
+        const bioEl = document.getElementById('founder-bio');
+
+        if (avatarSlot && f.photo && f.photo.trim() !== '') {
+            avatarSlot.innerHTML = `<img src="${f.photo}" alt="${f.name || 'Founder'}">`;
+        }
+        if (roleEl && f.rolePill) roleEl.textContent = f.rolePill;
+        if (nameEl && f.name) nameEl.textContent = f.name;
+        if (qualEl && f.qualification) qualEl.textContent = f.qualification;
+        if (bioEl && f.bio) bioEl.textContent = f.bio;
+    }
+
+    const teamGrid = document.getElementById('team-members-grid');
+    if (teamGrid && Array.isArray(cfg.teamMembers) && cfg.teamMembers.length > 0) {
+        teamGrid.innerHTML = '';
+        cfg.teamMembers.forEach((m) => {
+            const card = document.createElement('div');
+            card.className = 'exec-card reveal visible';
+
+            const badgeHtml =
+                m.photo && m.photo.trim() !== ''
+                    ? `<div class="exec-avatar-badge"><img src="${m.photo}" alt="${m.name || ''}"></div>`
+                    : `<div class="exec-avatar-badge">${m.initials || 'MTN'}</div>`;
+
+            const bodyWrap = document.createElement('div');
+            const h4 = document.createElement('h4');
+            h4.textContent = m.name || '';
+            const roleDiv = document.createElement('div');
+            roleDiv.className = 'exec-role';
+            roleDiv.textContent = m.role || '';
+            const p = document.createElement('p');
+            p.textContent = m.bio || '';
+
+            bodyWrap.appendChild(h4);
+            bodyWrap.appendChild(roleDiv);
+            bodyWrap.appendChild(p);
+
+            card.innerHTML = badgeHtml;
+            card.appendChild(bodyWrap);
+            teamGrid.appendChild(card);
+        });
+    }
 }
 
 /* 3. Subtle Blue-Fade Orbital & FinTech Network Canvas */
