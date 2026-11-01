@@ -16,13 +16,25 @@ document.addEventListener('DOMContentLoaded', () => {
     initContactPrefillAndForm();
 });
 
-/* 1. Sticky Navbar, Mobile Menu & Scroll Spy */
+/* 1. Sticky Navbar, Dropdown Menus, Mobile Accordion & Scroll Spy */
 function initNavbarAndScrollSpy() {
     const navbar = document.getElementById('navbar');
     const mobileToggle = document.getElementById('mobile-toggle');
     const navMenu = document.getElementById('nav-menu');
-    const navLinks = document.querySelectorAll('.nav-links a');
+    const topNavLinks = document.querySelectorAll('.nav-links > li > a');
+    const dropdownParents = document.querySelectorAll('.nav-links > li.has-dropdown');
+    const dropdownItems = document.querySelectorAll('.nav-dropdown a');
     const sections = document.querySelectorAll('section[id]');
+
+    function closeMobileMenu() {
+        if (!navMenu) return;
+        navMenu.classList.remove('open');
+        dropdownParents.forEach((li) => li.classList.remove('mobile-open'));
+        if (mobileToggle) {
+            const icon = mobileToggle.querySelector('i');
+            if (icon) icon.className = 'fas fa-bars';
+        }
+    }
 
     window.addEventListener('scroll', () => {
         if (window.scrollY > 30) {
@@ -39,7 +51,7 @@ function initNavbarAndScrollSpy() {
             }
         });
 
-        navLinks.forEach((link) => {
+        topNavLinks.forEach((link) => {
             link.classList.toggle('active', link.getAttribute('href') === `#${currentId}`);
         });
     });
@@ -53,11 +65,41 @@ function initNavbarAndScrollSpy() {
             }
         });
 
-        navLinks.forEach((link) => {
-            link.addEventListener('click', () => {
-                navMenu.classList.remove('open');
-                const icon = mobileToggle.querySelector('i');
-                if (icon) icon.className = 'fas fa-bars';
+        topNavLinks.forEach((link) => {
+            link.addEventListener('click', (e) => {
+                const parentLi = link.parentElement;
+                if (window.innerWidth <= 960 && parentLi && parentLi.classList.contains('has-dropdown')) {
+                    if (!parentLi.classList.contains('mobile-open')) {
+                        e.preventDefault();
+                        dropdownParents.forEach((other) => {
+                            if (other !== parentLi) other.classList.remove('mobile-open');
+                        });
+                        parentLi.classList.add('mobile-open');
+                        return;
+                    }
+                }
+                closeMobileMenu();
+            });
+        });
+
+        dropdownItems.forEach((item) => {
+            item.addEventListener('click', () => {
+                const href = item.getAttribute('href') || '';
+                if (href.startsWith('#platform-')) {
+                    const allTab = document.querySelector('.p-tab[data-filter="all"]');
+                    if (allTab && !allTab.classList.contains('active')) {
+                        allTab.click();
+                    }
+                }
+                if (href.startsWith('#') && href.length > 1) {
+                    const targetEl = document.querySelector(href);
+                    if (targetEl && !targetEl.matches('section')) {
+                        targetEl.classList.add('card-spotlight-pulse');
+                        setTimeout(() => targetEl.classList.remove('card-spotlight-pulse'), 1900);
+                    }
+                }
+                item.blur();
+                closeMobileMenu();
             });
         });
     }
