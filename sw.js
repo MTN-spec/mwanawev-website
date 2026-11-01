@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mtnspec-v5-20261101';
+const CACHE_NAME = 'mtnspec-v6-20261101';
 const urlsToCache = [
     './app.html',
     './app.css',

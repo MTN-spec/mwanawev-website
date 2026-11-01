@@ -16,10 +16,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="corporate.css?v=20261101_v4">
+    <link rel="stylesheet" href="corporate.css?v=20261101_v5">
 </head>
 
 <body>
@@ -127,77 +127,80 @@
                 </div>
             </div>
 
-            <!-- Right Interactive Command Hub Card -->
-            <div class="hero-command-card">
-                <div class="cmd-header">
-                    <div class="cmd-title-group">
-                        <div class="cmd-logo-badge">
+            <!-- Right Interactive Platform Explorer Pane -->
+            <div class="hero-showcase-pane" id="hero-showcase-pane">
+                <div class="showcase-header">
+                    <div class="showcase-brand">
+                        <div class="showcase-logo">
                             <img src="logo.png?v=concept2" alt="MTN-SPEC">
                         </div>
                         <div>
-                            <h3>MTN-SPEC Spatial Command</h3>
-                            <span>mtnspec.co.zw • GDSS, Deep Learning &amp; Urban Telemetry</span>
+                            <h3>Flagship Platforms</h3>
+                            <span>Select a system to preview capabilities</span>
                         </div>
                     </div>
-                    <span class="cmd-live-tag">● Active</span>
+                    <div class="showcase-dots" aria-hidden="true">
+                        <span class="s-dot active" data-idx="0"></span>
+                        <span class="s-dot" data-idx="1"></span>
+                        <span class="s-dot" data-idx="2"></span>
+                    </div>
                 </div>
 
-                <div class="venture-nodes">
-                    <a href="#platform-nmih" class="v-node">
-                        <div class="v-node-left">
-                            <div class="v-icon"><i class="fas fa-satellite-dish"></i></div>
-                            <div>
-                                <h4>Mineral Intelligence Hub</h4>
-                                <p>nationalmineralintelligencehub.co.zw</p>
-                            </div>
-                        </div>
-                        <div class="v-metric">
-                            <strong>Mineral GDSS</strong>
-                            <small>10m–20m Deposit Mapping</small>
-                        </div>
-                    </a>
-
-                    <a href="#platform-agrishield" class="v-node">
-                        <div class="v-node-left">
-                            <div class="v-icon"><i class="fas fa-cloud-sun-rain"></i></div>
-                            <div>
-                                <h4>AgriShield Crop AI</h4>
-                                <p>agrishield.co.zw</p>
-                            </div>
-                        </div>
-                        <div class="v-metric">
-                            <strong>Deep Learning</strong>
-                            <small>12+ Remote Sensing Indices</small>
-                        </div>
-                    </a>
-
-                    <a href="#platform-changeit" class="v-node">
-                        <div class="v-node-left">
-                            <div class="v-icon"><i class="fas fa-mobile-screen-button"></i></div>
-                            <div>
-                                <h4>Change It Urban Spatial</h4>
-                                <p>changeit.co.zw</p>
-                            </div>
-                        </div>
-                        <div class="v-metric">
-                            <strong>HMAC QR</strong>
-                            <small>Urban Transit &amp; Change</small>
-                        </div>
-                    </a>
+                <!-- Interactive Selector Tabs -->
+                <div class="showcase-tabs" role="tablist" aria-label="MTN-SPEC Flagship Systems">
+                    <button type="button" class="showcase-tab active" data-venture="nmih" role="tab" aria-selected="true">
+                        <i class="fas fa-gem"></i> Mineral Hub
+                    </button>
+                    <button type="button" class="showcase-tab" data-venture="agrishield" role="tab" aria-selected="false">
+                        <i class="fas fa-seedling"></i> AgriShield
+                    </button>
+                    <button type="button" class="showcase-tab" data-venture="changeit" role="tab" aria-selected="false">
+                        <i class="fas fa-qrcode"></i> Change It
+                    </button>
                 </div>
 
-                <div class="cmd-metrics-footer">
-                    <div class="cmd-stat">
-                        <strong>3</strong>
-                        <span>Flagship SaaS Ventures</span>
+                <!-- Dynamic Real-Photo Stage -->
+                <div class="showcase-stage" id="showcase-stage" style="background-image: url('bg/bg-satellite-earth.jpg');">
+                    <div class="showcase-stage-fade"></div>
+                    <span class="showcase-sector-pill" id="showcase-sector">Geospatial Decision Support System</span>
+                    <a href="https://nationalmineralintelligencehub.co.zw" target="_blank" rel="noopener" class="showcase-domain-bar" id="showcase-domain-link">
+                        <span id="showcase-domain-text">nationalmineralintelligencehub.co.zw</span>
+                        <i class="fas fa-arrow-up-right-from-square"></i>
+                    </a>
+                    <div class="showcase-progress-track">
+                        <div class="showcase-progress-bar" id="showcase-progress"></div>
                     </div>
-                    <div class="cmd-stat">
-                        <strong>25+ Yrs</strong>
-                        <span>Climate ML Training</span>
+                </div>
+
+                <!-- Dynamic Platform Summary & Balanced Metrics -->
+                <div class="showcase-body" id="showcase-body">
+                    <h4 id="showcase-title">The National Mineral Intelligence Hub</h4>
+                    <p id="showcase-desc">
+                        Maps Iron Oxide, Hydrothermal Clay, and Gossan mineral alteration zones at 10m–20m Sentinel-2 resolution with GPS field verification.
+                    </p>
+
+                    <div class="showcase-metrics">
+                        <div class="s-metric-box">
+                            <strong id="showcase-m1-val">10m–20m</strong>
+                            <span id="showcase-m1-lbl">Spatial Scale</span>
+                        </div>
+                        <div class="s-metric-box">
+                            <strong id="showcase-m2-val">5 Ratios</strong>
+                            <span id="showcase-m2-lbl">Spectral Bands</span>
+                        </div>
+                        <div class="s-metric-box">
+                            <strong id="showcase-m3-val">GDSS</strong>
+                            <span id="showcase-m3-lbl">Target Mapping</span>
+                        </div>
                     </div>
-                    <div class="cmd-stat">
-                        <strong>99.4%</strong>
-                        <span>QR Settlement Fidelity</span>
+
+                    <div class="showcase-actions">
+                        <a href="https://nationalmineralintelligencehub.co.zw" target="_blank" rel="noopener" class="btn-pane-primary" id="showcase-launch-btn">
+                            Open Platform <i class="fas fa-arrow-up-right-from-square"></i>
+                        </a>
+                        <a href="#platform-nmih" class="btn-pane-secondary" id="showcase-details-btn">
+                            System Overview <i class="fas fa-arrow-down"></i>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -235,8 +238,8 @@
             <div class="mission-banner reveal">
                 <div class="mission-banner-grid">
                     <div>
-                        <span class="mission-quote-label">// THE MTN-SPEC CORPORATE MISSION</span>
-                        <h3>Democratizing Spatial Intelligence, Applied AI &amp; Digital Financial Inclusion Across Africa's Backbone Sectors.</h3>
+                        <span class="mission-quote-label">Corporate Mandate</span>
+                        <h3>Democratizing Spatial Intelligence, Deep Learning &amp; Digital Financial Inclusion Across Africa's Backbone Sectors.</h3>
                         <p>
                             Built in Zimbabwe for Zimbabwe and the broader African continent, MTN-SPEC bridges planetary
                             data science and everyday grassroots reality—de-risking smallholder harvests against drought,
@@ -596,11 +599,11 @@
                             <div class="commodity-mini-grid">
                                 <div class="metal-price-pill">
                                     <span>Gold (XAU/oz)</span>
-                                    <strong>LIVE FEED ●</strong>
+                                    <strong>Spot Pricing</strong>
                                 </div>
                                 <div class="metal-price-pill">
                                     <span>Platinum (PGM)</span>
-                                    <strong>LIVE FEED ●</strong>
+                                    <strong>Spot Pricing</strong>
                                 </div>
                                 <div class="metal-price-pill">
                                     <span>Field Gig Escrow</span>
@@ -1016,7 +1019,7 @@
         </div>
     </footer>
 
-    <script src="corporate.js?v=20261101_v4"></script>
+    <script src="corporate.js?v=20261101_v5"></script>
 </body>
 
 </html>

@@ -5,6 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     initNavbarAndScrollSpy();
     initHeroTypewriter();
+    initHeroShowcasePane();
     initOrbitalCanvas();
     initScrollReveal();
     initPlatformFilterTabs();
@@ -103,6 +104,165 @@ function initHeroTypewriter() {
     }
 
     setTimeout(tick, 2400);
+}
+
+/* 2b. Hero Interactive Platform Explorer Pane */
+function initHeroShowcasePane() {
+    const pane = document.getElementById('hero-showcase-pane');
+    if (!pane) return;
+
+    const ventures = [
+        {
+            key: 'nmih',
+            sector: 'Geospatial Decision Support System',
+            photo: "bg/bg-satellite-earth.jpg",
+            domainText: 'nationalmineralintelligencehub.co.zw',
+            launchHref: 'https://nationalmineralintelligencehub.co.zw',
+            external: true,
+            detailsHref: '#platform-nmih',
+            title: 'The National Mineral Intelligence Hub',
+            desc: 'Maps Iron Oxide, Hydrothermal Clay, and Gossan mineral alteration zones at 10m–20m Sentinel-2 resolution with GPS field verification.',
+            m1Val: '10m–20m',
+            m1Lbl: 'Spatial Scale',
+            m2Val: '5 Ratios',
+            m2Lbl: 'Spectral Bands',
+            m3Val: 'GDSS',
+            m3Lbl: 'Target Mapping'
+        },
+        {
+            key: 'agrishield',
+            sector: 'Remote Sensing & Crop Monitoring',
+            photo: "bg/bg-dji-mavic3.jpg",
+            domainText: 'agrishield.co.zw',
+            launchHref: 'https://agrishield.co.zw',
+            external: true,
+            detailsHref: '#platform-agrishield',
+            title: 'AgriShield Crop & Drought Intelligence',
+            desc: 'Monitors parcel-level crop health, root-zone soil moisture, and drought stress across 12+ satellite indices with automated payouts.',
+            m1Val: '12+ Indices',
+            m1Lbl: 'Multi-Sensor EO',
+            m2Val: '25+ Years',
+            m2Lbl: 'Climate Records',
+            m3Val: 'Parametric',
+            m3Lbl: 'Risk Triggers'
+        },
+        {
+            key: 'changeit',
+            sector: 'Urban Spatial Mobility & FinTech',
+            photo: "bg/bg-cosmos-night-earth.jpg",
+            domainText: 'changeit.co.zw • mtnspec.co.zw/changeit',
+            launchHref: 'changeit.html',
+            external: false,
+            detailsHref: '#platform-changeit',
+            title: 'Change It Urban Transit & Digital Change',
+            desc: 'Analyzes urban commuter corridors while powering sub-second QR fare micro-payments that permanently end cash change shortages.',
+            m1Val: 'Sub-Second',
+            m1Lbl: 'QR Checkout',
+            m2Val: 'Corridors',
+            m2Lbl: 'Urban Analytics',
+            m3Val: 'Zero Cash',
+            m3Lbl: 'Digital Change'
+        }
+    ];
+
+    const tabs = pane.querySelectorAll('.showcase-tab');
+    const dots = pane.querySelectorAll('.s-dot');
+    const stage = document.getElementById('showcase-stage');
+    const body = document.getElementById('showcase-body');
+    const sectorEl = document.getElementById('showcase-sector');
+    const domainLink = document.getElementById('showcase-domain-link');
+    const domainText = document.getElementById('showcase-domain-text');
+    const titleEl = document.getElementById('showcase-title');
+    const descEl = document.getElementById('showcase-desc');
+    const m1Val = document.getElementById('showcase-m1-val');
+    const m1Lbl = document.getElementById('showcase-m1-lbl');
+    const m2Val = document.getElementById('showcase-m2-val');
+    const m2Lbl = document.getElementById('showcase-m2-lbl');
+    const m3Val = document.getElementById('showcase-m3-val');
+    const m3Lbl = document.getElementById('showcase-m3-lbl');
+    const launchBtn = document.getElementById('showcase-launch-btn');
+    const detailsBtn = document.getElementById('showcase-details-btn');
+    const progressEl = document.getElementById('showcase-progress');
+
+    let currentIdx = 0;
+    let progress = 0;
+    let isPaused = false;
+    const cycleMs = 6500;
+    const stepMs = 50;
+
+    function selectVenture(index) {
+        currentIdx = (index + ventures.length) % ventures.length;
+        const v = ventures[currentIdx];
+        progress = 0;
+        if (progressEl) progressEl.style.width = '0%';
+
+        tabs.forEach((t, i) => {
+            const active = i === currentIdx;
+            t.classList.toggle('active', active);
+            t.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        dots.forEach((d, i) => d.classList.toggle('active', i === currentIdx));
+
+        if (body) body.classList.add('switching');
+
+        setTimeout(() => {
+            if (stage) stage.style.backgroundImage = `url('${v.photo}')`;
+            if (sectorEl) sectorEl.textContent = v.sector;
+            if (domainText) domainText.textContent = v.domainText;
+            if (domainLink) {
+                domainLink.href = v.launchHref;
+                if (v.external) {
+                    domainLink.setAttribute('target', '_blank');
+                    domainLink.setAttribute('rel', 'noopener');
+                } else {
+                    domainLink.removeAttribute('target');
+                }
+            }
+            if (titleEl) titleEl.textContent = v.title;
+            if (descEl) descEl.textContent = v.desc;
+            if (m1Val) m1Val.textContent = v.m1Val;
+            if (m1Lbl) m1Lbl.textContent = v.m1Lbl;
+            if (m2Val) m2Val.textContent = v.m2Val;
+            if (m2Lbl) m2Lbl.textContent = v.m2Lbl;
+            if (m3Val) m3Val.textContent = v.m3Val;
+            if (m3Lbl) m3Lbl.textContent = v.m3Lbl;
+
+            if (launchBtn) {
+                launchBtn.href = v.launchHref;
+                if (v.external) {
+                    launchBtn.setAttribute('target', '_blank');
+                    launchBtn.setAttribute('rel', 'noopener');
+                    launchBtn.innerHTML = 'Open Platform <i class="fas fa-arrow-up-right-from-square"></i>';
+                } else {
+                    launchBtn.removeAttribute('target');
+                    launchBtn.innerHTML = 'Open Portal <i class="fas fa-arrow-right"></i>';
+                }
+            }
+            if (detailsBtn) detailsBtn.href = v.detailsHref;
+            if (body) body.classList.remove('switching');
+        }, 140);
+    }
+
+    tabs.forEach((tab, idx) => {
+        tab.addEventListener('click', () => selectVenture(idx));
+    });
+    dots.forEach((dot, idx) => {
+        dot.addEventListener('click', () => selectVenture(idx));
+    });
+
+    pane.addEventListener('mouseenter', () => { isPaused = true; });
+    pane.addEventListener('mouseleave', () => { isPaused = false; });
+
+    setInterval(() => {
+        if (isPaused) return;
+        progress += stepMs;
+        if (progressEl) {
+            progressEl.style.width = `${Math.min(100, (progress / cycleMs) * 100)}%`;
+        }
+        if (progress >= cycleMs) {
+            selectVenture(currentIdx + 1);
+        }
+    }, stepMs);
 }
 
 /* 3. Subtle Blue-Fade Orbital & FinTech Network Canvas */
