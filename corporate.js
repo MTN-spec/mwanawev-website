@@ -67,10 +67,10 @@ function initHeroTypewriter() {
     if (!target) return;
 
     const phrases = [
-        'Climate-Resilient Agriculture',
-        'Cashless Public Mobility',
-        'Orbital Mineral Exploration',
-        'Inclusive Digital Finance'
+        'Orbital Mineral Mapping & GDSS',
+        'Deep-Learning Crop & Drought Monitoring',
+        'Urban Spatial Mobility & Digital Change',
+        'Enterprise GIS & Drone LiDAR Engineering'
     ];
 
     let phraseIndex = 0;
