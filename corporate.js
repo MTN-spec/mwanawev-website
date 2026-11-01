@@ -160,9 +160,9 @@ function initHeroShowcasePane() {
             tabLabel: 'Mineral Hub',
             tabIcon: 'fas fa-gem',
             sector: 'Geospatial Decision Support System',
-            domainText: 'nationalmineralintelligencehub.co.zw',
-            launchHref: 'https://nationalmineralintelligencehub.co.zw',
-            external: true,
+            domainText: 'nationalmineralintelligencehub.co.zw • mtnspec.co.zw/mineral-hub',
+            launchHref: 'mineral-hub/index.html',
+            external: false,
             detailsHref: '#platform-nmih',
             title: 'The National Mineral Intelligence Hub',
             desc: 'Maps Iron Oxide, Hydrothermal Clay, and Gossan mineral alteration zones at 10m–20m Sentinel-2 resolution with GPS ground-truthing.',
@@ -219,8 +219,8 @@ function initHeroShowcasePane() {
 
     const ventures =
         window.MTNSPEC_CONFIG &&
-        Array.isArray(window.MTNSPEC_CONFIG.showcaseVentures) &&
-        window.MTNSPEC_CONFIG.showcaseVentures.length > 0
+            Array.isArray(window.MTNSPEC_CONFIG.showcaseVentures) &&
+            window.MTNSPEC_CONFIG.showcaseVentures.length > 0
             ? window.MTNSPEC_CONFIG.showcaseVentures
             : fallbackVentures;
 
@@ -317,12 +317,12 @@ function initHeroShowcasePane() {
             mediaVideo.currentTime = 0;
             const playPromise = mediaVideo.play();
             if (playPromise && typeof playPromise.catch === 'function') {
-                playPromise.catch(() => {});
+                playPromise.catch(() => { });
             }
         } else if (mediaImg) {
             if (mediaVideo) {
                 mediaVideo.classList.remove('active');
-                try { mediaVideo.pause(); } catch (_) {}
+                try { mediaVideo.pause(); } catch (_) { }
             }
             mediaImg.classList.remove('active');
             mediaImg.src = slide.src;
@@ -453,10 +453,10 @@ function initHeroShowcasePane() {
             lightboxVideo.style.display = 'block';
             lightboxVideo.src = slide.src;
             if (slide.poster) lightboxVideo.poster = slide.poster;
-            lightboxVideo.play().catch(() => {});
+            lightboxVideo.play().catch(() => { });
         } else if (lightboxImg) {
             if (lightboxVideo) {
-                try { lightboxVideo.pause(); } catch (_) {}
+                try { lightboxVideo.pause(); } catch (_) { }
                 lightboxVideo.style.display = 'none';
             }
             lightboxImg.style.display = 'block';
@@ -484,7 +484,7 @@ function initHeroShowcasePane() {
         lightbox.classList.remove('open');
         lightbox.setAttribute('aria-hidden', 'true');
         if (lightboxVideo) {
-            try { lightboxVideo.pause(); } catch (_) {}
+            try { lightboxVideo.pause(); } catch (_) { }
             lightboxVideo.removeAttribute('src');
         }
     }
