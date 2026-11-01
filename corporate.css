@@ -37,7 +37,7 @@
                  linear-gradient(145deg, #050b16 0%, #0a162c 38%, #00224b 75%, #003b73 100%);
     --fade-primary: linear-gradient(135deg, #0056b3 0%, #00a8cc 65%, #00d4ff 100%);
     --fade-royal: linear-gradient(135deg, #002855 0%, #0056b3 55%, #00a8cc 100%);
-    --fade-card-dark: linear-gradient(165deg, rgba(16, 33, 62, 0.85) 0%, rgba(8, 18, 36, 0.96) 100%);
+    --fade-card-dark: linear-gradient(165deg, rgba(12, 28, 56, 0.68) 0%, rgba(6, 15, 32, 0.78) 100%);
     --fade-section-deep: linear-gradient(180deg, #050b16 0%, #0b1930 50%, #071224 100%);
     --fade-section-sapphire: linear-gradient(180deg, #071224 0%, #002147 50%, #061326 100%);
     --fade-section-light: linear-gradient(180deg, #eef6ff 0%, #e0effe 50%, #f0f8ff 100%);
@@ -354,7 +354,7 @@ header#navbar.scrolled {
 }
 
 /* ==========================================================================
-   HERO SECTION — LAYERED FADES OF BLUE + ORBITAL NETWORK CANVAS
+   HERO SECTION — ORIGINAL HERO VIDEO + FADES OF BLUE + ORBITAL NETWORK CANVAS
    ========================================================================== */
 #hero {
     position: relative;
@@ -362,8 +362,28 @@ header#navbar.scrolled {
     display: flex;
     align-items: center;
     padding: 80px 0 90px;
-    background: var(--fade-hero);
+    background-color: #050b16;
     overflow: hidden;
+}
+
+.hero-bg-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.hero-video-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+        radial-gradient(circle at 18% 22%, rgba(0, 168, 204, 0.30) 0%, transparent 48%),
+        linear-gradient(135deg, rgba(0, 86, 179, 0.72) 0%, rgba(5, 16, 36, 0.62) 55%, rgba(4, 10, 22, 0.78) 100%);
+    pointer-events: none;
 }
 
 #orbital-canvas {
@@ -517,11 +537,13 @@ header#navbar.scrolled {
 
 /* Right Hero Visual: MTN-SPEC Command Core Hub */
 .hero-command-card {
-    background: linear-gradient(160deg, rgba(13, 28, 54, 0.88) 0%, rgba(6, 14, 29, 0.95) 100%);
-    border: 1px solid rgba(0, 212, 255, 0.32);
+    background: linear-gradient(160deg, rgba(10, 24, 48, 0.74) 0%, rgba(5, 13, 28, 0.84) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(0, 212, 255, 0.36);
     border-radius: 26px;
     padding: 28px;
-    box-shadow: 0 30px 70px rgba(0, 12, 36, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    box-shadow: 0 30px 70px rgba(0, 12, 36, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.14);
     position: relative;
     overflow: hidden;
 }
@@ -774,18 +796,22 @@ header#navbar.scrolled {
 }
 
 /* ==========================================================================
-   MISSION, VISION & CORE IDENTITY SECTION
+   MISSION, VISION & CORE IDENTITY SECTION (REAL COSMOS + ORBITAL ARRAYS)
    ========================================================================== */
 #mission {
-    background: var(--fade-section-deep);
+    background:
+        linear-gradient(180deg, rgba(5, 11, 22, 0.74) 0%, rgba(0, 53, 102, 0.36) 50%, rgba(5, 12, 26, 0.78) 100%),
+        url('bg/bg-cosmos-satellites.jpg') center center / cover fixed no-repeat;
     position: relative;
 }
 
 .mission-banner {
-    background: linear-gradient(135deg, #002855 0%, #0056b3 52%, #0096c7 100%);
+    background: linear-gradient(135deg, rgba(0, 40, 85, 0.78) 0%, rgba(0, 86, 179, 0.70) 52%, rgba(0, 150, 199, 0.74) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-radius: 28px;
     padding: 52px;
-    border: 1px solid rgba(125, 211, 252, 0.35);
+    border: 1px solid rgba(125, 211, 252, 0.38);
     box-shadow: var(--shadow-blue);
     margin-bottom: 40px;
     position: relative;
@@ -873,6 +899,8 @@ header#navbar.scrolled {
 
 .pillar-card {
     background: var(--fade-card-dark);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
     border-radius: 22px;
     padding: 34px 30px;
@@ -911,10 +939,12 @@ header#navbar.scrolled {
 }
 
 /* ==========================================================================
-   FLAGSHIP PLATFORMS SHOWCASE (AGRISHIELD, CHANGE IT, MINERAL HUB)
+   FLAGSHIP PLATFORMS SHOWCASE (REAL SATELLITE DEPLOYED ABOVE BLUE EARTH)
    ========================================================================== */
 #platforms {
-    background: var(--fade-section-sapphire);
+    background:
+        linear-gradient(180deg, rgba(5, 12, 26, 0.70) 0%, rgba(0, 42, 92, 0.46) 48%, rgba(4, 14, 32, 0.78) 100%),
+        url('bg/bg-satellite-earth.jpg') center center / cover fixed no-repeat;
     position: relative;
 }
 
@@ -961,8 +991,10 @@ header#navbar.scrolled {
 }
 
 .platform-showcase {
-    background: linear-gradient(155deg, rgba(12, 27, 52, 0.92) 0%, rgba(5, 13, 28, 0.97) 100%);
-    border: 1px solid rgba(0, 168, 204, 0.28);
+    background: linear-gradient(155deg, rgba(10, 24, 48, 0.72) 0%, rgba(5, 13, 28, 0.82) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(0, 168, 204, 0.34);
     border-radius: 30px;
     padding: 48px;
     display: grid;
@@ -1439,26 +1471,28 @@ header#navbar.scrolled {
 }
 
 /* ==========================================================================
-   COMPANY SERVICES SECTION (CRISP ICE-BLUE TO ROYAL FADE CONTRAST)
+   COMPANY SERVICES SECTION (REAL DJI MAVIC 3 DRONE + BLUE-FADE GLASSMORPHISM)
    ========================================================================== */
 #services {
-    background: var(--fade-section-light);
-    color: var(--text-dark);
+    background:
+        linear-gradient(180deg, rgba(5, 13, 28, 0.76) 0%, rgba(0, 48, 104, 0.54) 48%, rgba(5, 13, 28, 0.80) 100%),
+        url('bg/bg-dji-mavic3.jpg') center 35% / cover fixed no-repeat;
+    color: var(--text-white);
     position: relative;
 }
 
 #services .section-kicker {
-    background: rgba(0, 86, 179, 0.1);
-    border-color: rgba(0, 86, 179, 0.25);
-    color: var(--primary-color);
+    background: rgba(0, 168, 204, 0.18);
+    border-color: rgba(0, 212, 255, 0.36);
+    color: var(--blue-electric);
 }
 
 #services .section-head h2 {
-    color: var(--blue-midnight);
+    color: #ffffff;
 }
 
 #services .section-head p {
-    color: var(--text-dark-muted);
+    color: var(--text-Silver);
 }
 
 .services-grid {
@@ -1468,11 +1502,13 @@ header#navbar.scrolled {
 }
 
 .service-card {
-    background: #ffffff;
-    border: 1px solid rgba(0, 86, 179, 0.12);
+    background: linear-gradient(165deg, rgba(10, 25, 52, 0.70) 0%, rgba(5, 14, 30, 0.80) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 212, 255, 0.28);
     border-radius: 24px;
     padding: 36px 30px;
-    box-shadow: 0 14px 35px rgba(0, 45, 98, 0.07);
+    box-shadow: var(--shadow-blue);
     transition: all 0.32s ease;
     position: relative;
     overflow: hidden;
@@ -1495,8 +1531,8 @@ header#navbar.scrolled {
 
 .service-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 24px 50px rgba(0, 86, 179, 0.16);
-    border-color: rgba(0, 168, 204, 0.4);
+    box-shadow: var(--shadow-glow);
+    border-color: var(--blue-electric);
 }
 
 .service-card:hover::before {
@@ -1514,25 +1550,25 @@ header#navbar.scrolled {
     justify-content: center;
     font-size: 1.45rem;
     margin-bottom: 22px;
-    box-shadow: 0 10px 22px rgba(0, 86, 179, 0.25);
+    box-shadow: 0 10px 22px rgba(0, 168, 204, 0.32);
 }
 
 .service-card h3 {
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--blue-midnight);
+    color: #ffffff;
     margin-bottom: 12px;
 }
 
 .service-card p {
-    color: var(--text-dark-muted);
+    color: var(--text-Silver);
     font-size: 0.95rem;
     margin-bottom: 20px;
     flex: 1;
 }
 
 .srv-deliverables {
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid rgba(0, 168, 204, 0.22);
     padding-top: 16px;
     display: flex;
     flex-direction: column;
@@ -1541,7 +1577,7 @@ header#navbar.scrolled {
 
 .srv-deliverables li {
     font-size: 0.85rem;
-    color: #1e293b;
+    color: #e2e8f0;
     font-weight: 500;
     display: flex;
     align-items: center;
@@ -1549,15 +1585,18 @@ header#navbar.scrolled {
 }
 
 .srv-deliverables li i {
-    color: var(--primary-color);
+    color: var(--blue-electric);
     font-size: 0.78rem;
 }
 
 /* ==========================================================================
-   TECHNOLOGY ARCHITECTURE & RECOGNITION
+   TECHNOLOGY ARCHITECTURE & RECOGNITION (REAL CUBESAT SATELLITE DEPLOYMENT)
    ========================================================================== */
 #technology {
-    background: var(--fade-section-deep);
+    background:
+        linear-gradient(180deg, rgba(5, 12, 26, 0.74) 0%, rgba(0, 48, 98, 0.42) 50%, rgba(5, 12, 26, 0.78) 100%),
+        url('bg/bg-satellite-deployer.jpg') center center / cover fixed no-repeat;
+    position: relative;
 }
 
 .tech-matrix {
@@ -1569,6 +1608,8 @@ header#navbar.scrolled {
 
 .tech-stack-box {
     background: var(--fade-card-dark);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
     border-radius: 20px;
     padding: 28px 24px;
@@ -1610,8 +1651,10 @@ header#navbar.scrolled {
 }
 
 .recognition-strip {
-    background: linear-gradient(135deg, rgba(0, 53, 102, 0.55) 0%, rgba(10, 22, 44, 0.9) 100%);
-    border: 1px solid rgba(0, 212, 255, 0.28);
+    background: linear-gradient(135deg, rgba(0, 53, 102, 0.62) 0%, rgba(8, 18, 36, 0.78) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 212, 255, 0.32);
     border-radius: 24px;
     padding: 36px 40px;
     display: grid;
@@ -1643,15 +1686,20 @@ header#navbar.scrolled {
 }
 
 /* ==========================================================================
-   LEADERSHIP & EXECUTIVE TEAM
+   LEADERSHIP & EXECUTIVE TEAM (REAL DJI DRONE IN FLIGHT AT DUSK)
    ========================================================================== */
 #leadership {
-    background: var(--fade-section-sapphire);
+    background:
+        linear-gradient(180deg, rgba(5, 12, 26, 0.72) 0%, rgba(0, 53, 102, 0.50) 48%, rgba(5, 12, 26, 0.80) 100%),
+        url('bg/bg-dji-phantom-dusk.jpg') center 28% / cover fixed no-repeat;
+    position: relative;
 }
 
 .founder-spotlight {
-    background: linear-gradient(145deg, rgba(0, 62, 128, 0.46) 0%, rgba(7, 17, 36, 0.94) 100%);
-    border: 1px solid rgba(0, 212, 255, 0.38);
+    background: linear-gradient(145deg, rgba(0, 56, 118, 0.58) 0%, rgba(7, 17, 36, 0.78) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(0, 212, 255, 0.40);
     border-radius: 28px;
     padding: 42px;
     display: grid;
@@ -1754,6 +1802,8 @@ header#navbar.scrolled {
 
 .exec-card {
     background: var(--fade-card-dark);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
     border-radius: 24px;
     padding: 32px 30px;
@@ -1807,11 +1857,14 @@ header#navbar.scrolled {
 }
 
 /* ==========================================================================
-   CONTACT SECTION — EXACT FIRST-WEBSITE 3-CARD STRUCTURE IN BLUE FADES
+   CONTACT SECTION — REAL ORBITAL NIGHT EARTH, COSMOS & SATELLITE TRUSS
    ========================================================================== */
 #contact {
-    background: linear-gradient(180deg, #061224 0%, #030914 100%);
-    border-top: 1px solid rgba(0, 168, 204, 0.22);
+    background:
+        linear-gradient(180deg, rgba(5, 12, 26, 0.74) 0%, rgba(0, 42, 88, 0.46) 50%, rgba(3, 8, 18, 0.84) 100%),
+        url('bg/bg-cosmos-night-earth.jpg') center center / cover fixed no-repeat;
+    border-top: 1px solid rgba(0, 168, 204, 0.26);
+    position: relative;
 }
 
 .contact-grid-three {
@@ -1822,8 +1875,10 @@ header#navbar.scrolled {
 }
 
 .contact-method-card {
-    background: linear-gradient(160deg, rgba(14, 30, 58, 0.9) 0%, rgba(7, 15, 30, 0.98) 100%);
-    border: 1px solid rgba(0, 212, 255, 0.28);
+    background: linear-gradient(160deg, rgba(12, 27, 54, 0.72) 0%, rgba(6, 14, 28, 0.82) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(0, 212, 255, 0.32);
     border-radius: 26px;
     padding: 36px 28px;
     box-shadow: var(--shadow-blue);
@@ -1982,11 +2037,13 @@ header#navbar.scrolled {
 }
 
 /* ==========================================================================
-   FOOTER
+   FOOTER (REAL COSMOS STARFIELD, SOLAR ARRAY & ATMOSPHERIC AIRGLOW)
    ========================================================================== */
 footer {
-    background: #030710;
-    border-top: 1px solid rgba(0, 168, 204, 0.16);
+    background:
+        linear-gradient(180deg, rgba(3, 8, 18, 0.80) 0%, rgba(4, 14, 32, 0.72) 50%, rgba(2, 6, 14, 0.90) 100%),
+        url('bg/bg-cosmos-airglow.jpg') center bottom / cover no-repeat;
+    border-top: 1px solid rgba(0, 168, 204, 0.22);
     padding: 64px 0 32px;
 }
 
@@ -2095,6 +2152,17 @@ footer {
     .recognition-strip,
     .footer-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    #mission,
+    #platforms,
+    #services,
+    #technology,
+    #leadership,
+    #contact {
+        background-attachment: scroll !important;
     }
 }
 
