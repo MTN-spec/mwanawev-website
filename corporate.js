@@ -392,14 +392,17 @@ function initContactPrefillAndForm() {
     if (form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            const name = document.getElementById('inq-name').value.trim();
-            const contact = document.getElementById('inq-email').value.trim();
-            const service = document.getElementById('inq-service').value;
-            const message = document.getElementById('inq-message').value.trim();
+            const contactEl = document.getElementById('inq-email');
+            const serviceEl = document.getElementById('inq-service');
+            const msgEl = document.getElementById('inq-message');
 
-            const subject = encodeURIComponent(`[MTN-SPEC Website Inquiry] ${service} — ${name}`);
+            const contact = contactEl ? contactEl.value.trim() : '';
+            const service = serviceEl ? serviceEl.value : 'General Inquiry';
+            const message = msgEl ? msgEl.value.trim() : '';
+
+            const subject = encodeURIComponent(`[MTN-SPEC] ${service}`);
             const body = encodeURIComponent(
-                `Name / Organization: ${name}\nContact: ${contact}\nInterest: ${service}\n\nProject Brief / Message:\n${message}`
+                `From: ${contact}\nTopic: ${service}\n\nMessage / Feedback:\n${message}`
             );
 
             if (feedback) {
