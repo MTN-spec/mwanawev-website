@@ -55,3 +55,9 @@ android/.gradle/
 android/build/
 android/app/build/
 changeit-api/
+
+# Heavy GIS Raster GeoTIFF files (>100MB blocked by GitHub)
+*.tif
+*.tiff
+*.TIF
+*.TIFF
