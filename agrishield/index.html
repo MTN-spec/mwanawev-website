@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Agri-Shield — GIS + Remote Sensing Parametric Insurance Dashboard for Zimbabwean Agriculture">
+    <title>Agri-Shield | Parametric Insurance Dashboard</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <!-- File Parsing Libraries for AOI Upload -->
+    <script src="https://unpkg.com/@tmcw/togeojson@5.8.1/dist/togeojson.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
+
+    <!-- GeoRaster for TIFF Support -->
+    <script src="https://unpkg.com/georaster"></script>
+    <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
+
+    <link rel="stylesheet" href="styles.css?v=20261101_mtn">
+</head>
+<body>
+    <!-- MTN-SPEC Ecosystem Return Bar -->
+    <div style="background: rgba(6, 17, 24, 0.95); border-bottom: 1px solid rgba(56, 189, 248, 0.25); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; z-index: 9999; position: relative;">
+        <a href="https://mtnspec.co.zw" id="agri-home-link" title="Return to MTN-SPEC Corporate Website" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: #38bdf8; font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3);">
+            <span>&larr; MTN-SPEC</span>
+            <span style="color: #94a3b8; font-weight: 400; font-size: 10px;">mtnspec.co.zw</span>
+        </a>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 10px; font-weight: 800; color: #10b981; background: rgba(16, 185, 129, 0.12); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                SOVEREIGN AGRITECH GDSS
+            </span>
+            <span style="font-size: 10px; color: #94a3b8;">Zimbabwe Crop Telemetry</span>
+        </div>
+    </div>
+
+    <!-- ===== LOGIN OVERLAY ===== -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-card">
+            <div class="login-logo">🛡️</div>
+            <h1 class="login-title">Agri-Shield</h1>
+            <p class="login-subtitle">Parametric Insurance Platform</p>
+            
+            <div class="login-badge">
+                <i data-lucide="user-check" style="width:14px;height:14px"></i>
+                Authorized Admin Personnel Only
+            </div>
+
+            <div class="login-form">
+                <div class="input-group">
+                    <label>Admin Name</label>
+                    <input type="text" id="login-user" class="login-input" value="Takunda Nigel Mhandu" readonly>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="login-pass" class="login-input" placeholder="Enter administrative password">
+                </div>
+                <div id="login-error" class="login-error">Incorrect password. Access denied.</div>
+                <button id="login-btn" class="login-btn">Secure Login</button>
+                <button type="button" id="btn-public-agri-explorer" style="width:100%; margin-top:10px; padding:10px 14px; border-radius:8px; border:1px solid rgba(16,185,129,0.4); background:rgba(16,185,129,0.12); color:#34d399; font-weight:700; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    Continue in Live Public Crop Explorer &rarr;
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== LEFT ICON SIDEBAR ===== -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo" id="sidebar-logo">
+            <span class="logo-icon">🛡️</span>
+            <span class="logo-text">AGRI</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-btn active" data-tooltip="Dashboard" data-panel="none" id="nav-dashboard">
+                <i data-lucide="layout-dashboard"></i>
+            </button>
+            <button class="nav-btn" data-tooltip="My Fields" data-panel="fields" id="nav-fields">
+                <i data-lucide="map-pin"></i>
+            </button>
+            <button class="nav-btn" data-tooltip="Draw AOI" data-panel="none" id="nav-draw">
+                <i data-lucide="pentagon"></i>
+            </button>
+            <button class="nav-btn" data-tooltip="Satellite Layers" data-panel="layers" id="nav-layers">
+                <i data-lucide="layers"></i>
+            </button>
+
+            <div class="nav-divider"></div>
+
+            <button class="nav-btn" data-tooltip="Wallet & Payouts" data-panel="claims" id="nav-claims">
+                <i data-lucide="wallet"></i>
+            </button>
+            <button class="nav-btn" data-tooltip="Weather Data" data-panel="weather" id="nav-weather">
+                <i data-lucide="cloud-rain"></i>
+            </button>
+            <button class="nav-btn" data-tooltip="Analytics" data-panel="analytics" id="nav-analytics">
+                <i data-lucide="bar-chart-3"></i>
+            </button>
+            <button class="nav-btn" data-tooltip="Reports" data-panel="none" id="nav-reports">
+                <i data-lucide="file-text"></i>
+            </button>
+
+            <div class="nav-divider"></div>
+
+            <button class="nav-btn" data-tooltip="Notifications" data-panel="notifications" id="nav-notifications">
+                <i data-lucide="bell"></i>
+                <span class="notification-badge">3</span>
+            </button>
+            <button class="nav-btn" data-tooltip="Share" data-panel="none" id="nav-share">
+                <i data-lucide="share-2"></i>
+            </button>
+            <button class="nav-btn" data-tooltip="GEE Cloud Engine" data-panel="none" onclick="window.open('https://ee-mhandutakunda.projects.earthengine.app/view/agri-shield', '_blank')" style="color:#60a5fa">
+                <i data-lucide="cloud"></i>
+            </button>
+            <button class="nav-btn" data-tooltip="Irrigation Monitoring" data-panel="none" onclick="window.open('https://ee-mhandutakunda.projects.earthengine.app/view/agri-shield-irrigation', '_blank')" style="color:#38bdf8">
+                <i data-lucide="droplets"></i>
+            </button>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <button class="nav-btn" data-tooltip="Settings" data-panel="none" id="nav-settings">
+                <i data-lucide="settings"></i>
+            </button>
+            <button class="nav-btn" data-tooltip="Help" data-panel="none" id="nav-help">
+                <i data-lucide="help-circle"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ===== TOP BAR ===== -->
+    <header id="topbar" class="topbar">
+        <div class="topbar-left">
+            <div class="search-box" id="search-box">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" placeholder="Search location, coordinates, field name..." id="search-input">
+            </div>
+            <button class="aoi-btn" id="aoi-upload-btn">
+                <i data-lucide="upload" style="width:14px;height:14px"></i>
+                Upload Area of Interest (AOI)
+            </button>
+            <input type="file" id="aoi-file-input" accept=".kml,.kmz,.shp,.zip" style="display: none;">
+            
+            <select id="drive-image-select" style="margin-left: 10px; background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 6px 12px; border-radius: 4px; font-size: 13px; outline: none; cursor: pointer;">
+                <option value="">🌍 Drive Overlay: None</option>
+            </select>
+        </div>
+        <div class="topbar-center">
+            <div class="imagery-quota">
+                <span class="quota-label">Sentinel-2 Coverage</span>
+                <div class="quota-bar">
+                    <div class="quota-fill" style="width: 72%"></div>
+                </div>
+                <span class="quota-value">72%</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="user-region">
+                <i data-lucide="map" style="width:14px;height:14px"></i>
+                <span>Matabeleland North, Zimbabwe</span>
+            </div>
+            <div class="user-avatar" id="user-avatar">
+                <span>MT</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== MAP CONTAINER ===== -->
+    <main id="map-container" class="map-container">
+        <div id="map" class="map"></div>
+
+        <!-- Map Controls Overlay -->
+        <div class="map-controls" id="map-controls">
+            <button class="map-ctrl-btn" id="zoom-in" data-tooltip-left="Zoom In">
+                <i data-lucide="plus"></i>
+            </button>
+            <button class="map-ctrl-btn" id="zoom-out" data-tooltip-left="Zoom Out">
+                <i data-lucide="minus"></i>
+            </button>
+            <div class="map-ctrl-divider"></div>
+            <button class="map-ctrl-btn" id="locate-me" data-tooltip-left="My Location">
+                <i data-lucide="crosshair"></i>
+            </button>
+            <button class="map-ctrl-btn" id="fullscreen" data-tooltip-left="Fullscreen">
+                <i data-lucide="maximize-2"></i>
+            </button>
+        </div>
+
+        <!-- Map Info Overlay (bottom-left) -->
+        <div class="map-info" id="map-info">
+            <span id="coords">-18.3°S, 27.5°E</span>
+            <span class="separator">|</span>
+            <span id="zoom-level">Zoom: 10</span>
+            <span class="separator">|</span>
+            <span id="scale">50 km</span>
+        </div>
+
+        <!-- Active Index Badge -->
+        <div class="active-index-badge" id="active-index-badge">
+            <div class="index-color-swatch" style="background: linear-gradient(90deg, #d73027, #fee08b, #1a9850)"></div>
+            <span>NDVI</span>
+            <span class="index-range">-1.0 — 1.0</span>
+        </div>
+    </main>
+
+    <!-- ===== RIGHT PANEL ===== -->
+    <aside id="right-panel" class="right-panel">
+        <div class="panel-header">
+            <h2 id="panel-title">INSURED FIELDS</h2>
+            <button class="panel-close" id="panel-close">
+                <i data-lucide="chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Fields Panel Content -->
+        <div class="panel-content" id="panel-fields">
+            <div class="panel-filters">
+                <button class="filter-chip active" data-filter="all">All</button>
+                <button class="filter-chip" data-filter="active">Active</button>
+                <button class="filter-chip" data-filter="alert">Alert</button>
+                <button class="filter-chip" data-filter="triggered">Triggered</button>
+            </div>
+            <!-- Dynamic fields go here -->
+        </div>
+
+        <!-- Satellite Layers Panel Content (hidden by default) -->
+        <div class="panel-content hidden" id="panel-layers">
+            <div class="layers-tabs">
+                <button class="layer-tab active" data-tab="all">All</button>
+                <button class="layer-tab" data-tab="veg">Veg</button>
+                <button class="layer-tab" data-tab="water">Water</button>
+                <button class="layer-tab" data-tab="temp">Temp</button>
+            </div>
+            
+            <div class="layers-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px; overflow-y: auto; max-height: calc(100vh - 160px); justify-items: center; align-content: start;">
+                <!-- NDVI -->
+                <div class="layer-card active" data-layer="ndvi" data-category="veg">
+                    <div class="layer-thumb ndvi-thumb"></div>
+                    <span class="layer-name">NDVI</span>
+                    <span class="layer-desc">MODIS Vegetation</span>
+                </div>
+                <!-- VCI -->
+                <div class="layer-card" data-layer="vci" data-category="veg">
+                    <div class="layer-thumb vci-thumb"></div>
+                    <span class="layer-name">VCI</span>
+                    <span class="layer-desc">Veg Condition</span>
+                </div>
+                <!-- VHI -->
+                <div class="layer-card" data-layer="vhi" data-category="veg">
+                    <div class="layer-thumb vhi-thumb"></div>
+                    <span class="layer-name">VHI</span>
+                    <span class="layer-desc">Veg Health</span>
+                </div>
+                <!-- EVI -->
+                <div class="layer-card" data-layer="evi" data-category="veg">
+                    <div class="layer-thumb evi-thumb"></div>
+                    <span class="layer-name">EVI</span>
+                    <span class="layer-desc">Enhanced Veg</span>
+                </div>
+                <!-- SMI -->
+                <div class="layer-card" data-layer="smi" data-category="water">
+                    <div class="layer-thumb smi-thumb"></div>
+                    <span class="layer-name">SMI</span>
+                    <span class="layer-desc">Soil Moisture</span>
+                </div>
+                <!-- NDWI -->
+                <div class="layer-card" data-layer="ndwi" data-category="water">
+                    <div class="layer-thumb ndwi-thumb"></div>
+                    <span class="layer-name">NDWI</span>
+                    <span class="layer-desc">Water Index</span>
+                </div>
+                <!-- Rainfall -->
+                <div class="layer-card" data-layer="rainfall" data-category="water">
+                    <div class="layer-thumb rainfall-thumb"></div>
+                    <span class="layer-name">Rainfall</span>
+                    <span class="layer-desc">NASA Live GPM</span>
+                </div>
+                <!-- LST -->
+                <div class="layer-card" data-layer="lst" data-category="temp">
+                    <div class="layer-thumb lst-thumb"></div>
+                    <span class="layer-name">LST</span>
+                    <span class="layer-desc">Land Surface Temp</span>
+                </div>
+                <!-- Risk Map -->
+                <div class="layer-card" data-layer="risk" data-category="temp">
+                    <div class="layer-thumb risk-thumb"></div>
+                    <span class="layer-name">Risk Map</span>
+                    <span class="layer-desc">Thermal Anomaly</span>
+                </div>
+                <!-- True Color -->
+                <div class="layer-card" data-layer="truecolor" data-category="all">
+                    <div class="layer-thumb truecolor-thumb"></div>
+                    <span class="layer-name">True Color</span>
+                    <span class="layer-desc">High-Res Satellite</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Claims Panel Content (hidden by default) -->
+        <div class="panel-content hidden" id="panel-claims">
+            <div class="claims-summary">
+                <div class="claim-stat">
+                    <span class="claim-stat-value">12</span>
+                    <span class="claim-stat-label">Total Policies</span>
+                </div>
+                <div class="claim-stat">
+                    <span class="claim-stat-value triggered">3</span>
+                    <span class="claim-stat-label">Payouts Triggered</span>
+                </div>
+                <div class="claim-stat">
+                    <span class="claim-stat-value warning">2</span>
+                    <span class="claim-stat-label">Near Threshold</span>
+                </div>
+            </div>
+            <div class="claims-timeline">
+                <h3>Recent Trigger Events</h3>
+                <div class="timeline-item triggered">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">12 Apr 2026</span>
+                        <p>Hwange Cotton Field — Drought trigger activated. NDVI dropped below 0.15 for 21 consecutive days. Payout of <strong>$142.50</strong> initiated via ZB Smile Cash.</p>
+                    </div>
+                </div>
+                <div class="timeline-item warning">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">10 Apr 2026</span>
+                        <p>Lupane Maize Plot A — NDVI approaching trigger threshold (0.21 → threshold: 0.18). Monitoring intensified.</p>
+                    </div>
+                </div>
+                <div class="timeline-item info">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">1 Apr 2026</span>
+                        <p>New policy issued for Tsholotsho Groundnut field. Premium: $8.00/season collected via EcoCash.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weather Panel Content (hidden by default) -->
+        <div class="panel-content hidden" id="panel-weather">
+            <h3 class="weather-title">Climate Conditions</h3>
+            <div class="weather-current">
+                <div class="weather-icon-large" id="w-icon">📡</div>
+                <div class="weather-temp">
+                    <span class="temp-value" id="w-temp">--</span>
+                    <span class="temp-unit">C</span>
+                </div>
+                <span class="weather-desc" id="w-desc">Fetching Live Data...</span>
+                <span class="weather-location" id="w-loc">Chinhoyi Region (Open-Meteo API)</span>
+            </div>
+            <div class="weather-grid">
+                <div class="weather-stat">
+                    <i data-lucide="droplets" style="width:16px;height:16px;color:#60a5fa"></i>
+                    <span class="stat-label">Precipitation</span>
+                    <span class="stat-value" id="w-precip">-- mm</span>
+                    <span class="stat-normal">Current</span>
+                </div>
+                <div class="weather-stat">
+                    <i data-lucide="wind" style="width:16px;height:16px;color:#f87171"></i>
+                    <span class="stat-label">Wind Speed</span>
+                    <span class="stat-value" id="w-wind">-- km/h</span>
+                    <span class="stat-normal">Current</span>
+                </div>
+                <div class="weather-stat">
+                    <i data-lucide="activity" style="width:16px;height:16px;color:#a78bfa"></i>
+                    <span class="stat-label">Soil Moisture</span>
+                    <span class="stat-value" id="w-soil">-- m³/m³</span>
+                    <span class="stat-normal">Top 1cm</span>
+                </div>
+                <div class="weather-stat">
+                    <i data-lucide="sun" style="width:16px;height:16px;color:#fbbf24"></i>
+                    <span class="stat-label">Evapotranspiration</span>
+                    <span class="stat-value" id="w-et0">-- mm/d</span>
+                    <span class="stat-normal">FAO Ref</span>
+                </div>
+            </div>
+            <div class="drought-index">
+                <h4>Drought Severity Index (SPI)</h4>
+                <div class="spi-bar">
+                    <div class="spi-marker" style="left: 18%"></div>
+                    <div class="spi-gradient"></div>
+                </div>
+                <div class="spi-labels">
+                    <span>Extreme</span>
+                    <span>Severe</span>
+                    <span>Moderate</span>
+                    <span>Normal</span>
+                    <span>Wet</span>
+                </div>
+                <p class="spi-reading">Current SPI: <strong>-1.72</strong> (Severe Drought)</p>
+            </div>
+        </div>
+
+        <!-- Analytics Panel Content (hidden by default) -->
+        <div class="panel-content hidden" id="panel-analytics">
+            <h3>Portfolio Analytics</h3>
+            <div class="analytics-cards">
+                <div class="analytics-card">
+                    <span class="analytics-label">Total Premium Collected</span>
+                    <span class="analytics-value">$1,240</span>
+                    <span class="analytics-trend up">↑ 23% vs last season</span>
+                </div>
+                <div class="analytics-card">
+                    <span class="analytics-label">Total Payouts</span>
+                    <span class="analytics-value">$427</span>
+                    <span class="analytics-trend neutral">3 events triggered</span>
+                </div>
+                <div class="analytics-card">
+                    <span class="analytics-label">Loss Ratio</span>
+                    <span class="analytics-value">34.4%</span>
+                    <span class="analytics-trend up">Within target (<60%)</span>
+                </div>
+                <div class="analytics-card">
+                    <span class="analytics-label">Insured Area</span>
+                    <span class="analytics-value">847 ha</span>
+                    <span class="analytics-trend up">↑ 156 ha new this season</span>
+                </div>
+            </div>
+            <div class="ndvi-timeline-chart">
+                <h4>NDVI Trend (Portfolio Average)</h4>
+                <div class="mini-chart" id="ndvi-chart">
+                    <svg viewBox="0 0 300 100" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="ndviGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
+                                <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M0,30 Q30,25 60,28 T120,35 T180,50 T240,65 T300,72" fill="none" stroke="#10b981" stroke-width="2"/>
+                        <path d="M0,30 Q30,25 60,28 T120,35 T180,50 T240,65 T300,72 L300,100 L0,100 Z" fill="url(#ndviGrad)"/>
+                        <!-- Trigger threshold line -->
+                        <line x1="0" y1="75" x2="300" y2="75" stroke="#ef4444" stroke-width="1" stroke-dasharray="4,4" opacity="0.6"/>
+                        <text x="250" y="72" font-size="8" fill="#ef4444" font-family="Inter">Trigger</text>
+                    </svg>
+                    <div class="chart-labels">
+                        <span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Panel Content (hidden by default) -->
+        <div class="panel-content hidden" id="panel-notifications">
+            <h3>Notifications</h3>
+            <div class="notif-list">
+                <div class="notif-item urgent">
+                    <div class="notif-icon">🔴</div>
+                    <div class="notif-body">
+                        <strong>PAYOUT TRIGGERED</strong>
+                        <p>Hwange Cotton — $142.50 sent to farmer wallet via ZB API</p>
+                        <span class="notif-time">2 hours ago</span>
+                    </div>
+                </div>
+                <div class="notif-item warning">
+                    <div class="notif-icon">⚠️</div>
+                    <div class="notif-body">
+                        <strong>Threshold Warning</strong>
+                        <p>Lupane Maize Plot A approaching NDVI trigger (0.21)</p>
+                        <span class="notif-time">6 hours ago</span>
+                    </div>
+                </div>
+                <div class="notif-item info">
+                    <div class="notif-icon">🛰️</div>
+                    <div class="notif-body">
+                        <strong>New Imagery Available</strong>
+                        <p>Sentinel-2 pass over Binga District — 4 fields updated</p>
+                        <span class="notif-time">1 day ago</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===== BOTTOM INDICES BAR ===== -->
+    <div class="indices-bottom-bar" id="indices-bottom-bar">
+        <div class="indices-bar-header">
+            <span class="indices-bar-title">
+                <i data-lucide="activity" style="width:14px;height:14px"></i>
+                Regional Drought Indices — Matabeleland North
+            </span>
+            <span class="indices-bar-subtitle"><span id="season-label">Live satellite-derived metrics</span></span>
+            <button id="layers-toggle" style="background:transparent; border:1px solid rgba(255,255,255,0.2); color:#8b99ab; padding:4px 10px; border-radius:4px; font-size:10px; cursor:pointer; margin-left:auto;">
+                <span>Hide</span>
+            </button>
+        </div>
+        <div class="indices-scroll-container" id="indices-scroll">
+            <div class="index-metric-card" id="idx-ndvi">
+                <div class="idx-icon" style="background: rgba(16,185,129,0.15); color: #10b981;"><i data-lucide="sprout" style="width:14px;height:14px"></i></div>
+                <div class="idx-info">
+                    <span class="idx-label">NDVI</span>
+                    <span class="idx-value" id="idx-ndvi-val">--</span>
+                </div>
+                <div class="idx-bar">
+                    <div class="idx-bar-fill" style="width:52%; background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);"></div>
+                </div>
+            </div>
+            <div class="index-metric-card" id="idx-vci">
+                <div class="idx-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;"><i data-lucide="bar-chart-2" style="width:14px;height:14px"></i></div>
+                <div class="idx-info">
+                    <span class="idx-label">VCI</span>
+                    <span class="idx-value" id="idx-vci-val">--</span>
+                </div>
+                <div class="idx-bar">
+                    <div class="idx-bar-fill" style="width:38%; background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);"></div>
+                </div>
+            </div>
+            <div class="index-metric-card" id="idx-tci">
+                <div class="idx-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;"><i data-lucide="thermometer" style="width:14px;height:14px"></i></div>
+                <div class="idx-info">
+                    <span class="idx-label">TCI</span>
+                    <span class="idx-value" id="idx-tci-val">--</span>
+                </div>
+                <div class="idx-bar">
+                    <div class="idx-bar-fill" style="width:45%; background: linear-gradient(90deg, #3b82f6, #f59e0b, #ef4444);"></div>
+                </div>
+            </div>
+            <div class="index-metric-card highlight" id="idx-vhi">
+                <div class="idx-icon" style="background: rgba(139,92,246,0.15); color: #8b5cf6;"><i data-lucide="shield" style="width:14px;height:14px"></i></div>
+                <div class="idx-info">
+                    <span class="idx-label">VHI</span>
+                    <span class="idx-value" id="idx-vhi-val">--</span>
+                </div>
+                <div class="idx-bar">
+                    <div class="idx-bar-fill" style="width:42%; background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);"></div>
+                </div>
+            </div>
+            <div class="index-metric-card" id="idx-spi1">
+                <div class="idx-icon" style="background: rgba(59,130,246,0.15); color: #3b82f6;"><i data-lucide="droplet" style="width:14px;height:14px"></i></div>
+                <div class="idx-info">
+                    <span class="idx-label">SPI-1</span>
+                    <span class="idx-value" id="idx-spi1-val">--</span>
+                </div>
+                <div class="idx-bar">
+                    <div class="idx-bar-fill" style="width:36%; background: linear-gradient(90deg, #b91c1c, #fbbf24, #2563eb);"></div>
+                </div>
+            </div>
+            <div class="index-metric-card" id="idx-spi3">
+                <div class="idx-icon" style="background: rgba(59,130,246,0.15); color: #60a5fa;"><i data-lucide="waves" style="width:14px;height:14px"></i></div>
+                <div class="idx-info">
+                    <span class="idx-label">SPI-3</span>
+                    <span class="idx-value" id="idx-spi3-val">--</span>
+                </div>
+                <div class="idx-bar">
+                    <div class="idx-bar-fill" style="width:28%; background: linear-gradient(90deg, #b91c1c, #fbbf24, #2563eb);"></div>
+                </div>
+            </div>
+            <div class="index-metric-card" id="idx-smi">
+                <div class="idx-icon" style="background: rgba(146,64,14,0.15); color: #d97706;"><i data-lucide="compass" style="width:14px;height:14px"></i></div>
+                <div class="idx-info">
+                    <span class="idx-label">SMI</span>
+                    <span class="idx-value" id="idx-smi-val">--</span>
+                </div>
+                <div class="idx-bar">
+                    <div class="idx-bar-fill" style="width:30%; background: linear-gradient(90deg, #92400e, #fbbf24, #2563eb);"></div>
+                </div>
+            </div>
+            <div class="index-metric-card" id="idx-lst">
+                <div class="idx-icon" style="background: rgba(239,68,68,0.15); color: #f87171;"><i data-lucide="flame" style="width:14px;height:14px"></i></div>
+                <div class="idx-info">
+                    <span class="idx-label">LST</span>
+                    <span class="idx-value" id="idx-lst-val">--</span>
+                </div>
+                <div class="idx-bar">
+                    <div class="idx-bar-fill" style="width:70%; background: linear-gradient(90deg, #3b82f6, #fbbf24, #ef4444);"></div>
+                </div>
+            </div>
+            <div class="index-metric-card" id="idx-et">
+                <div class="idx-icon" style="background: rgba(14,165,233,0.15); color: #0ea5e9;"><i data-lucide="cloud" style="width:14px;height:14px"></i></div>
+                <div class="idx-info">
+                    <span class="idx-label">ET</span>
+                    <span class="idx-value" id="idx-et-val">--</span>
+                </div>
+                <div class="idx-bar">
+                    <div class="idx-bar-fill" style="width:40%; background: linear-gradient(90deg, #ffffcc, #41b6c4, #0c2c84);"></div>
+                </div>
+            </div>
+            <div class="index-metric-card" id="idx-rh">
+                <div class="idx-icon" style="background: rgba(20,184,166,0.15); color: #14b8a6;"><i data-lucide="wind" style="width:14px;height:14px"></i></div>
+                <div class="idx-info">
+                    <span class="idx-label">RH</span>
+                    <span class="idx-value" id="idx-rh-val">--</span>
+                </div>
+                <div class="idx-bar">
+                    <div class="idx-bar-fill" style="width:42%; background: linear-gradient(90deg, #f6eff7, #67a9cf, #016c59);"></div>
+                </div>
+            </div>
+            <div class="index-metric-card" id="idx-precip">
+                <div class="idx-icon" style="background: rgba(59,130,246,0.15); color: #3b82f6;"><i data-lucide="cloud-rain" style="width:14px;height:14px"></i></div>
+                <div class="idx-info">
+                    <span class="idx-label">Precip</span>
+                    <span class="idx-value" id="idx-precip-val">--</span>
+                </div>
+                <div class="idx-bar">
+                    <div class="idx-bar-fill" style="width:18%; background: linear-gradient(90deg, #f7fbff, #6baed6, #084594);"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+    <script src="app.js?v=20261101_mtn"></script>
+</body>
+</html>

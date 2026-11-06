@@ -23,24 +23,35 @@ const STATE = {
     spectralLayerGroup: null,
     showConcessions: true,
     boundaryLayerGroups: {
-        provinces: null,
-        districts: null,
-        wards: null,
+        great_dyke_geology: null,
+        msz_reef_traces: null,
+        great_dyke_resource_blocks: null,
+        great_dyke_open_pits: null,
+        great_dyke_faults: null,
+        zimbabwe_mrds_mines: null,
+        national_parks: null,
         protected_areas: null,
         rivers: null,
-        soil: null,
-        geology: null
+        provinces: null,
+        districts: null
     },
     boundaryVisible: {
-        provinces: true,
-        districts: true,
-        wards: true,
+        great_dyke_geology: true,
+        msz_reef_traces: true,
+        great_dyke_resource_blocks: true,
+        great_dyke_open_pits: false,
+        great_dyke_faults: false,
+        zimbabwe_mrds_mines: false,
+        national_parks: true,
         protected_areas: true,
         rivers: false,
-        soil: false,
-        geology: false
+        provinces: true,
+        districts: true
     }
 };
+
+// Expose STATE to window for Sovereign modules & Cadastral Surveyor Engine
+window.STATE = STATE;
 
 // Fallback Concession Data (in case API is offline or standalone)
 const FALLBACK_CONCESSIONS = [
@@ -759,21 +770,40 @@ function initMap() {
 }
 
 // ============================================================
-// ADMINISTRATIVE & CONSERVATION BOUNDARIES ENGINE
+// ADMINISTRATIVE, GEOLOGICAL & CONSERVATION BOUNDARIES ENGINE (DUAL-CRS)
 // ============================================================
 function updateBoundaryHUD() {
     const pill = document.getElementById("hud-boundary-pill");
     if (!pill) return;
     const labels = {
-        provinces: 'Prov', districts: 'Dist', wards: 'Wards',
-        protected_areas: 'Parks', rivers: 'Rivers', soil: 'Soil', geology: 'Geo'
+        great_dyke_geology: 'Geology',
+        msz_reef_traces: 'MSZ Reefs',
+        great_dyke_resource_blocks: 'PGM Blocks',
+        great_dyke_open_pits: 'Pits',
+        great_dyke_faults: 'Faults',
+        zimbabwe_mrds_mines: 'MRDS Mines',
+        national_parks: 'ZimParks',
+        protected_areas: 'Reserves',
+        rivers: 'Rivers',
+        provinces: 'Prov',
+        districts: 'Dist'
     };
     const active = Object.entries(STATE.boundaryVisible)
         .filter(([, v]) => v)
         .map(([k]) => labels[k] || k);
-    const label = active.length > 0 ? active.join(' & ') : 'None';
+    const label = active.length > 0 ? active.slice(0, 3).join(' & ') + (active.length > 3 ? ` +${active.length - 3}` : '') : 'None';
     pill.innerHTML = `<i data-lucide="landmark" style="width:11px;height:11px;display:inline;vertical-align:middle;margin-right:3px;color:#38bdf8;"></i>Bounds: ${label}`;
     if (window.lucide) lucide.createIcons();
+}
+
+function getArc1950Coords(lat, lng) {
+    if (typeof proj4 !== "undefined" && proj4.defs("EPSG:20936")) {
+        try {
+            const p = proj4("EPSG:4326", "EPSG:20936", [lng, lat]);
+            return { easting: Math.round(p[0]), northing: Math.round(p[1]) };
+        } catch (e) {}
+    }
+    return { easting: Math.round((lng - 30) * 105000 + 500000), northing: Math.round((lat + 19) * 111000 + 7800000) };
 }
 
 function toggleBoundaryLayer(layerName, forceState) {
@@ -790,14 +820,320 @@ function toggleBoundaryLayer(layerName, forceState) {
     }
     
     // Update card active class and checkbox
-    const cardId = `card-toggle-${layerName === 'protected_areas' ? 'parks' : layerName}`;
-    const chkId = `chk-${layerName === 'protected_areas' ? 'parks' : layerName}`;
-    const card = document.getElementById(cardId);
-    const chk = document.getElementById(chkId);
+    const card = document.getElementById(`card-toggle-${layerName}`);
+    const chk = document.getElementById(`chk-${layerName}`);
     if (card) card.classList.toggle("active", isVisible);
     if (chk) chk.checked = isVisible;
     
     updateBoundaryHUD();
+}
+
+// Layer Specifications: File paths, Panes, Styles, Popups
+const DATASET_CONFIGS = {
+    great_dyke_geology: {
+        file: 'data/great_dyke_geology.geojson',
+        pane: 'geologyPane',
+        style: (f) => ({
+            color: '#059669', weight: 1.4, opacity: 0.85,
+            fillColor: f.properties?.COLOR || '#10b981', fillOpacity: 0.25
+        }),
+        popup: (p, lat, lng) => {
+            const arc = getArc1950Coords(lat, lng);
+            return `<div class="custom-gis-popup">
+                <h4>🪨 ${p.FORMATION || p.LITHOLOGY || p.NAME || 'Great Dyke Geology Unit'}</h4>
+                <div class="popup-sub">Ultramafic-Mafic Layered Intrusion</div>
+                <div class="popup-grid">
+                    <span>Lithology:</span> <strong>${p.ROCK_TYPE || p.LITHOLOGY || p.DESC_ || 'Dunite / Pyroxenite / Harzburgite'}</strong>
+                    <span>Complex:</span> <strong>${p.COMPLEX || 'Great Dyke Graben'}</strong>
+                    <span>Stratigraphy:</span> <strong>${p.AGE || 'Archaean 2.575 Ga'}</strong>
+                </div>
+                <div class="popup-crs-box">
+                    <div><strong>Arc 1950 (UTM 36S):</strong> E: ${arc.easting.toLocaleString()} m | N: ${arc.northing.toLocaleString()} m</div>
+                    <div style="color:#94a3b8;margin-top:2px;"><strong>WGS 84:</strong> ${lat.toFixed(5)}°S, ${lng.toFixed(5)}°E</div>
+                </div>
+            </div>`;
+        }
+    },
+    msz_reef_traces: {
+        file: 'data/msz_reef_traces.geojson',
+        pane: 'reefsPane',
+        style: { color: '#eab308', weight: 3.0, opacity: 0.95 },
+        popup: (p, lat, lng) => {
+            const arc = getArc1950Coords(lat, lng);
+            return `<div class="custom-gis-popup">
+                <h4>⚡ Main Sulphide Zone (MSZ) Reef Trace</h4>
+                <div class="popup-sub">High-Grade PGM Subchamber Horizon</div>
+                <div class="popup-grid">
+                    <span>Reef ID:</span> <strong>${p.REEF_ID || p.NAME || 'MSZ-Horizon'}</strong>
+                    <span>Target Metals:</span> <strong>Pt, Pd, Rh, Au, Ni, Cu</strong>
+                    <span>Subchamber:</span> <strong>${p.CHAMBER || 'Hartley / Selukwe / Wedza'}</strong>
+                </div>
+                <div class="popup-crs-box">
+                    <div><strong>Arc 1950 (UTM 36S):</strong> E: ${arc.easting.toLocaleString()} m | N: ${arc.northing.toLocaleString()} m</div>
+                    <div style="color:#94a3b8;margin-top:2px;"><strong>WGS 84:</strong> ${lat.toFixed(5)}°S, ${lng.toFixed(5)}°E</div>
+                </div>
+            </div>`;
+        }
+    },
+    great_dyke_resource_blocks: {
+        file: 'data/great_dyke_resource_blocks.geojson',
+        pane: 'resBlocksPane',
+        style: { color: '#06b6d4', weight: 1.8, opacity: 0.9, fillColor: '#0891b2', fillOpacity: 0.15 },
+        popup: (p, lat, lng) => {
+            const arc = getArc1950Coords(lat, lng);
+            return `<div class="custom-gis-popup">
+                <h4>📦 ${p.BLOCK_NAME || p.NAME || 'PGM Strategic Resource Block'}</h4>
+                <div class="popup-sub">Gazetted Mineral Cadastre Section</div>
+                <div class="popup-grid">
+                    <span>Subchamber:</span> <strong>${p.SUBCHAMBER || p.DISTRICT || 'Midlands / Mashonaland'}</strong>
+                    <span>Resource Cat:</span> <strong>${p.CATEGORY || 'Measured / Indicated PGM'}</strong>
+                    <span>Concessionaire:</span> <strong>${p.HOLDER || p.OPERATOR || 'Sovereign Mining Reserve'}</strong>
+                </div>
+                <div class="popup-crs-box">
+                    <div><strong>Arc 1950 (UTM 36S):</strong> E: ${arc.easting.toLocaleString()} m | N: ${arc.northing.toLocaleString()} m</div>
+                    <div style="color:#94a3b8;margin-top:2px;"><strong>WGS 84:</strong> ${lat.toFixed(5)}°S, ${lng.toFixed(5)}°E</div>
+                </div>
+            </div>`;
+        }
+    },
+    great_dyke_open_pits: {
+        file: 'data/great_dyke_open_pits.geojson',
+        pane: 'openPitsPane',
+        style: { color: '#f97316', weight: 2.0, opacity: 0.95, fillColor: '#ea580c', fillOpacity: 0.35 },
+        popup: (p, lat, lng) => {
+            const arc = getArc1950Coords(lat, lng);
+            return `<div class="custom-gis-popup">
+                <h4>🚜 ${p.PIT_NAME || p.NAME || 'Opencast Mining Pit'}</h4>
+                <div class="popup-sub">Active Surface Chrome &amp; PGM Excavation</div>
+                <div class="popup-grid">
+                    <span>Commodity:</span> <strong>${p.MINERAL || 'Chromite Podiform / PGM'}</strong>
+                    <span>Mining Status:</span> <strong>${p.STATUS || 'Active Extraction'}</strong>
+                    <span>Area (Est):</span> <strong>${p.AREA_HA ? p.AREA_HA.toFixed(1) + ' Ha' : 'Cadastral Survey'}</strong>
+                </div>
+                <div class="popup-crs-box">
+                    <div><strong>Arc 1950 (UTM 36S):</strong> E: ${arc.easting.toLocaleString()} m | N: ${arc.northing.toLocaleString()} m</div>
+                    <div style="color:#94a3b8;margin-top:2px;"><strong>WGS 84:</strong> ${lat.toFixed(5)}°S, ${lng.toFixed(5)}°E</div>
+                </div>
+            </div>`;
+        }
+    },
+    great_dyke_faults: {
+        file: 'data/great_dyke_faults.geojson',
+        pane: 'faultsPane',
+        style: { color: '#f43f5e', weight: 2.5, opacity: 0.9, dashArray: '5, 4' },
+        popup: (p, lat, lng) => {
+            const arc = getArc1950Coords(lat, lng);
+            return `<div class="custom-gis-popup">
+                <h4>⚡ ${p.FAULT_NAME || p.NAME || 'Transverse Fault / Shear'}</h4>
+                <div class="popup-sub">Structural Displacement Graben Lineament</div>
+                <div class="popup-grid">
+                    <span>Type:</span> <strong>${p.TYPE || 'Strike-Slip / Dip-Slip'}</strong>
+                    <span>Trend:</span> <strong>${p.TREND || 'ENE-WSW'}</strong>
+                </div>
+                <div class="popup-crs-box">
+                    <div><strong>Arc 1950 (UTM 36S):</strong> E: ${arc.easting.toLocaleString()} m | N: ${arc.northing.toLocaleString()} m</div>
+                </div>
+            </div>`;
+        }
+    },
+    zimbabwe_mrds_mines: {
+        file: 'data/zimbabwe_mrds_mines.geojson',
+        pane: 'minesPane',
+        pointToLayer: (feature, latlng) => {
+            return L.circleMarker(latlng, {
+                radius: 5,
+                fillColor: '#a855f7',
+                color: '#ffffff',
+                weight: 1.5,
+                opacity: 0.9,
+                fillOpacity: 0.85
+            });
+        },
+        popup: (p, lat, lng) => {
+            const arc = getArc1950Coords(lat, lng);
+            return `<div class="custom-gis-popup">
+                <h4>⛏️ ${p.DEP_NAME || p.NAME || 'USGS MRDS Mineral Site'}</h4>
+                <div class="popup-sub">USGS Mineral Resources Data System</div>
+                <div class="popup-grid">
+                    <span>Primary Mineral:</span> <strong>${p.COMMOD1 || p.MINERAL || 'Gold / Lithium'}</strong>
+                    <span>Secondary:</span> <strong>${p.COMMOD2 || 'Base Metals'}</strong>
+                    <span>Development:</span> <strong>${p.DEV_STAT || 'Producer / Past Producer'}</strong>
+                </div>
+                <div class="popup-crs-box">
+                    <div><strong>Arc 1950 (UTM 36S):</strong> E: ${arc.easting.toLocaleString()} m | N: ${arc.northing.toLocaleString()} m</div>
+                </div>
+            </div>`;
+        }
+    },
+    national_parks: {
+        file: 'data/zimbabwe_national_parks.geojson',
+        pane: 'parksPane',
+        style: { color: '#22c55e', weight: 2.2, opacity: 0.95, fillColor: '#15803d', fillOpacity: 0.22, dashArray: '6, 3' },
+        popup: (p, lat, lng) => {
+            const arc = getArc1950Coords(lat, lng);
+            return `<div class="custom-gis-popup">
+                <h4>🛡️ ${p.NAME || p.PARK_NAME || 'ZimParks National Sanctuary'}</h4>
+                <div class="popup-alert-strict">🚫 STRICT ZERO-MINING ZONE</div>
+                <div class="popup-grid">
+                    <span>Designation:</span> <strong>National Park (ZimParks)</strong>
+                    <span>Statutory Law:</span> <strong>Parks &amp; Wildlife Act (Cap 20:14)</strong>
+                    <span>EMA Section:</span> <strong>Section 31 Statutory Ecological Reserve</strong>
+                </div>
+                <div class="popup-crs-box">
+                    <div><strong>Arc 1950 (UTM 36S):</strong> E: ${arc.easting.toLocaleString()} m | N: ${arc.northing.toLocaleString()} m</div>
+                </div>
+            </div>`;
+        }
+    },
+    protected_areas: {
+        file: 'data/zimbabwe_protected_areas.geojson',
+        pane: 'parksPane',
+        style: { color: '#34d399', weight: 2.0, opacity: 0.9, fillColor: '#059669', fillOpacity: 0.18 },
+        popup: (p, lat, lng) => {
+            const arc = getArc1950Coords(lat, lng);
+            return `<div class="custom-gis-popup">
+                <h4>🌿 ${p.NAME || 'Conservation Reserve Area'}</h4>
+                <div class="popup-alert-strict">⚠️ PROTECTED ECOSYSTEM</div>
+                <div class="popup-grid">
+                    <span>Type:</span> <strong>${p.DESIG || p.CATEGORY || 'Forestry / Wildlife Reserve'}</strong>
+                    <span>Statutory Status:</span> <strong>Forest Act / Conservation Boundary</strong>
+                </div>
+                <div class="popup-crs-box">
+                    <div><strong>Arc 1950 (UTM 36S):</strong> E: ${arc.easting.toLocaleString()} m | N: ${arc.northing.toLocaleString()} m</div>
+                </div>
+            </div>`;
+        }
+    },
+    rivers: {
+        file: 'data/zimbabwe_rivers.geojson',
+        pane: 'riversPane',
+        style: { color: '#38bdf8', weight: 1.2, opacity: 0.75 },
+        popup: (p, lat, lng) => {
+            const arc = getArc1950Coords(lat, lng);
+            return `<div class="custom-gis-popup">
+                <h4>💧 ${p.NAME || p.RIVER || 'National River Waterway'}</h4>
+                <div class="popup-sub">Hydrological Drainage Basin</div>
+                <div class="popup-grid">
+                    <span>Basin:</span> <strong>${p.BASIN || 'Zambezi / Save / Limpopo'}</strong>
+                    <span>Buffer Req:</span> <strong>500m Statutory Riparian Buffer</strong>
+                </div>
+                <div class="popup-crs-box">
+                    <div><strong>Arc 1950 (UTM 36S):</strong> E: ${arc.easting.toLocaleString()} m | N: ${arc.northing.toLocaleString()} m</div>
+                </div>
+            </div>`;
+        }
+    },
+    provinces: {
+        file: 'data/provinces.geojson',
+        pane: 'provincesPane',
+        style: { color: '#38bdf8', weight: 2.2, opacity: 0.9, fillColor: '#0284c7', fillOpacity: 0.02 },
+        popup: (p, lat, lng) => {
+            const arc = getArc1950Coords(lat, lng);
+            return `<div class="custom-gis-popup">
+                <h4>🏛️ ${p.PROVINCE || p.NAME || 'Province'} Province</h4>
+                <div class="popup-sub">Mining Commissioner Cadastre Jurisdiction</div>
+                <div class="popup-grid">
+                    <span>Area:</span> <strong>${p.AREA_SQKM ? p.AREA_SQKM.toLocaleString() + ' km²' : 'National Territory'}</strong>
+                    <span>Key Minerals:</span> <strong>${p.PRIMARY_MINERALS || 'PGM, Gold, Lithium, Chrome'}</strong>
+                </div>
+                <div class="popup-crs-box">
+                    <div><strong>Arc 1950 (UTM 36S):</strong> E: ${arc.easting.toLocaleString()} m | N: ${arc.northing.toLocaleString()} m</div>
+                </div>
+            </div>`;
+        }
+    },
+    districts: {
+        file: 'data/districts.geojson',
+        pane: 'districtsPane',
+        style: { color: '#fbbf24', weight: 1.6, opacity: 0.85, dashArray: '5, 4', fillColor: '#f59e0b', fillOpacity: 0.03 },
+        popup: (p, lat, lng) => {
+            const arc = getArc1950Coords(lat, lng);
+            return `<div class="custom-gis-popup">
+                <h4>📍 ${p.DISTRICT || p.NAME || 'District'} District</h4>
+                <div class="popup-sub">Mining Cadastre Administration Level 2</div>
+                <div class="popup-grid">
+                    <span>Province:</span> <strong>${p.PROVINCE || 'Zimbabwe'}</strong>
+                    <span>Cadastre Zone:</span> <strong>${p.PCODE || 'Official District'}</strong>
+                </div>
+                <div class="popup-crs-box">
+                    <div><strong>Arc 1950 (UTM 36S):</strong> E: ${arc.easting.toLocaleString()} m | N: ${arc.northing.toLocaleString()} m</div>
+                </div>
+            </div>`;
+        }
+    }
+};
+
+const _boundaryLoadedFlags = {};
+
+async function ensureBoundaryLayerLoaded(layerKey) {
+    if (_boundaryLoadedFlags[layerKey]) return;
+    const cfg = DATASET_CONFIGS[layerKey];
+    if (!cfg) return;
+
+    _boundaryLoadedFlags[layerKey] = true;
+    const grp = STATE.boundaryLayerGroups[layerKey];
+    if (!grp) return;
+
+    try {
+        const res = await fetch(cfg.file);
+        if (!res.ok) {
+            console.warn(`Layer file not reachable: ${cfg.file}`);
+            return;
+        }
+        const geojson = await res.json();
+        if (!geojson || !geojson.features) return;
+
+        const count = geojson.features.length;
+        const badge = document.getElementById(`badge-${layerKey}-count`);
+        if (badge) badge.textContent = `${count.toLocaleString()} ${layerKey === 'provinces' || layerKey === 'districts' ? '' : 'units'}`;
+
+        const layerOpts = {
+            pane: cfg.pane || 'overlayPane',
+            style: cfg.style,
+            onEachFeature: (feature, layer) => {
+                const props = feature.properties || {};
+                
+                // Hover highlight
+                layer.on('mouseover', (e) => {
+                    if (layer.setStyle && cfg.style) {
+                        const baseStyle = typeof cfg.style === 'function' ? cfg.style(feature) : cfg.style;
+                        layer.setStyle({
+                            weight: (baseStyle.weight || 2) + 1.5,
+                            fillOpacity: Math.min((baseStyle.fillOpacity || 0.2) + 0.2, 0.8)
+                        });
+                    }
+                });
+
+                layer.on('mouseout', (e) => {
+                    if (layer.setStyle && cfg.style) {
+                        const baseStyle = typeof cfg.style === 'function' ? cfg.style(feature) : cfg.style;
+                        layer.setStyle(baseStyle);
+                    }
+                });
+
+                // Click Popup with Dual-CRS calculations
+                layer.on('click', (e) => {
+                    const lat = e.latlng ? e.latlng.lat : (layer.getBounds ? layer.getBounds().getCenter().lat : -19.0);
+                    const lng = e.latlng ? e.latlng.lng : (layer.getBounds ? layer.getBounds().getCenter().lng : 30.0);
+                    if (cfg.popup) {
+                        layer.bindPopup(cfg.popup(props, lat, lng), { maxWidth: 360, className: 'leaflet-custom-popup' }).openPopup();
+                    }
+                });
+            }
+        };
+
+        if (cfg.pointToLayer) {
+            layerOpts.pointToLayer = cfg.pointToLayer;
+        }
+
+        const geoLayer = L.geoJSON(geojson, layerOpts);
+        grp.clearLayers();
+        grp.addLayer(geoLayer);
+        console.log(`✅ [Cadastre Layer] ${layerKey} loaded: ${count} features`);
+    } catch (err) {
+        console.error(`Failed loading ${layerKey}:`, err);
+        _boundaryLoadedFlags[layerKey] = false;
+    }
 }
 
 async function initBoundaryControlsAndData() {
@@ -806,12 +1142,10 @@ async function initBoundaryControlsAndData() {
     const closeFlyout = document.getElementById("close-boundaries-flyout");
     const hudPill = document.getElementById("hud-boundary-pill");
 
-    // Flyout toggle
     if (btnBoundaries && flyout) {
         btnBoundaries.addEventListener("click", (e) => {
             e.stopPropagation();
             flyout.classList.toggle("hidden");
-            // Close basemap flyout if open
             document.getElementById("basemap-flyout")?.classList.add("hidden");
             if (window.lucide) lucide.createIcons();
         });
@@ -823,50 +1157,42 @@ async function initBoundaryControlsAndData() {
             if (window.lucide) lucide.createIcons();
         });
 
-        // Close on outside click
         document.addEventListener("click", (e) => {
             if (!flyout.contains(e.target) && e.target !== btnBoundaries && !btnBoundaries.contains(e.target) && e.target !== hudPill && !hudPill?.contains(e.target)) {
                 flyout.classList.add("hidden");
             }
         });
 
-        // Checkbox & card click handlers for ALL 7 layers
-        const LAYER_MAP = {
-            provinces: 'provinces',
-            districts: 'districts',
-            wards: 'wards',
-            parks: 'protected_areas',
-            rivers: 'rivers',
-            soil: 'soil',
-            geology: 'geology'
-        };
-        Object.entries(LAYER_MAP).forEach(([key, layerKey]) => {
+        // Wire all 11 layer cards and checkboxes
+        const ALL_KEYS = Object.keys(DATASET_CONFIGS);
+        ALL_KEYS.forEach((key) => {
             const chk = document.getElementById(`chk-${key}`);
             const card = document.getElementById(`card-toggle-${key}`);
 
             chk?.addEventListener("change", async (e) => {
-                await ensureBoundaryLayerLoaded(layerKey);
-                toggleBoundaryLayer(layerKey, e.target.checked);
+                await ensureBoundaryLayerLoaded(key);
+                toggleBoundaryLayer(key, e.target.checked);
             });
 
             card?.addEventListener("click", async (e) => {
                 if (e.target.tagName !== "INPUT" && !e.target.closest(".switch-toggle")) {
-                    await ensureBoundaryLayerLoaded(layerKey);
-                    const current = STATE.boundaryVisible[layerKey];
-                    toggleBoundaryLayer(layerKey, !current);
+                    await ensureBoundaryLayerLoaded(key);
+                    const current = STATE.boundaryVisible[key];
+                    toggleBoundaryLayer(key, !current);
                 }
             });
         });
 
-        // Bulk action buttons — all 7 layers
-        const ALL_LAYERS = ['provinces','districts','wards','protected_areas','rivers','soil','geology'];
+        // Bulk Actions
         document.getElementById("btn-boundaries-all-on")?.addEventListener("click", async () => {
-            for (const l of ALL_LAYERS) { await ensureBoundaryLayerLoaded(l); }
-            ALL_LAYERS.forEach(l => toggleBoundaryLayer(l, true));
+            for (const k of ALL_KEYS) { await ensureBoundaryLayerLoaded(k); }
+            ALL_KEYS.forEach(k => toggleBoundaryLayer(k, true));
         });
+
         document.getElementById("btn-boundaries-all-off")?.addEventListener("click", () => {
-            ALL_LAYERS.forEach(l => toggleBoundaryLayer(l, false));
+            ALL_KEYS.forEach(k => toggleBoundaryLayer(k, false));
         });
+
         document.getElementById("btn-boundaries-fit")?.addEventListener("click", () => {
             if (STATE.map) {
                 STATE.map.flyToBounds([[-22.42, 25.24], [-15.61, 33.07]], { duration: 1.2, padding: [35, 35] });
@@ -874,165 +1200,14 @@ async function initBoundaryControlsAndData() {
         });
     }
 
-    // ─── Load the 4 always-visible boundary layers at start ───
-    await loadBoundaryGeoJSON("provinces", "/api/boundaries/provinces", {
-        pane: "provincesPane",
-        style: { color: "#38bdf8", weight: 2.2, opacity: 0.9, fillColor: "#0284c7", fillOpacity: 0.015 },
-        tooltip: (p) => `🏛️ <strong>${p.PROVINCE || p.NAME || 'Province'} Province</strong><br><span style="font-size:10.5px;color:#94a3b8;">Capital: ${p.CAPITAL || 'Gazetted'} • Area: ${(p.AREA_SQKM || 0).toLocaleString()} km²<br><span style="color:#38bdf8;font-weight:600;">Key Minerals:</span> ${p.PRIMARY_MINERALS || 'Mining Jurisdiction'}</span>`
-    });
-
-    await loadBoundaryGeoJSON("districts", "/api/boundaries/districts", {
-        pane: "districtsPane",
-        style: { color: "#fbbf24", weight: 1.8, opacity: 0.95, dashArray: "6, 4", fillColor: "#f59e0b", fillOpacity: 0.04 },
-        tooltip: (d) => `📍 <strong>${d.DISTRICT || d.NAME || 'District'} District</strong><br><span style="font-size:10.5px;color:#cbd5e1;">Province: <strong>${d.PROVINCE || 'Zimbabwe'}</strong> • Code: ${d.PCODE || 'N/A'}<br>Area: ${(d.AREA_SQKM || 0).toLocaleString()} km² • <span style="color:#fbbf24;font-weight:600;">Cadastre Zone</span></span>`
-    });
-
-    await loadBoundaryGeoJSON("wards", "/api/boundaries/wards", {
-        pane: "wardsPane",
-        style: { color: "#c084fc", weight: 1.1, opacity: 0.8, dashArray: "3, 3", fillColor: "#a855f7", fillOpacity: 0.02 },
-        tooltip: (w) => `🏷️ <strong>${w.WARD || w.NAME || 'Ward'}</strong><br><span style="font-size:10px;color:#cbd5e1;">District: <strong>${w.DISTRICT || 'Mining Zone'}</strong> (${w.PROVINCE || 'ZW'})<br>${w.STATUS || 'ASM Corridor'} • Area: ${(w.AREA_SQKM || 0).toLocaleString()} km²</span>`
-    });
-
-    await loadBoundaryGeoJSON("protected_areas", "/api/boundaries/protected-areas", {
-        pane: "parksPane",
-        style: { color: "#10b981", weight: 2.4, opacity: 1.0, dashArray: "6, 3", fillColor: "#059669", fillOpacity: 0.22 },
-        tooltip: (park) => `🌲 <strong>${park.PARK_NAME || park.NAME || 'National Park'}</strong><br><span style="color:#ef4444;font-weight:800;font-size:10.5px;">⚠️ ${park.LEGAL_STATUS || 'STRICT ZERO MINING PERMITTED'}</span><br><span style="font-size:10px;color:#cbd5e1;">${park.ENVIRONMENTAL_RESTRICTION || 'Mining Prohibited under EMA & ZimParks Act'}<br><span style="color:#34d399;">Category: ${park.CATEGORY || 'Protected Sanctuary'}</span></span>`
-    });
+    // Pre-load default active layers
+    const defaultsToLoad = ['great_dyke_geology', 'msz_reef_traces', 'great_dyke_resource_blocks', 'national_parks', 'protected_areas', 'provinces', 'districts'];
+    for (const key of defaultsToLoad) {
+        await ensureBoundaryLayerLoaded(key);
+    }
 
     updateBoundaryHUD();
 }
-
-// Lazy-loader: fetch GeoJSON for rivers/soil/geology only when first requested
-const _boundaryLoadedFlags = {};
-async function ensureBoundaryLayerLoaded(layerKey) {
-    if (_boundaryLoadedFlags[layerKey]) return;  // already loaded
-    // These 4 are always pre-loaded at startup
-    if (['provinces','districts','wards','protected_areas'].includes(layerKey)) return;
-
-    _boundaryLoadedFlags[layerKey] = true;  // mark early to prevent duplicate calls
-
-    const configs = {
-        rivers: {
-            url: '/api/boundaries/rivers',
-            pane: 'riversPane',
-            style: (f) => {
-                const ord = f.properties.ORDER || f.properties.RIV_ORD || 6;
-                const w = ord <= 3 ? 2.5 : ord <= 5 ? 1.5 : 0.8;
-                return { color: '#38bdf8', weight: w, opacity: 0.75, fillOpacity: 0 };
-            },
-            tooltip: (p) => `💧 <strong>${p.RIVER_NAME || p.BB_NAME || 'River'}</strong><br><span style="font-size:10px;color:#94a3b8;">Order: ${p.ORDER || '?'} • Length: ${p.LENGTH_KM || '?'} km<br>Avg Discharge: ${p.DISCHARGE_CMS ? p.DISCHARGE_CMS.toFixed(2) + ' m³/s' : 'N/A'}<br>Basin: ${p.BAS_NAME || p.RIVER_NAME || 'N/A'}</span>`
-        },
-        soil: {
-            url: '/api/boundaries/soil',
-            pane: 'soilPane',
-            style: {
-                color: '#92400e', weight: 0.7, opacity: 0.8,
-                fillColor: '#b45309', fillOpacity: 0.30
-            },
-            tooltip: (p) => `🌍 <strong>Soil: ${p.SOIL_CODE || p.DOMSOI || '?'}</strong><br><span style="font-size:10px;color:#d97706;">${p.SOIL_NAME || 'FAO Soil Unit'}</span><br><span style="font-size:10px;color:#94a3b8;">FAO Unit: ${p.FAO_UNIT || '?'} • Area: ${(p.AREA_KM2 || 0).toLocaleString()} km²${p.PHASE ? '<br>Phase: ' + p.PHASE : ''}</span>`
-        },
-        geology: {
-            url: '/api/boundaries/geology',
-            pane: 'geologyPane',
-            // Colour driven by feature GEO_COLOR property (per GLG code)
-            styleFn: (f) => {
-                const c = f.properties.GEO_COLOR || '#6b7280';
-                return { color: c, weight: 0.8, opacity: 0.9, fillColor: c, fillOpacity: 0.40 };
-            },
-            tooltip: (p) => `🪨 <strong>${p.GEO_NAME || 'Geology'}</strong><br><span style="font-size:10px;color:#94a3b8;">GLG Code: <strong>${p.GEO_CODE || '?'}</strong></span>`
-        }
-    };
-
-    const cfg = configs[layerKey];
-    if (!cfg) return;
-
-    const grp = STATE.boundaryLayerGroups[layerKey];
-    if (!grp || grp.getLayers().length > 0) return;  // already has data
-
-    try {
-        const res = await fetch(cfg.url);
-        if (!res.ok) return;
-        const geojson = await res.json();
-        if (!geojson || !geojson.features) return;
-
-        const count = geojson.features.length;
-        const badge = document.getElementById(`badge-${layerKey}-count`);
-        if (badge) badge.textContent = count.toLocaleString();
-
-        const layer = L.geoJSON(geojson, {
-            pane: cfg.pane || 'overlayPane',
-            style: cfg.styleFn || cfg.style,
-            onEachFeature: (feature, l) => {
-                const props = feature.properties || {};
-                if (cfg.tooltip) {
-                    l.bindTooltip(cfg.tooltip(props), { sticky: true, opacity: 0.95 });
-                }
-                l.on('mouseover', () => {
-                    const s = typeof cfg.style === 'function' ? cfg.style(feature) :
-                              (cfg.styleFn ? cfg.styleFn(feature) : cfg.style);
-                    l.setStyle({ weight: (s.weight || 1) + 1, fillOpacity: Math.min((s.fillOpacity || 0.2) + 0.12, 0.75) });
-                });
-                l.on('mouseout', () => {
-                    const s = typeof cfg.style === 'function' ? cfg.style(feature) :
-                              (cfg.styleFn ? cfg.styleFn(feature) : cfg.style);
-                    l.setStyle(s);
-                });
-            }
-        });
-
-        grp.clearLayers();
-        grp.addLayer(layer);
-        console.log(`✅ ${layerKey}: ${count} features loaded`);
-    } catch (e) {
-        console.warn(`Failed loading ${layerKey} layer:`, e);
-        _boundaryLoadedFlags[layerKey] = false;  // allow retry
-    }
-}
-
-async function loadBoundaryGeoJSON(layerKey, url, options) {
-    const grp = STATE.boundaryLayerGroups[layerKey];
-    if (!grp) return;
-
-    try {
-        const res = await fetch(url);
-        if (!res.ok) return;
-        const geojson = await res.json();
-        if (!geojson || !geojson.features) return;
-
-        // Update badge counts in UI flyout
-        const count = geojson.features.length;
-        const badge = document.getElementById(`badge-${layerKey === 'protected_areas' ? 'parks' : layerKey}-count`);
-        if (badge) badge.textContent = count.toLocaleString();
-
-        const layer = L.geoJSON(geojson, {
-            pane: options.pane || "overlayPane",
-            style: options.style,
-            onEachFeature: (feature, l) => {
-                const props = feature.properties || {};
-                if (options.tooltip) {
-                    l.bindTooltip(options.tooltip(props), { sticky: true, opacity: 0.95 });
-                }
-                l.on("mouseover", () => {
-                    l.setStyle({ weight: (options.style.weight || 2) + 1.2, fillOpacity: (options.style.fillOpacity || 0.05) + 0.15 });
-                });
-                l.on("mouseout", () => {
-                    l.setStyle(options.style);
-                });
-                l.on("click", (e) => {
-                    if (l.getBounds) {
-                        STATE.map.fitBounds(l.getBounds(), { padding: [40, 40], maxZoom: 11 });
-                    }
-                });
-            }
-        });
-
-        grp.clearLayers();
-        grp.addLayer(layer);
-    } catch (e) {
-        console.warn(`Failed loading boundary layer ${layerKey}:`, e);
-    }
-}
-
 // ============================================================
 // CONCESSIONS & CLAIMS RENDERING
 // ============================================================
@@ -1040,54 +1215,170 @@ function renderConcessionsOnMap(concessions) {
     if (!STATE.map || !STATE.concessionLayerGroup) return;
     STATE.concessionLayerGroup.clearLayers();
 
+    // 2-Opt Uncrossing Helper for Concessions
+    function uncrossPoints(pts) {
+        if (!pts || pts.length < 4) return pts;
+        function ccw(a, b, c) { return (c[1] - a[1]) * (b[0] - a[0]) > (b[1] - a[1]) * (c[0] - a[0]); }
+        function intersect(p1, p2, p3, p4) { return (ccw(p1, p3, p4) !== ccw(p2, p3, p4)) && (ccw(p1, p2, p3) !== ccw(p1, p2, p4)); }
+        let res = pts.slice();
+        const n = res.length;
+        let improved = true;
+        let iter = 0;
+        while (improved && iter < 50) {
+            improved = false;
+            iter++;
+            for (let i = 0; i < n; i++) {
+                for (let j = i + 2; j < n; j++) {
+                    if (i === 0 && j === n - 1) continue;
+                    if (intersect(res[i], res[(i + 1) % n], res[j], res[(j + 1) % n])) {
+                        const sub = res.slice(i + 1, j + 1).reverse();
+                        res.splice(i + 1, sub.length, ...sub);
+                        improved = true;
+                        break;
+                    }
+                }
+                if (improved) break;
+            }
+        }
+        return res;
+    }
+
+    function isPointInPoly(pt, vs) {
+        const x = pt[0], y = pt[1];
+        let inside = false;
+        for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+            const xi = vs[i][0], yi = vs[i][1];
+            const xj = vs[j][0], yj = vs[j][1];
+            if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+        }
+        return inside;
+    }
+
     concessions.forEach(c => {
         const isAlert = c.status === "Warning" || c.risk_level === "Severe";
         const strokeColor = isAlert ? "#ef4444" : "#f59e0b";
         const fillColor = isAlert ? "#ef4444" : "#10b981";
 
+        let cleanBounds = c.bounds;
+        let dpCoord = (c.dp && c.dp.lat && c.dp.lng) ? [c.dp.lat, c.dp.lng] : ([c.lat, c.lng]);
+
         // Draw Polygon if bounds exist
-        if (c.bounds && c.bounds.length >= 3) {
-            const poly = L.polygon(c.bounds, {
+        if (cleanBounds && cleanBounds.length >= 3) {
+            // Intelligent Untangling: Check if bounds contain an interior point or are twisted
+            // If the bounds array contains the DP point, isolate it!
+            if (cleanBounds.length >= 4) {
+                for (let i = 0; i < cleanBounds.length; i++) {
+                    const candidate = cleanBounds[i];
+                    const others = cleanBounds.filter((_, idx) => idx !== i);
+                    if (isPointInPoly(candidate, others)) {
+                        dpCoord = candidate;
+                        cleanBounds = others;
+                        break;
+                    }
+                }
+            }
+
+            // Apply 2-opt uncrossing so it NEVER renders twisted on the map!
+            cleanBounds = uncrossPoints(cleanBounds);
+
+            const poly = L.polygon(cleanBounds, {
                 color: strokeColor,
-                weight: 2,
-                opacity: 0.9,
+                weight: 2.2,
+                opacity: 0.95,
                 fillColor: fillColor,
                 fillOpacity: 0.18,
                 dashArray: isAlert ? "5, 5" : null
             });
 
+            const g = c.geology || {};
+            const o = c.owner || {};
+            const dp = c.dp || {};
+
             poly.bindPopup(`
-                <div style="font-family:'Inter',sans-serif; min-width:180px; color:#fff;">
-                    <div style="font-size:10px; font-weight:800; color:${strokeColor}; text-transform:uppercase;">${c.yield_rating}</div>
-                    <h4 style="font-size:13px; font-weight:700; margin:4px 0 2px;">${c.name}</h4>
-                    <p style="font-size:11px; color:#94a3b8; margin:0 0 6px;">${c.mineral} • ${c.district}</p>
-                    <div style="font-size:11px; border-top:1px solid rgba(255,255,255,0.1); padding-top:6px;">
-                        <span>Compliance Score: <strong>${c.compliance_score}%</strong></span>
+                <div class="custom-gis-popup" style="min-width:260px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:9.5px; font-weight:800; color:${strokeColor}; text-transform:uppercase;">${c.yield_rating || 'HIGH YIELD'}</span>
+                        <code style="font-size:9px; background:rgba(56,189,248,0.15); color:#38bdf8; padding:1px 5px; border-radius:4px;">${c.claim_id || c.id}</code>
+                    </div>
+                    <h4 style="margin:4px 0 1px;">${c.name}</h4>
+                    <div class="popup-sub">${c.mineral} • ${c.district}</div>
+                    
+                    <!-- Owner Details for SQL Queries -->
+                    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:6px 8px; margin:6px 0;">
+                        <div style="font-size:9px; color:#94a3b8; text-transform:uppercase; font-weight:700;">Owner / Concessionaire</div>
+                        <div style="font-size:11px; font-weight:700; color:#f8fafc;">${o.name || c.operator || 'Mining Syndicate'}</div>
+                        <div style="font-size:9.5px; color:#cbd5e1; display:flex; gap:8px; margin-top:2px;">
+                            <span>Reg: <strong>${o.registration_no || c.license_no}</strong></span>
+                            <span>TIN: <strong>${o.tax_tin || 'ZIMRA Verified'}</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Geological Standard Attributes -->
+                    <div class="popup-grid">
+                        <span>Formation:</span> <strong>${g.formation || 'Bulawayan Sequence'}</strong>
+                        <span>Host Lithology:</span> <strong>${g.host_rock || 'Quartz / Pyroxenite'}</strong>
+                        <span>Ore Genesis:</span> <strong>${g.deposit_genesis || 'Orogenic Shear'}</strong>
+                        <span>Average Grade:</span> <strong style="color:#fbbf24;">${g.ore_grade || 'High Grade'}</strong>
+                        <span>Resource Mt:</span> <strong>${g.resource_tonnage_mt ? g.resource_tonnage_mt + ' Mt' : 'Cadastre JORC'}</strong>
+                        <span>Contained:</span> <strong>${g.contained_metal || 'Commercial'}</strong>
+                    </div>
+
+                    <!-- Statutory Discovery Point (DP) & Tie-Line -->
+                    <div class="popup-crs-box">
+                        <div style="color:#fbbf24; font-weight:700;">🎯 DP Statutory Peg (Arc 1950 UTM 36S):</div>
+                        <div>E: ${(dp.easting_arc1950 || 312000).toLocaleString()} m | N: ${(dp.northing_arc1950 || 7800000).toLocaleString()} m</div>
+                        <div style="margin-top:2px; color:#94a3b8;">Tie to B1: <strong>${dp.tie_bearing || '044 deg 12 min'} • ${dp.tie_distance_m || 245}m</strong></div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:10px; color:#94a3b8;">
+                        <span>Area: <strong>${c.area_hectares} Ha</strong></span>
+                        <span>Compliance: <strong style="color:#10b981;">${c.compliance_score}%</strong></span>
                     </div>
                 </div>
-            `, { className: 'custom-dark-popup' });
+            `, { className: 'custom-dark-popup', maxWidth: 320 });
 
             poly.on("click", () => selectConcession(c.id, false));
             STATE.concessionLayerGroup.addLayer(poly);
+
+            // Draw Statutory Survey Tie-Line from DP to Corner Beacon 1
+            if (dpCoord && cleanBounds.length > 0) {
+                const b1 = cleanBounds[0];
+                const tieLine = L.polyline([dpCoord, b1], {
+                    color: "#fbbf24",
+                    weight: 1.8,
+                    dashArray: "4, 4",
+                    opacity: 0.85
+                });
+
+                const distM = Math.round(L.latLng(dpCoord).distanceTo(L.latLng(b1)));
+                tieLine.bindTooltip(`Tie Line: DP → B1 (${distM}m)`, { sticky: true, className: 'dp-tie-tooltip' });
+                STATE.concessionLayerGroup.addLayer(tieLine);
+            }
         }
 
-        // Draw Marker Pin
-        const marker = L.circleMarker([c.lat, c.lng], {
-            radius: 7,
-            fillColor: strokeColor,
-            color: "#ffffff",
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.9
-        });
+        // Draw Discovery Point (DP) Peg with Pulsing Radar Ring
+        if (dpCoord && dpCoord[0] && dpCoord[1]) {
+            const dpIcon = L.divIcon({
+                className: "dp-custom-leaflet-icon",
+                html: `<div class="dp-beacon-icon-wrap" title="Statutory Discovery Point (DP Beacon)">
+                    <div class="dp-radar-ring"></div>
+                    <div class="dp-inner-dot"></div>
+                </div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
 
-        marker.bindTooltip(`<strong>${c.name}</strong><br><span style="font-size:10px">${c.mineral}</span>`, {
-            direction: 'top',
-            offset: [0, -6]
-        });
+            const marker = L.marker(dpCoord, { icon: dpIcon, zIndexOffset: 800 });
 
-        marker.on("click", () => selectConcession(c.id, true));
-        STATE.concessionLayerGroup.addLayer(marker);
+            marker.bindTooltip(`🎯 <strong>Discovery Point (DP)</strong><br><span style="font-size:10px;color:#cbd5e1;">${c.name} • ${c.mineral}</span>`, {
+                direction: 'top',
+                offset: [0, -8],
+                className: 'dp-tie-tooltip'
+            });
+
+            marker.on("click", () => selectConcession(c.id, true));
+            STATE.concessionLayerGroup.addLayer(marker);
+        }
     });
 }
 
@@ -1988,17 +2279,27 @@ function openArchitectureModal(defaultTab = "arch-overview") {
 // DATA INGESTION & BACKEND CONNECTIONS
 // ============================================================
 async function loadDashboardData() {
-    // 1. Fetch Concessions
+    // 1. Fetch Concessions (Prioritize Standard Relational Seed Claims, then local JSON, then API)
     try {
-        const res = await fetch("/api/concessions");
-        if (res.ok) {
-            const data = await res.json();
-            STATE.concessions = data.concessions;
+        if (window.RELATIONAL_SEED_CLAIMS && Array.isArray(window.RELATIONAL_SEED_CLAIMS) && window.RELATIONAL_SEED_CLAIMS.length > 0) {
+            STATE.concessions = window.RELATIONAL_SEED_CLAIMS;
         } else {
-            STATE.concessions = FALLBACK_CONCESSIONS;
+            const res = await fetch("data/concessions.json");
+            if (res.ok) {
+                const data = await res.json();
+                STATE.concessions = data.concessions || FALLBACK_CONCESSIONS;
+            } else {
+                const apiRes = await fetch("/api/concessions");
+                if (apiRes.ok) {
+                    const data = await apiRes.json();
+                    STATE.concessions = data.concessions;
+                } else {
+                    STATE.concessions = FALLBACK_CONCESSIONS;
+                }
+            }
         }
     } catch (e) {
-        STATE.concessions = FALLBACK_CONCESSIONS;
+        STATE.concessions = window.RELATIONAL_SEED_CLAIMS || FALLBACK_CONCESSIONS;
     }
     renderConcessionsList(STATE.concessions);
     renderConcessionsOnMap(STATE.concessions);

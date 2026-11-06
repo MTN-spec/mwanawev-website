@@ -26,7 +26,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <link rel="stylesheet" href="styles.css?v=20261101_bankgrade">
+    <link rel="stylesheet" href="styles.css?v=20261105_geom_db">
 </head>
 
 <body>
@@ -289,6 +289,12 @@
             <button class="map-ctrl-btn" id="toggle-concessions" data-tooltip-left="Toggle Claim Boundaries">
                 <i data-lucide="shapes"></i>
             </button>
+            <button class="map-ctrl-btn" id="btn-surveyor-tool" data-tooltip-left="Cadastral Claim Surveyor (Arc 1950 UTM & Clash Guardrail)" style="color:#f59e0b;">
+                <i data-lucide="pentagon"></i>
+            </button>
+            <button class="map-ctrl-btn" id="btn-open-claims-db" data-tooltip-left="Sovereign Claims Database Ledger" style="color:#38bdf8;">
+                <i data-lucide="database"></i>
+            </button>
             <button class="map-ctrl-btn" id="fullscreen" data-tooltip-left="Fullscreen">
                 <i data-lucide="maximize-2"></i>
             </button>
@@ -375,8 +381,206 @@
                 </button>
             </div>
             
-            <div class="boundaries-toggle-list">
-                <!-- 1. Provinces -->
+                        <div class="boundaries-toggle-list">
+                <!-- Group 1: Strategic Mining Cadastre & Geology -->
+                <div class="flyout-section-title">
+                    <span>⚡ Mining Cadastre &amp; Geology</span>
+                    <span class="sec-crs" title="Projected Metric Measurement System">Arc 1950 (UTM 36S)</span>
+                </div>
+
+                <!-- 1. Great Dyke Geology -->
+                <div class="boundary-toggle-card active" id="card-toggle-great_dyke_geology" data-layer="great_dyke_geology">
+                    <div class="boundary-color-dot" style="background:#10b981;box-shadow:0 0 8px #10b981;"></div>
+                    <div class="boundary-info">
+                        <div class="boundary-name-row">
+                            <span class="boundary-name">Great Dyke Geology Complex</span>
+                            <span class="boundary-count-badge" id="badge-great_dyke_geology-count">78 units</span>
+                        </div>
+                        <div class="boundary-desc">Ultramafic &amp; mafic stratigraphy • PGM &amp; chromite lithologies</div>
+                        <div class="crs-badge-row">
+                            <span class="crs-pill-metric">Arc 1950 (UTM 36S) Metric</span>
+                            <span class="crs-pill-wgs">WGS 84</span>
+                        </div>
+                    </div>
+                    <label class="switch-toggle" onclick="event.stopPropagation();">
+                        <input type="checkbox" id="chk-great_dyke_geology" checked>
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 2. MSZ Reef Traces -->
+                <div class="boundary-toggle-card active" id="card-toggle-msz_reef_traces" data-layer="msz_reef_traces">
+                    <div class="boundary-color-dot" style="background:#eab308;box-shadow:0 0 8px #eab308;"></div>
+                    <div class="boundary-info">
+                        <div class="boundary-name-row">
+                            <span class="boundary-name">MSZ Reef Traces</span>
+                            <span class="boundary-count-badge" id="badge-msz_reef_traces-count">473 traces</span>
+                        </div>
+                        <div class="boundary-desc">Main Sulphide Zone • Platinum Group Metals (Pt, Pd, Rh) &amp; Ni-Cu</div>
+                        <div class="crs-badge-row">
+                            <span class="crs-pill-metric">Arc 1950 (UTM 36S) Metric</span>
+                            <span class="crs-pill-wgs">WGS 84</span>
+                        </div>
+                    </div>
+                    <label class="switch-toggle" onclick="event.stopPropagation();">
+                        <input type="checkbox" id="chk-msz_reef_traces" checked>
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 3. Strategic PGM Resource Blocks -->
+                <div class="boundary-toggle-card active" id="card-toggle-great_dyke_resource_blocks" data-layer="great_dyke_resource_blocks">
+                    <div class="boundary-color-dot" style="background:#06b6d4;box-shadow:0 0 8px #06b6d4;"></div>
+                    <div class="boundary-info">
+                        <div class="boundary-name-row">
+                            <span class="boundary-name">PGM Resource Blocks</span>
+                            <span class="boundary-count-badge" id="badge-great_dyke_resource_blocks-count">178 blocks</span>
+                        </div>
+                        <div class="boundary-desc">Hartley, Selukwe, Wedza &amp; Musengezi subchamber leases</div>
+                        <div class="crs-badge-row">
+                            <span class="crs-pill-metric">Arc 1950 (UTM 36S) Metric</span>
+                            <span class="crs-pill-wgs">WGS 84</span>
+                        </div>
+                    </div>
+                    <label class="switch-toggle" onclick="event.stopPropagation();">
+                        <input type="checkbox" id="chk-great_dyke_resource_blocks" checked>
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 4. Open Pit Mines -->
+                <div class="boundary-toggle-card" id="card-toggle-great_dyke_open_pits" data-layer="great_dyke_open_pits">
+                    <div class="boundary-color-dot" style="background:#f97316;box-shadow:0 0 8px #f97316;"></div>
+                    <div class="boundary-info">
+                        <div class="boundary-name-row">
+                            <span class="boundary-name">Great Dyke Open Pits</span>
+                            <span class="boundary-count-badge" id="badge-great_dyke_open_pits-count">251 pits</span>
+                        </div>
+                        <div class="boundary-desc">Active opencast workings, chromite pods &amp; PGM trenches</div>
+                        <div class="crs-badge-row">
+                            <span class="crs-pill-metric">Arc 1950 (UTM 36S) Metric</span>
+                            <span class="crs-pill-wgs">WGS 84</span>
+                        </div>
+                    </div>
+                    <label class="switch-toggle" onclick="event.stopPropagation();">
+                        <input type="checkbox" id="chk-great_dyke_open_pits">
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 5. Great Dyke Faults -->
+                <div class="boundary-toggle-card" id="card-toggle-great_dyke_faults" data-layer="great_dyke_faults">
+                    <div class="boundary-color-dot" style="background:#f43f5e;box-shadow:0 0 8px #f43f5e; border-radius:2px; width:16px; height:4px;"></div>
+                    <div class="boundary-info">
+                        <div class="boundary-name-row">
+                            <span class="boundary-name">Fault Lines &amp; Shears</span>
+                            <span class="boundary-count-badge" id="badge-great_dyke_faults-count">93 faults</span>
+                        </div>
+                        <div class="boundary-desc">Transverse faults offsetting the Great Dyke graben structure</div>
+                        <div class="crs-badge-row">
+                            <span class="crs-pill-metric">Arc 1950 (UTM 36S) Metric</span>
+                            <span class="crs-pill-wgs">WGS 84</span>
+                        </div>
+                    </div>
+                    <label class="switch-toggle" onclick="event.stopPropagation();">
+                        <input type="checkbox" id="chk-great_dyke_faults">
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 6. USGS MRDS Mineral Occurrences -->
+                <div class="boundary-toggle-card" id="card-toggle-zimbabwe_mrds_mines" data-layer="zimbabwe_mrds_mines">
+                    <div class="boundary-color-dot" style="background:#a855f7;box-shadow:0 0 8px #a855f7;"></div>
+                    <div class="boundary-info">
+                        <div class="boundary-name-row">
+                            <span class="boundary-name">MRDS Mineral Deposits</span>
+                            <span class="boundary-count-badge" id="badge-zimbabwe_mrds_mines-count">296 sites</span>
+                        </div>
+                        <div class="boundary-desc">USGS Mineral Resources Data System • Gold, Lithium, Copper</div>
+                        <div class="crs-badge-row">
+                            <span class="crs-pill-metric">Arc 1950 (UTM 36S) Metric</span>
+                            <span class="crs-pill-wgs">WGS 84</span>
+                        </div>
+                    </div>
+                    <label class="switch-toggle" onclick="event.stopPropagation();">
+                        <input type="checkbox" id="chk-zimbabwe_mrds_mines">
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <!-- Group 2: Conservation & Statutory Guardrails -->
+                <div class="flyout-section-title" style="margin-top:10px;">
+                    <span>🛡️ Conservation &amp; Guardrails</span>
+                    <span class="sec-crs" style="color:#ef4444; border-color:rgba(239,68,68,0.4); background:rgba(239,68,68,0.15);">ZERO-MINING</span>
+                </div>
+
+                <!-- 7. ZimParks National Parks -->
+                <div class="boundary-toggle-card active" id="card-toggle-national_parks" data-layer="national_parks">
+                    <div class="boundary-color-dot" style="background:#22c55e;box-shadow:0 0 8px #22c55e;"></div>
+                    <div class="boundary-info">
+                        <div class="boundary-name-row">
+                            <span class="boundary-name">National Parks (ZimParks)</span>
+                            <span class="boundary-strict-badge">ZERO MINING</span>
+                        </div>
+                        <div class="boundary-desc">64 Statutory sanctuaries • Hwange, Mana Pools, Matobo, Gonarezhou</div>
+                        <div class="crs-badge-row">
+                            <span class="crs-pill-metric">Arc 1950 (UTM 36S) Metric</span>
+                            <span class="crs-pill-wgs">WGS 84</span>
+                        </div>
+                    </div>
+                    <label class="switch-toggle" onclick="event.stopPropagation();">
+                        <input type="checkbox" id="chk-national_parks" checked>
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 8. Protected Conservation Areas -->
+                <div class="boundary-toggle-card active" id="card-toggle-protected_areas" data-layer="protected_areas">
+                    <div class="boundary-color-dot" style="background:#34d399;box-shadow:0 0 8px #34d399;"></div>
+                    <div class="boundary-info">
+                        <div class="boundary-name-row">
+                            <span class="boundary-name">Conservation Reserves</span>
+                            <span class="boundary-count-badge" id="badge-protected_areas-count">64 areas</span>
+                        </div>
+                        <div class="boundary-desc">Forestry Commission estates &amp; botanical safari sanctuaries</div>
+                        <div class="crs-badge-row">
+                            <span class="crs-pill-metric">Arc 1950 (UTM 36S) Metric</span>
+                            <span class="crs-pill-wgs">WGS 84</span>
+                        </div>
+                    </div>
+                    <label class="switch-toggle" onclick="event.stopPropagation();">
+                        <input type="checkbox" id="chk-protected_areas" checked>
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 9. Rivers Network -->
+                <div class="boundary-toggle-card" id="card-toggle-rivers" data-layer="rivers">
+                    <div class="boundary-color-dot" style="background:#38bdf8;box-shadow:0 0 8px #38bdf8; border-radius:2px; width:16px; height:4px;"></div>
+                    <div class="boundary-info">
+                        <div class="boundary-name-row">
+                            <span class="boundary-name">National River Network</span>
+                            <span class="boundary-count-badge" id="badge-rivers-count">18,834 lines</span>
+                        </div>
+                        <div class="boundary-desc">Hydrological drainage • Zambezi, Limpopo, Save &amp; Runde basins</div>
+                        <div class="crs-badge-row">
+                            <span class="crs-pill-metric">Arc 1950 (UTM 36S) Metric</span>
+                            <span class="crs-pill-wgs">WGS 84</span>
+                        </div>
+                    </div>
+                    <label class="switch-toggle" onclick="event.stopPropagation();">
+                        <input type="checkbox" id="chk-rivers">
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <!-- Group 3: Sovereign Administrative Cadastre -->
+                <div class="flyout-section-title" style="margin-top:10px;">
+                    <span>🏛️ Administrative Cadastre</span>
+                    <span class="sec-crs">Level 1 &amp; 2</span>
+                </div>
+
+                <!-- 10. Provinces -->
                 <div class="boundary-toggle-card active" id="card-toggle-provinces" data-layer="provinces">
                     <div class="boundary-color-dot" style="background:#38bdf8;box-shadow:0 0 8px #38bdf8;"></div>
                     <div class="boundary-info">
@@ -384,7 +588,11 @@
                             <span class="boundary-name">Provinces (Level 1)</span>
                             <span class="boundary-count-badge" id="badge-provinces-count">10</span>
                         </div>
-                        <div class="boundary-desc">10 Gazetted Provinces & Metropolitan Areas</div>
+                        <div class="boundary-desc">10 Gazetted Provincial Mining Jurisdictions</div>
+                        <div class="crs-badge-row">
+                            <span class="crs-pill-metric">Arc 1950 (UTM 36S) Metric</span>
+                            <span class="crs-pill-wgs">WGS 84</span>
+                        </div>
                     </div>
                     <label class="switch-toggle" onclick="event.stopPropagation();">
                         <input type="checkbox" id="chk-provinces" checked>
@@ -392,7 +600,7 @@
                     </label>
                 </div>
 
-                <!-- 2. Districts -->
+                <!-- 11. Districts -->
                 <div class="boundary-toggle-card active" id="card-toggle-districts" data-layer="districts">
                     <div class="boundary-color-dot" style="background:#fbbf24;box-shadow:0 0 8px #fbbf24;"></div>
                     <div class="boundary-info">
@@ -401,89 +609,13 @@
                             <span class="boundary-count-badge" id="badge-districts-count">91</span>
                         </div>
                         <div class="boundary-desc">91 Mining cadastre districts across all 10 provinces</div>
+                        <div class="crs-badge-row">
+                            <span class="crs-pill-metric">Arc 1950 (UTM 36S) Metric</span>
+                            <span class="crs-pill-wgs">WGS 84</span>
+                        </div>
                     </div>
                     <label class="switch-toggle" onclick="event.stopPropagation();">
                         <input type="checkbox" id="chk-districts" checked>
-                        <span class="switch-slider"></span>
-                    </label>
-                </div>
-
-                <!-- 3. Wards -->
-                <div class="boundary-toggle-card active" id="card-toggle-wards" data-layer="wards">
-                    <div class="boundary-color-dot" style="background:#c084fc;box-shadow:0 0 8px #c084fc;"></div>
-                    <div class="boundary-info">
-                        <div class="boundary-name-row">
-                            <span class="boundary-name">Wards (Level 3)</span>
-                            <span class="boundary-count-badge" id="badge-wards-count">1,961</span>
-                        </div>
-                        <div class="boundary-desc">1,961 Electoral & local ASM artisanal wards nationwide</div>
-                    </div>
-                    <label class="switch-toggle" onclick="event.stopPropagation();">
-                        <input type="checkbox" id="chk-wards" checked>
-                        <span class="switch-slider"></span>
-                    </label>
-                </div>
-
-                <!-- 4. Protected Areas / Parks -->
-                <div class="boundary-toggle-card active" id="card-toggle-parks" data-layer="protected_areas">
-                    <div class="boundary-color-dot" style="background:#10b981;box-shadow:0 0 8px #10b981;"></div>
-                    <div class="boundary-info">
-                        <div class="boundary-name-row">
-                            <span class="boundary-name">Protected Areas & Parks</span>
-                            <span class="boundary-strict-badge">ZERO MINING</span>
-                        </div>
-                        <div class="boundary-desc">12 ZimParks National Parks, Safari & Forest Reserves</div>
-                    </div>
-                    <label class="switch-toggle" onclick="event.stopPropagation();">
-                        <input type="checkbox" id="chk-parks" checked>
-                        <span class="switch-slider"></span>
-                    </label>
-                </div>
-
-                <!-- 5. Rivers -->
-                <div class="boundary-toggle-card" id="card-toggle-rivers" data-layer="rivers">
-                    <div class="boundary-color-dot" style="background:#38bdf8;box-shadow:0 0 8px #38bdf8; border-radius:2px; width:16px; height:4px;"></div>
-                    <div class="boundary-info">
-                        <div class="boundary-name-row">
-                            <span class="boundary-name">Rivers & Hydrology</span>
-                            <span class="boundary-count-badge" id="badge-rivers-count">–</span>
-                        </div>
-                        <div class="boundary-desc">National river network • Basin discharge & river order</div>
-                    </div>
-                    <label class="switch-toggle" onclick="event.stopPropagation();">
-                        <input type="checkbox" id="chk-rivers">
-                        <span class="switch-slider"></span>
-                    </label>
-                </div>
-
-                <!-- 6. Soil -->
-                <div class="boundary-toggle-card" id="card-toggle-soil" data-layer="soil">
-                    <div class="boundary-color-dot" style="background:#b45309;box-shadow:0 0 8px #b45309;"></div>
-                    <div class="boundary-info">
-                        <div class="boundary-name-row">
-                            <span class="boundary-name">Soil Classification</span>
-                            <span class="boundary-count-badge" id="badge-soil-count">–</span>
-                        </div>
-                        <div class="boundary-desc">FAO World Soil Map • DOMSOI codes + mining relevance</div>
-                    </div>
-                    <label class="switch-toggle" onclick="event.stopPropagation();">
-                        <input type="checkbox" id="chk-soil">
-                        <span class="switch-slider"></span>
-                    </label>
-                </div>
-
-                <!-- 7. Geology -->
-                <div class="boundary-toggle-card" id="card-toggle-geology" data-layer="geology">
-                    <div class="boundary-color-dot" style="background:#8B4513;box-shadow:0 0 8px #CD853F;"></div>
-                    <div class="boundary-info">
-                        <div class="boundary-name-row">
-                            <span class="boundary-name">Geology (BGS/FAO)</span>
-                            <span class="boundary-count-badge" id="badge-geology-count">–</span>
-                        </div>
-                        <div class="boundary-desc">Africa geology clipped to Zimbabwe • GLG rock unit codes</div>
-                    </div>
-                    <label class="switch-toggle" onclick="event.stopPropagation();">
-                        <input type="checkbox" id="chk-geology">
                         <span class="switch-slider"></span>
                     </label>
                 </div>
@@ -491,8 +623,8 @@
 
             <!-- Bulk Toggles Footer -->
             <div class="boundaries-footer-actions">
-                <button class="btn-sm-action" id="btn-boundaries-all-on" title="Turn on all 7 layers">Show All</button>
-                <button class="btn-sm-action secondary" id="btn-boundaries-all-off" title="Turn off all layers">Hide All</button>
+                <button class="btn-sm-action" id="btn-boundaries-all-on" title="Turn on all dataset layers">Show All</button>
+                <button class="btn-sm-action secondary" id="btn-boundaries-all-off" title="Turn off all dataset layers">Hide All</button>
                 <button class="btn-sm-action secondary" id="btn-boundaries-fit" title="Zoom map to full Zimbabwe extent"><i data-lucide="maximize-2" style="width:10px;height:10px;display:inline;margin-right:2px;"></i>Fit Zim</button>
             </div>
         </div>
@@ -582,6 +714,21 @@
 
         <!-- Panel 2: Satellite Spectral Layers Content (hidden by default) -->
         <div class="panel-content hidden" id="panel-layers">
+            <!-- Cadastral Claim Surveyor & Beacon Pegging Banner -->
+            <div class="surveyor-banner-wrap" id="surveyor-banner-wrap">
+                <div class="surveyor-banner-card" id="btn-open-surveyor-banner">
+                    <div class="sbc-icon">
+                        <i data-lucide="pentagon" style="width:20px;height:20px;color:#f59e0b;"></i>
+                    </div>
+                    <div class="sbc-info">
+                        <strong>Cadastral Claim Surveyor</strong>
+                        <span>Draw boundary or input beacons (Arc 1950 UTM default • Clash Protected)</span>
+                    </div>
+                    <button type="button" class="sbc-launch-btn">
+                        <span>Survey</span> &rarr;
+                    </button>
+                </div>
+            </div>
             <div class="layers-tabs">
                 <button class="layer-tab active" data-tab="all">All</button>
                 <button class="layer-tab" data-tab="mineral">Minerals</button>
@@ -1900,8 +2047,16 @@ Map.addLayer(clayIndex, {min: 1.0, max: 2.2, palette: ['purple', 'blue', 'green'
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+    <!-- Proj4 JS for Arc 1950 UTM Reprojection (Ministry of Mines Cadastre) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
+    <!-- PostGIS Relational Claims & Geological Standard Attributes Model -->
+    <script src="claims-model.js?v=20261106_v2"></script>
     <!-- Main Dashboard Application Logic -->
-    <script src="app.js?v=20261101_bankgrade"></script>
+    <script src="app.js?v=20261106_v2"></script>
+    <!-- 2026 Sovereign Revamp Engine (Floating Search, Spectral HUD, Valuation & GIS Export) -->
+    <script src="revamp-engine.js?v=20261104_revamp"></script>
+    <!-- Cadastral Claim Surveyor Engine (Arc 1950 UTM Digitizer & Beacon Input) -->
+    <script src="surveyor-engine.js?v=20261106_dp_geom"></script>
 
     <script>
         // Initialize Lucide icons on page load
