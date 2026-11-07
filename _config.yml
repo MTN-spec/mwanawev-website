@@ -1,0 +1,13 @@
+# GitHub Pages Jekyll Configuration
+# Exclude non-web binaries and source trees from edge CDN deployment to ensure instant synchronization
+exclude:
+  - changeit.apk
+  - paywega.apk
+  - android/
+  - paywega-deploy/
+  - database/
+  - package.json
+  - package-lock.json
+  - scripts/
+  - "*.bat"
+  - "*.ps1"
