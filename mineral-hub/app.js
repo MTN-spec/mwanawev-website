@@ -29,6 +29,7 @@ const STATE = {
         great_dyke_open_pits: null,
         great_dyke_faults: null,
         zimbabwe_mrds_mines: null,
+        mimosa_boreholes: null,
         national_parks: null,
         protected_areas: null,
         rivers: null,
@@ -42,6 +43,7 @@ const STATE = {
         great_dyke_open_pits: false,
         great_dyke_faults: false,
         zimbabwe_mrds_mines: false,
+        mimosa_boreholes: true,
         national_parks: true,
         protected_areas: true,
         rivers: false,
@@ -642,16 +644,14 @@ function initMap() {
     STATE.concessionLayerGroup = L.layerGroup().addTo(map);
     STATE.spectralLayerGroup = L.layerGroup().addTo(map);
 
-    // Layer groups for administrative & conservation boundaries
-    STATE.boundaryLayerGroups = {
-        provinces:       L.layerGroup(),
-        districts:       L.layerGroup(),
-        wards:           L.layerGroup(),
-        protected_areas: L.layerGroup(),
-        rivers:          L.layerGroup(),
-        soil:            L.layerGroup(),
-        geology:         L.layerGroup()
-    };
+    // Layer groups for administrative, cadastre, geological & borehole layers
+    STATE.boundaryLayerGroups = {};
+    Object.keys(DATASET_CONFIGS).forEach(key => {
+        STATE.boundaryLayerGroups[key] = L.layerGroup();
+        if (STATE.boundaryVisible[key]) {
+            STATE.boundaryLayerGroups[key].addTo(map);
+        }
+    });
 
     // Create dedicated Leaflet panes for new layers
     if (!map.getPane('riversPane')) {
@@ -666,12 +666,6 @@ function initMap() {
         map.createPane('geologyPane');
         map.getPane('geologyPane').style.zIndex = 401;  // bottommost overlay
     }
-
-    if (STATE.boundaryVisible.provinces)       STATE.boundaryLayerGroups.provinces.addTo(map);
-    if (STATE.boundaryVisible.districts)       STATE.boundaryLayerGroups.districts.addTo(map);
-    if (STATE.boundaryVisible.wards)           STATE.boundaryLayerGroups.wards.addTo(map);
-    if (STATE.boundaryVisible.protected_areas) STATE.boundaryLayerGroups.protected_areas.addTo(map);
-    // rivers / soil / geology start hidden — loaded on demand when user ticks toggle
 
     initBoundaryControlsAndData();
 
@@ -965,6 +959,42 @@ const DATASET_CONFIGS = {
             </div>`;
         }
     },
+    mimosa_boreholes: {
+        file: 'data/mimosa_pge_boreholes.geojson',
+        pane: 'minesPane',
+        pointToLayer: (feature, latlng) => {
+            const isOxide = feature.properties?.ore_state === 'OXIDE';
+            const isFlt = feature.properties?.rock_competence === 'STRUC';
+            const color = isOxide ? '#f59e0b' : (isFlt ? '#f43f5e' : '#10b981');
+            return L.circleMarker(latlng, {
+                radius: 4.5,
+                fillColor: color,
+                color: '#ffffff',
+                weight: 1.2,
+                opacity: 0.9,
+                fillOpacity: 0.85
+            });
+        },
+        popup: (p, lat, lng) => {
+            const arc = getArc1950Coords(lat, lng);
+            return `<div class="custom-gis-popup">
+                <h4>💎 Mimosa Drillhole: ${p.id}</h4>
+                <div class="popup-sub">Wedza Subchamber • ${p.domain} Structural Sector</div>
+                <div class="popup-grid">
+                    <span>Horizon:</span> <strong>${p.horizon || 'MSZ'}</strong>
+                    <span>Ore State:</span> <strong>${p.ore_state || 'SULPHIDE'}</strong>
+                    <span>Depth to MSZ:</span> <strong>${p.msz_depth_m} m</strong>
+                    <span>Reef Elevation:</span> <strong>${p.msz_elevation_rl} m RL</strong>
+                    <span>Ground Status:</span> <strong>${p.rock_competence}</strong>
+                    <span>Dip / Bearing:</span> <strong>${p.dip}° / ${p.bearing}°</strong>
+                    <span>Basket:</span> <strong>${p.pge_basket}</strong>
+                </div>
+                <div class="popup-crs-box">
+                    <div><strong>Arc 1950 (UTM 36S):</strong> E: ${arc.easting.toLocaleString()} m | N: ${arc.northing.toLocaleString()} m</div>
+                </div>
+            </div>`;
+        }
+    },
     national_parks: {
         file: 'data/zimbabwe_national_parks.geojson',
         pane: 'parksPane',
@@ -1201,7 +1231,7 @@ async function initBoundaryControlsAndData() {
     }
 
     // Pre-load default active layers
-    const defaultsToLoad = ['great_dyke_geology', 'msz_reef_traces', 'great_dyke_resource_blocks', 'national_parks', 'protected_areas', 'provinces', 'districts'];
+    const defaultsToLoad = ['great_dyke_geology', 'msz_reef_traces', 'great_dyke_resource_blocks', 'mimosa_boreholes', 'national_parks', 'protected_areas', 'provinces', 'districts'];
     for (const key of defaultsToLoad) {
         await ensureBoundaryLayerLoaded(key);
     }

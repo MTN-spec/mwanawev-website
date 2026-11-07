@@ -369,12 +369,12 @@
             </div>
         </div>
 
-        <!-- Professional Administrative & Conservation Boundaries Flyout -->
+        <!-- Professional Administrative & Conservation Boundaries Flyout (Arc 1950 & WGS84 Dual-CRS) -->
         <div class="basemap-flyout admin-boundaries-flyout hidden" id="boundaries-flyout">
             <div class="basemap-flyout-header">
                 <div class="flyout-title-row">
                     <i data-lucide="landmark" style="width:14px;height:14px;color:#38bdf8;"></i>
-                    <span class="flyout-title">MAP LAYERS — ADMIN, ENV & GEO</span>
+                    <span class="flyout-title">MAP LAYERS — DUAL-CRS CADASTRAL &amp; ENV</span>
                 </div>
                 <button class="flyout-close-btn" id="close-boundaries-flyout" title="Close Boundaries">
                     <i data-lucide="x" style="width:12px;height:12px;"></i>
@@ -504,6 +504,26 @@
                     </div>
                     <label class="switch-toggle" onclick="event.stopPropagation();">
                         <input type="checkbox" id="chk-zimbabwe_mrds_mines">
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 6b. Mimosa Mine 10-PGE Boreholes -->
+                <div class="boundary-toggle-card active" id="card-toggle-mimosa_boreholes" data-layer="mimosa_boreholes">
+                    <div class="boundary-color-dot" style="background:#10b981;box-shadow:0 0 8px #10b981;"></div>
+                    <div class="boundary-info">
+                        <div class="boundary-name-row">
+                            <span class="boundary-name">💎 Mimosa 10-PGE Drillholes</span>
+                            <span class="boundary-count-badge" id="badge-mimosa_boreholes-count">596 holes</span>
+                        </div>
+                        <div class="boundary-desc">Wedza Subchamber MSZ • Pt, Pd, Rh, Au, Base Metals • 3D Desurveyed</div>
+                        <div class="crs-badge-row">
+                            <span class="crs-pill-metric">Arc 1950 Mine Grid</span>
+                            <span class="crs-pill-wgs">WGS 84</span>
+                        </div>
+                    </div>
+                    <label class="switch-toggle" onclick="event.stopPropagation();">
+                        <input type="checkbox" id="chk-mimosa_boreholes" checked>
                         <span class="switch-slider"></span>
                     </label>
                 </div>
