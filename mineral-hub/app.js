@@ -1005,7 +1005,7 @@ const DATASET_CONFIGS = {
         }
     },
     rivers: {
-        file: 'data/zimbabwe_rivers.geojson',
+        file: 'data/rivers.geojson',
         pane: 'riversPane',
         style: { color: '#38bdf8', weight: 1.2, opacity: 0.75 },
         popup: (p, lat, lng) => {
