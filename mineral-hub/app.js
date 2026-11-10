@@ -960,7 +960,7 @@ const DATASET_CONFIGS = {
         }
     },
     mimosa_boreholes: {
-        file: 'data/mimosa_pge_boreholes.geojson',
+        file: 'data/mimosa_pge_boreholes.geojson?v=20261110_zvishavane',
         pane: 'minesPane',
         pointToLayer: (feature, latlng) => {
             const isOxide = feature.properties?.ore_state === 'OXIDE';

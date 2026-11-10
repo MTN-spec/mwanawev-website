@@ -5197,6 +5197,7 @@ body.hud-focus-mode .map-container {
     color: #ef4444;
 }
 
+
 /* ==========================================================================
    7. AUTOMATED SPATIAL COLLISION & ZIMPARKS CLASH ALERT STYLES
    ========================================================================== */
@@ -5782,4 +5783,126 @@ body.hud-focus-mode .map-container {
     background: #f59e0b;
     color: #000;
     border-color: #fbbf24;
+}
+
+
+/* ============================================================
+   AI NEURAL EXPLORATION ENGINE & TELEMETRY STYLES
+   ============================================================ */
+.ai-telemetry-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+.ai-telemetry-pill:hover {
+    background: rgba(16, 185, 129, 0.18);
+    border-color: rgba(16, 185, 129, 0.6);
+    box-shadow: 0 0 14px rgba(16, 185, 129, 0.25);
+    transform: translateY(-1px);
+}
+.ai-pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: pulse 1.6s infinite ease-in-out;
+}
+.ai-pill-text {
+    display: flex;
+    flex-direction: column;
+}
+.ai-pill-title {
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #10b981;
+    line-height: 1.1;
+}
+.ai-pill-status {
+    font-size: 8.5px;
+    color: #94a3b8;
+    font-family: monospace;
+    line-height: 1.1;
+}
+
+/* AI Telemetry Modal Layout */
+.telemetry-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.telemetry-stat-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.telemetry-stat-card .t-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.telemetry-stat-card .t-val {
+    font-size: 17px;
+    font-weight: 800;
+    color: #f8fafc;
+    font-family: monospace;
+}
+.telemetry-stat-card .t-sub {
+    font-size: 10px;
+    color: #10b981;
+}
+.memory-bar-wrap {
+    margin-top: 6px;
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.memory-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+.ai-card-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ai-specs-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.ai-specs-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.ai-specs-table td:first-child {
+    color: #94a3b8;
+    font-weight: 600;
+    width: 35%;
+}
+.ai-specs-table td:last-child {
+    color: #f1f5f9;
+    font-family: monospace;
 }

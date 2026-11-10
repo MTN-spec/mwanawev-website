@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mtnspec-v-20261104_191000';
+const CACHE_NAME = 'mtnspec-v-20261110_telemetry';
 const urlsToCache = [
     './app.html',
     './app.css',
@@ -32,13 +32,15 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Always use Network-First for HTML pages, CSS and site-config.js so mtnspec.co.zw updates immediately
+    // Always use Network-First for HTML pages, CSS, JS, JSON & GeoJSON so mtnspec.co.zw updates immediately
     if (
         event.request.mode === 'navigate' ||
         (event.request.headers.get('accept') || '').includes('text/html') ||
         event.request.url.includes('corporate.css') ||
         event.request.url.includes('corporate.js') ||
-        event.request.url.includes('site-config.js')
+        event.request.url.includes('site-config.js') ||
+        event.request.url.includes('.geojson') ||
+        event.request.url.includes('.json')
     ) {
         event.respondWith(
             fetch(event.request)
